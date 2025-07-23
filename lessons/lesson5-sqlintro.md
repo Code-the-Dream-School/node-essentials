@@ -1,8 +1,8 @@
-# **Lesson 4 — Introduction to Databases and SQL**
+# **Lesson 5 — Introduction to Databases and SQL**
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will gain foundational knowledge of SQL databases using Postgres. They willThey will define relational schemas, insert and query data using SQL, handle many-to-many relationships, and interact with databases directly from Pandas for analysis and reporting.
+**Learning Objectives**: Students will gain foundational knowledge of SQL databases using Postgres. They will understand the basic purpose and attributes of SQL databases.  They will learn the SQL language, including SELECT, INSERT, UPDATE, and other standard SQL verbs.  They will understand JOINs and transactions, primary and foreign keys, associations, and table constraints.  They will learn how to create tables with schemas.  This is a generalized introduction to SQL, so no Object Relational Mapper (ORM) will be used.  In this lesson, the focus is on SQL itself, so there will be no JavaScript code developed.
 
 **Topics**:
 
@@ -13,7 +13,7 @@
 5. BEGIN, COMMIT, and RETURNING.
 6. SQL from a Node program.
 
-## **4.1 What SQL Is, and Why it is Used**
+## **5.1 What SQL Is, and Why it is Used**
 
 SQL is the language used to access relational databases. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns in each table, giving each a name and a datatype such as INTEGER or TEXT or REAL. One can compare this to no-SQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used -- but MongoDB is pretty easy to learn. SQL is a deeper topic.
 
@@ -56,7 +56,7 @@ When a table is defined in the schema, one or several **constraints** on the val
 
 If you try to create a record that doesn't comply with constraints, or update one in violation of constraints, you get an error.
 
-## **4.2 Learning and Practicing the SQL Language**
+## **5.2 Learning and Practicing the SQL Language**
 
 SQL is the language used to access relational databases. You use it to do CRUD operations: Create, Read, Update, and Delete. You don't use SQL to implement program logic. Instead, from a language like JavaScript, you invoke SQL operations. The key verbs in SQL are as follows:
 
@@ -132,7 +132,7 @@ W3Schools provides a useful and comprehensive reference [here.](https://www.w3sc
    ```
    This would change all records in the Employees table, as there is no WHERE clause. Note, however, that this does not work in SQLBolt, because of the limitations of that tutorial.
 
-## **4.3 A Command Line Practice Environment**
+## **5.3 A Command Line Practice Environment**
 
 Your node-homework directory contains an SQL command line tool. Make that directory active, and then run the tool with:
 
@@ -186,7 +186,7 @@ Here are some tips on using the sqlcommand command line interface:
 - In general, searches are case-sensitive.
 - Ctrl-C quits the program.
 
-## **4.4 More On Joins**
+## **5.4 More On Joins**
 
 ### **A Many-To-Many Association, Multiple Table Joins, and Aliasing**
 
@@ -354,7 +354,7 @@ The more isolation you have, the greater the locking cost, but the stronger your
 
 The default isolation level for the Postgres database you are using is READ COMMITTED. You can change this default when establishing a connection, and you can also change it for a particular transaction.
 
-## **4.6 SQL in a Node Application**
+## **5.6 SQL in a Node Application**
 
 There are several ways to do SQL in Node. You can use the node-postgres package. That one basically issues the SQL statements you specify. You have two examples of pg programs in your node-homework folder:
 
