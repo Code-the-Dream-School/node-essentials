@@ -109,11 +109,16 @@ const setJwtCookie = (req, res, user) => {
 };
 
 const logonRouteHandler = async (req, res, next) => {
-  const user = await new Promise((resolve) => {
-    passport.authenticate("local", { session: false }, (err, user) => {
-      return err ? next(err) : resolve(user);
-    })(req, res);
-  });
+  let user;
+  try {
+    user = await new Promise((resolve, reject) => {
+      passport.authenticate("local", { session: false }, (err, user) => {
+        return err ? reject(err) : resolve(user);
+      })(req, res);
+    });
+  } catch (err) {
+    return next(err);
+  }
   if (!user) {
     res
       .status(StatusCodes.UNAUTHORIZED)
@@ -135,7 +140,30 @@ Because no one else has the secret, no one else can create a cookie the server w
 
 **However:** In the development environment, setting up HTTPS for your server is messy.  If you don't have HTTPS, Chrome and other browsers will discard any cookie with the secure flag set.  And if the secure flag is not set, browsers won't accept cookies with the domain set, or with SameSite: "None".  So, in the development environment, SameSite is set to "Lax", and the secure flag and the domain are not set for the cookie.  Now, if we turn these flags off, the browsers won't accept a cross-site cookie.  So, we set up the environment so that the browser doesn't know that it is a cross-site connection.  We'll use the Vite proxy for that in a later lesson.  Postman has the same limitations as the browsers do as far as what kind of cookie can be set without HTTPS.  But because Postman is not a browser, it doesn't know if a cookie is a cross-site cookie.  So that works too.
 
-At logon time, the logon route handler calls passport.authenticate to get the middleware function for the "local" strategy.  It then calls that middleware, and provides a callback.  In the code above, that callback is wrapped in a promise.  This is not really necessary -- we could do subsequent processing in the callback itself.  When the passport middleware function does the callback, it might return an error, for example if the database is down. Important! **Do not throw this error!**  That would crash the server.  Your error handler will not catch the error because it happens in a callback.  Instead, call next(err).  This calls the error handler.
+At logon time, the logon route handler calls passport.authenticate to get the middleware function for the "local" strategy.  It then calls that middleware, and provides a callback.  In the code above, that callback is wrapped in a promise.  This is not really necessary -- we could do subsequent processing in the callback itself.  When the passport middleware function does the callback, it might return an error, for example if the database is down.  We have to call either resolve() or reject(), else the promise is never resolved and the server hangs.  So we call reject() for the error case. Important! **We must catch this error, and call next(err).**  If the error is thrown from a callback, that would crash the server.  Your error handler will not catch the error because it happens in a callback.  Instead, we call next(err).  This calls the error handler.  
+
+The use of the promise above is just for illustration.  We can make this code cleaner as follows:
+
+```js
+const logonRouteHandler = async (req, res, next) => {
+  passport.authenticate("local", { session: false }, (err, user) => {
+    if (err) {
+      return next(err);  // don't throw the error!
+    } else {
+      if (!user) {
+        res
+          .status(StatusCodes.UNAUTHORIZED)
+          .json({ message: "Authentication failed" });
+      } else {
+        setJwtCookie(req, res, user);
+        res.json({ name: user.name, csrfToken: req.user.csrfToken });
+      }
+    }
+  })(req, res);
+};
+```
+
+Note, in this case, that when `await logonRouteHandler(req, res, next);` returns, the response hasn't been sent yet.  We'll need to handle that problem when testing.  Note also that this route handler has to have a next parameter passed. 
 
 Finally, we have to include the csrfToken in what is sent back to the front end.  For CSRF protection, the front end has to include this token in each subsequent request.  We will put it in the X-CSRF-TOKEN header.
 
@@ -192,23 +220,25 @@ passportJWTMiddleware(req, {});
  You now have auth() middleware to check if the user is logged on, but it just checks a value in storage, which creates the problems described at the start of the lesson.  Add more code to the passport.js file to create this middleware:
 
 ```js
- const jwtMiddleware = async (req, res, next) => {
-  const user = await new Promise((resolve, reject) => {
-    passport.authenticate("jwt", { session: false }, (err, user) => {
-      return err ? next(err) : resolve(user);
-    })(req, res);
-  });
-  if (user) {
-    let loggedOn = true;
-    req.user = user;
-    if (["POST", "PATCH", "PUT", "DELETE", "CONNECT"].includes(req.method)) {
-      if (req.get("X-CSRF-TOKEN") != req.user.csrfToken) {
-        loggedOn = false;
+const jwtMiddleware = async (req, res, next) => {
+  passport.authenticate("jwt", { session: false }, (err, user) => {
+    if (err) {
+      return next(err); // don't throw the error!
+    }
+    if (user) {
+      let loggedOn = true;
+      if (["POST", "PATCH", "PUT", "DELETE", "CONNECT"].includes(req.method)) {
+        if (req.get("X-CSRF-TOKEN") != user.csrfToken) {
+          loggedOn = false;
+        }
+      }
+      if (loggedOn) {
+        req.user = user;
+        return next();
       }
     }
-    if (loggedOn) return next();
-  }
-  res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+  })(req, res);
 };
 ```
 
@@ -227,7 +257,7 @@ app.use(cookieParser(process.env.JWT_SECRET));
 
 This should be done pretty early in the chain, so that the cookie is available when it is needed.
 
-You need to change the user router for the logon route so that it calls the logonRouteHandler above.  You need to change the app.use() for the task router so that it uses the jwtMiddleware above, instead of auth.  You need to change the register() method so that it calls setJwtCookie(req.user) after storing the user record.  That way a user who has just registered is also logged on.  The register() function must also return the csrfToken in the body of the response. Finally you need to make two changes to the logoff.  You need to unset the cookie, as follows:
+You need to export logonRouteHandler, jwtMiddleware, and setJwtCookie from passport.js.  You need to change the user router for the logon route so that it calls the logonRouteHandler above.  You need to change the app.use() for the task router so that it uses the jwtMiddleware above, instead of auth.  You need to change the register() method so that it calls setJwtCookie(req.user) after storing the user record.  That way a user who has just registered is also logged on.  The register() function must also return the csrfToken in the body of the response. Finally you need to make two changes to the logoff.  You need to unset the cookie, as follows:
 
 ```js
 res.clearCookie("jwt");
