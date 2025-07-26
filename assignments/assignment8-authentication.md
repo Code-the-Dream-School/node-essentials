@@ -192,29 +192,31 @@ passportJWTMiddleware(req, {});
  You now have auth() middleware to check if the user is logged on, but it just checks a value in storage, which creates the problems described at the start of the lesson.  Add more code to the passport.js file to create this middleware:
 
 ```js
- const jwtMiddleware = async (req, res, next) => {
-  const user = await new Promise((resolve, reject) => {
-    passport.authenticate("jwt", { session: false }, (err, user) => {
-      return err ? next(err) : resolve(user);
-    })(req, res);
-  });
-  if (user) {
-    let loggedOn = true;
-    req.user = user;
-    if (["POST", "PATCH", "PUT", "DELETE", "CONNECT"].includes(req.method)) {
-      if (req.get("X-CSRF-TOKEN") != req.user.csrfToken) {
-        loggedOn = false;
+const jwtMiddleware = async (req, res, next) => {
+  passport.authenticate("jwt", { session: false, failWithError: false }, (err, user) => {
+    if (err) {
+      return next(err); // never happens!!
+    }
+    if (user) {
+      let loggedOn = true;
+      if (["POST", "PATCH", "PUT", "DELETE", "CONNECT"].includes(req.method)) {
+        if (req.get("X-CSRF-TOKEN") != user.csrfToken) {
+          loggedOn = false;
+        }
+      }
+      if (loggedOn) {
+        req.user = user;
+        return next();
       }
     }
-    if (loggedOn) return next();
-  }
-  res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+  })(req, res);
 };
 ```
 
-This calls the passport "jwt" strategy to determine if the JWT in the jwt cookie is valid.  If it is, we get the user object back.  We put that into req.user, so that it can be used for authorization decisions within protected routes.  But we still have to check the csrfToken.  We only care about that for certain request methods.  We don't need to check on a GET request.  If the token from the X-CSRF-TOKEN header doesn't match the one in the cookie, authentication fails.  If authentication succeeds, the middleware function calls next.
+This calls the passport "jwt" strategy to determine if the JWT in the jwt cookie is valid.  If it is, we get the user object back.  We put that into req.user, so that it can be used for authorization decisions within protected routes.  But we still have to check the csrfToken.  We only care about that for certain request methods.  We don't need to check on a GET request.  If the token from the X-CSRF-TOKEN header doesn't match the one in the cookie, authentication fails.  If authentication succeeds, the middleware function calls next.  The jwt strategy we defined never calls `done(err)` so we can never reach the next(err) line, but it's good to have it, in case someone changes the code in the strategy.  What passport-jwt is doing is calling `jwt.verify()` to make sure the jwt in the cookie is valid.  `jwt.verify()` might throw an error.  If the `failWithError` option is not set, passport-jwt responds with a 401 and it's own error message, and never calls the callback for `passport.authenticate()`.  We don't want that, as the error message might not be what we want. We set `failWithError` to false, which means that the callback happens, even if the jwt is bad.  If the jwt is not valid, the callback returns a null user object.  We might want to give different error messages depending on whether the jwt has a bad signature or has expired.  In that case we'd do `failWithError: true`, but we'd have to do some other kind of complicated stuff. The options, `session` and `failWithError` are nowhere documented in Passportjs.  You have to read the source code.  
 
-**An Aside about Postman:** It is not really clear here what value Postman is providing in our scenario.  If you moved the code from the "local" strategy into the logonRouteHandler, you wouldn't need to call Passport there.  And if you moved the code from the "jwt" strategy into the jwtMiddleware, you wouldn't have to call Passport there either.  If you look at usage statistics the npm website, you'll see that many many folks use Passport and the local and jwt plugins.  Somebody's getting value out of them, I guess.
+**An Aside about Passport:** It is not really clear here what value Passport is providing in our scenario, especially considering that the Passport documentation is atrocious.  If you moved the code from the "local" strategy into the logonRouteHandler, you wouldn't need to call Passport there.  And if you called jwt.verify() in jwtMiddleware, you wouldn't have to call Passport there either.  If you look at usage statistics on the npm website, you'll see that many many folks use Passport and the local and jwt plugins.  Somebody's getting value out of them, I guess.
 
 ## **Other Changes to Make Authentication Work**
 
@@ -239,7 +241,7 @@ The other change for logoff is to protect the logoff route.  This is being a lit
 
 ## **Testing with Postman**
 
-You should now test `/user/register` and `/user/logon` with Postman.  You should see two differences from previous behavior.  First, you should see the csrfToken being returned in the body of the request.  Second, you should see the jwt cookie being set.  However, none of your task routes will work, nor will your logoff route, because the csrfToken is not in the X-CSRF-TOKEN header.  Try them out to make sure this is true.
+You should now test `/user/register` and `/user/logon` with Postman.  You should see two differences from previous behavior.  First, you should see the csrfToken being returned in the body of the request.  Second, you should see the jwt cookie being set.  However, none of your task routes will work, nor will your logoff route, because the csrfToken is not in the X-CSRF-TOKEN header.  Try them out to make sure this is true.  
 
 You want to catch csrfToken when it is returned from a register or logon.  Open up the logon request in postman and you see a Tests tab.  Click on that, and plug in the following code:
 
