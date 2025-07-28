@@ -164,7 +164,13 @@ const {error, value} = userSchema.validate({name: "Bob", email: "nonsense", pass
 
 You do `{abortEarly: false}` so that you can get all the error information to report to the user, not just the first failure.  When the validate() call returns, if error is not null, there is something wrong with the request, and error.message says what the error is.  If error is null, then value has the object you want to store, which may be different from the original.  The email would have been converted to lower case, for example.  In this case, the email is not correct, the password is not allowed, and favoriteColor is not part of the schema, so there are three errors. 
 
-Add validations to your create operations for users and tasks, and your to your update operation for tasks.  You validate req.body.  If you get an error, you return a BAD_REQUEST status, and you send back a JSON body with the error message provided by the validation.  If you don't get an error, you go ahead and store the returned value, returning a CREATED, or an OK if an update completes.  Then test your work with Postman, trying both good and bad requests.  
+Add validations to your create operations for users and tasks, and your to your update operation for tasks.  It is possible that these requests might be sent without a body, so you must first have:
+
+```js
+if (!req.body) req.body = {};
+```
+
+Otherwise validation won't work right.  You then validate req.body.  If you get an error, you return a BAD_REQUEST status, and you send back a JSON body with the error message provided by the validation.  If you don't get an error, you go ahead and store the returned value, returning a CREATED, or an OK if an update completes.  Then test your work with Postman, trying both good and bad requests.  
 
 ### **Storing Only a Hash of the Passwords**
 
