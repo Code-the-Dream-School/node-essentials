@@ -1,0 +1,1245 @@
+{
+  "info": {
+    "name": "Assignment 7 - Advanced Prisma ORM Features",
+    "description": "Comprehensive Postman collection for testing all Assignment 7 features including analytics, transactions, bulk operations, and advanced querying.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the application and database are running properly."
+      },
+      "response": []
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "User Registration with Welcome Tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.user && response.user.id) {",
+                  "        pm.collectionVariables.set('userId', response.user.id.toString());",
+                  "        console.log('User ID set to:', response.user.id);",
+                  "    }",
+                  "    if (response.tasksCreated) {",
+                  "        console.log('Welcome tasks created:', response.tasksCreated);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('User created successfully', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('User registered successfully');",
+                  "    pm.expect(response.user).to.have.property('id');",
+                  "    pm.expect(response.user).to.have.property('email');",
+                  "    pm.expect(response.user).to.have.property('name');",
+                  "});",
+                  "",
+                  "pm.test('Welcome tasks created', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('tasksCreated');",
+                  "    pm.expect(response.tasksCreated).to.be.at.least(3);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "register"]
+            },
+            "description": "Register a new user. This endpoint uses transactions to create the user and automatically generate 3 welcome tasks."
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Login successful', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('Login successful');",
+                  "    pm.expect(response.user).to.have.property('id');",
+                  "    pm.expect(response.user).to.have.property('email');",
+                  "    pm.expect(response.user).to.have.property('name');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "login"]
+            },
+            "description": "Authenticate a user with email and password."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('User data returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('name');",
+                  "    pm.expect(response).to.have.property('email');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Get user information by ID with selective field loading."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User with Selective Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Only requested fields returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('name');",
+                  "    pm.expect(response).to.not.have.property('password');",
+                  "    pm.expect(response).to.not.have.property('createdAt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}?fields=id,name",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"],
+              "query": [
+                {
+                  "key": "fields",
+                  "value": "id,name"
+                }
+              ]
+            },
+            "description": "Get user with only specific fields for performance optimization."
+          },
+          "response": []
+        },
+        {
+          "name": "User Logoff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Logoff successful', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('Logoff successful');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/logoff",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "logoff"]
+            },
+            "description": "Log off the current user (placeholder endpoint)."
+          },
+          "response": []
+        }
+      ],
+      "description": "User management endpoints including registration with welcome tasks, authentication, and user retrieval."
+    },
+    {
+      "name": "Task Management",
+      "item": [
+        {
+          "name": "Create Single Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.collectionVariables.set('taskId', response.id.toString());",
+                  "        console.log('Task ID set to:', response.id);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Task created successfully', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('title');",
+                  "    pm.expect(response).to.have.property('priority');",
+                  "    pm.expect(response.priority).to.be.oneOf(['low', 'medium', 'high']);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Learn Advanced Prisma Features\",\n  \"priority\": \"high\",\n  \"isCompleted\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Create a new task for the authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Tasks (Basic)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tasks returned with pagination', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('tasks');",
+                  "    pm.expect(response).to.have.property('pagination');",
+                  "    pm.expect(response.pagination).to.have.property('page');",
+                  "    pm.expect(response.pagination).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Get all tasks for the authenticated user with basic pagination."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tasks with Advanced Filtering",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Filtered tasks returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.tasks).to.be.an('array');",
+                  "    if (response.tasks.length > 0) {",
+                  "        pm.expect(response.tasks[0]).to.have.property('priority');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}&status=false&priority=high&sort_by=createdAt&sort_order=desc&page=1&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "status",
+                  "value": "false"
+                },
+                {
+                  "key": "priority",
+                  "value": "high"
+                },
+                {
+                  "key": "sort_by",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sort_order",
+                  "value": "desc"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Get tasks with advanced filtering, sorting, and pagination."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tasks with Text Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search results returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.tasks).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}&search=Prisma&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "search",
+                  "value": "Prisma"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Search tasks by title text with pagination."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tasks with Date Range Filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Date filtered tasks returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.tasks).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}&date_range=2024-01-01,2024-12-31&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "date_range",
+                  "value": "2024-01-01,2024-12-31"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get tasks created within a specific date range."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tasks with Selective Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Only requested fields returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.tasks.length > 0) {",
+                  "        const task = response.tasks[0];",
+                  "        pm.expect(task).to.have.property('id');",
+                  "        pm.expect(task).to.have.property('title');",
+                  "        pm.expect(task).to.not.have.property('createdAt');",
+                  "        pm.expect(task).to.not.have.property('userId');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}&fields=id,title,priority&page=1&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "fields",
+                  "value": "id,title,priority"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Get tasks with only specific fields for performance optimization."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Task details returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('title');",
+                  "    pm.expect(response).to.have.property('priority');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Get a specific task by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Task updated successfully', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.title).to.equal('Updated Task Title');",
+                  "    pm.expect(response.isCompleted).to.be.true;",
+                  "    pm.expect(response.priority).to.equal('low');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Task Title\",\n  \"priority\": \"low\",\n  \"isCompleted\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Update an existing task with new values."
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Create Tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Bulk creation successful', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('Bulk task creation successful');",
+                  "    pm.expect(response).to.have.property('tasksCreated');",
+                  "    pm.expect(response).to.have.property('totalRequested');",
+                  "    pm.expect(response.tasksCreated).to.equal(response.totalRequested);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tasks\": [\n    {\n      \"title\": \"Bulk Task 1\",\n      \"priority\": \"high\",\n      \"isCompleted\": false\n    },\n    {\n      \"title\": \"Bulk Task 2\",\n      \"priority\": \"medium\",\n      \"isCompleted\": false\n    },\n    {\n      \"title\": \"Bulk Task 3\",\n      \"priority\": \"low\",\n      \"isCompleted\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/bulk?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "bulk"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Create multiple tasks in a single request using batch operations."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Task deleted successfully', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('Task deleted successfully');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Delete a specific task by ID."
+          },
+          "response": []
+        }
+      ],
+      "description": "Task management endpoints including CRUD operations, advanced filtering, pagination, and bulk operations."
+    },
+    {
+      "name": "Analytics & Search",
+      "item": [
+        {
+          "name": "User Productivity Analytics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Analytics data returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('taskStats');",
+                  "    pm.expect(response).to.have.property('recentTasks');",
+                  "    pm.expect(response).to.have.property('weeklyProgress');",
+                  "    pm.expect(response.taskStats).to.be.an('array');",
+                  "    pm.expect(response.recentTasks).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/users/{{userId}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "users", "{{userId}}", "analytics"]
+            },
+            "description": "Get comprehensive user productivity analytics including task statistics, recent activity, and weekly progress."
+          },
+          "response": []
+        },
+        {
+          "name": "Users with Task Statistics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Users with stats returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('users');",
+                  "    pm.expect(response).to.have.property('pagination');",
+                  "    pm.expect(response.users).to.be.an('array');",
+                  "    if (response.users.length > 0) {",
+                  "        pm.expect(response.users[0]).to.have.property('_count');",
+                  "        pm.expect(response.users[0]._count).to.have.property('tasks');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/users?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all users with their task statistics and pagination support."
+          },
+          "response": []
+        },
+        {
+          "name": "Task Search with Raw SQL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search results returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('results');",
+                  "    pm.expect(response).to.have.property('query');",
+                  "    pm.expect(response).to.have.property('count');",
+                  "    pm.expect(response.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/tasks/search?q=Prisma&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "tasks", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Prisma"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Advanced text search using PostgreSQL ILIKE with relevance scoring across task titles and user names."
+          },
+          "response": []
+        },
+        {
+          "name": "Task Search - Multiple Queries",
+          "item": [
+            {
+              "name": "Search for 'Analytics'",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/analytics/tasks/search?q=Analytics&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "analytics", "tasks", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "Analytics"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search for 'Task'",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/analytics/tasks/search?q=Task&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "analytics", "tasks", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "Task"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search for 'User'",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/analytics/tasks/search?q=User&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "analytics", "tasks", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "User"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "Test search functionality with different query terms."
+        }
+      ],
+      "description": "Analytics endpoints for user productivity metrics and advanced search functionality using raw SQL."
+    },
+    {
+      "name": "Error Handling Tests",
+      "item": [
+        {
+          "name": "Invalid User ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/invalid_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "invalid_id"]
+            },
+            "description": "Test error handling for invalid user ID format."
+          },
+          "response": []
+        },
+        {
+          "name": "User Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error message returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/99999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "99999"]
+            },
+            "description": "Test error handling for non-existent user ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Task Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Validation error returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"priority\": \"invalid_priority\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Test validation error handling for invalid task data."
+          },
+          "response": []
+        },
+        {
+          "name": "Search with Short Query",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/tasks/search?q=a",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "tasks", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "a"
+                }
+              ]
+            },
+            "description": "Test error handling for search query that's too short (minimum 2 characters)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Test various error scenarios to ensure proper error handling and validation."
+    },
+    {
+      "name": "Performance Tests",
+      "item": [
+        {
+          "name": "Large Dataset Pagination",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});",
+                  "",
+                  "pm.test('Pagination metadata correct', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.pagination).to.have.property('page');",
+                  "    pm.expect(response.pagination).to.have.property('limit');",
+                  "    pm.expect(response.pagination).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?user_id={{userId}}&page=1&limit=100&fields=id,title",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                },
+                {
+                  "key": "fields",
+                  "value": "id,title"
+                }
+              ]
+            },
+            "description": "Test performance with large dataset and selective field loading."
+          },
+          "response": []
+        },
+        {
+          "name": "Analytics Performance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/users/{{userId}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "users", "{{userId}}", "analytics"]
+            },
+            "description": "Test analytics endpoint performance with complex aggregations."
+          },
+          "response": []
+        }
+      ],
+      "description": "Performance testing for endpoints with large datasets and complex operations."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default headers for all requests",
+          "pm.request.headers.add({",
+          "    key: 'Accept',",
+          "    value: 'application/json'",
+          "});",
+          "",
+          "// Log request details for debugging",
+          "console.log('Making request to:', pm.request.url.toString());",
+          "console.log('Method:', pm.request.method);",
+          "if (pm.request.body && pm.request.body.mode === 'raw') {",
+          "    console.log('Request body:', pm.request.body.raw);",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test setup",
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has JSON content type', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "",
+          "// Log response details for debugging",
+          "console.log('Response status:', pm.response.status);",
+          "console.log('Response time:', pm.response.responseTime + 'ms');",
+          "if (pm.response.json()) {",
+          "    console.log('Response body:', JSON.stringify(pm.response.json(), null, 2));",
+          "}"
+        ]
+      }
+    }
+  ]
+}
