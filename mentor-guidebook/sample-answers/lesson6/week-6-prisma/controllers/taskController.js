@@ -4,10 +4,6 @@ const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 exports.index = async (req, res) => {
   try {
     // Use global user_id (set during login/registration)
-    if (!global.user_id) {
-      return res.status(401).json({ error: "User not logged in" });
-    }
-
     const tasks = await prisma.task.findMany({
       where: { userId: global.user_id }
     });
@@ -27,10 +23,6 @@ exports.show = async (req, res) => {
     const { id } = req.params;
     
     // Use global user_id (set during login/registration)
-    if (!global.user_id) {
-      return res.status(401).json({ error: "User not logged in" });
-    }
-
     const task = await prisma.task.findFirst({
       where: { 
         id: parseInt(id), 
@@ -51,10 +43,6 @@ exports.show = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     // Use global user_id (set during login/registration)
-    if (!global.user_id) {
-      return res.status(401).json({ error: "User not logged in" });
-    }
-
     const { error, value } = taskSchema.validate(req.body);
     
     if (error) {
@@ -85,10 +73,6 @@ exports.update = async (req, res) => {
     const { id } = req.params;
     
     // Use global user_id (set during login/registration)
-    if (!global.user_id) {
-      return res.status(401).json({ error: "User not logged in" });
-    }
-
     const { error, value } = patchTaskSchema.validate(req.body);
     
     if (error) {
@@ -129,10 +113,6 @@ exports.deleteTask = async (req, res) => {
     const { id } = req.params;
     
     // Use global user_id (set during login/registration)
-    if (!global.user_id) {
-      return res.status(401).json({ error: "User not logged in" });
-    }
-
     const result = await prisma.task.deleteMany({
       where: { 
         id: parseInt(id),

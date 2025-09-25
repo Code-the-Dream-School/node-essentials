@@ -109,6 +109,61 @@ project/
 └── package.json
 ```
 
+### Authentication Middleware Implementation
+
+**Create `/middleware/auth.js`:**
+```javascript
+const { StatusCodes } = require("http-status-codes");
+
+module.exports = (req, res, next) => {
+  const { user_id } = req.query;
+  
+  if (!user_id) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({ error: "User ID required" });
+  }
+
+  const userId = parseInt(user_id);
+  if (isNaN(userId)) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid user ID" });
+  }
+
+  // Store the validated user ID in the request for use in controllers
+  req.userId = userId;
+  next();
+};
+```
+
+**Update `app.js` to use middleware:**
+```javascript
+const authMiddleware = require('./middleware/auth');
+
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', authMiddleware, taskRoutes);
+app.use('/api/analytics', authMiddleware, analyticsRoutes);
+```
+
+### Enhanced Logoff Functionality
+
+**Update userController.js logoff function:**
+```javascript
+exports.logoff = async (req, res) => {
+  try {
+    // Clear any session data if using sessions
+    if (req.session) {
+      req.session.destroy();
+    }
+    
+    res.status(200).json({ message: "Logoff successful" });
+  } catch (err) {
+    console.error('User logoff error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+```
+
+**Note:** Unlike lesson 6 which uses `global.user_id`, lesson 7 uses `user_id` query parameters for authentication. The middleware validates this parameter and stores it in `req.userId` for use in controllers.
+
 ### Environment Configuration
 Your `.env` file should contain:
 
@@ -926,10 +981,12 @@ javascript
 // POST /api/tasks/bulk
 app.post('/api/tasks/bulk', async (req, res) => {
   try {
-    const { user_id } = req.query;
     const { tasks } = req.body;
+    
+    // Use userId from auth middleware
+    const userId = req.userId;
 
-    if (!user_id || !tasks || !Array.isArray(tasks)) {
+    if (!tasks || !Array.isArray(tasks)) {
       return res.status(400).json({ error: "Invalid request data" });
     }
 
@@ -937,7 +994,7 @@ app.post('/api/tasks/bulk', async (req, res) => {
       title: task.title,
       isCompleted: task.isCompleted || false,
       priority: task.priority || 'medium',
-      userId: parseInt(user_id)
+      userId: userId
     }));
 
     const result = await prisma.task.createMany({ data: validTasks });

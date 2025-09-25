@@ -134,6 +134,38 @@ You'll use the `cors` package, not to provide additional protection, but to gran
 
 You'll also use the `helmet` package. Helmet provides subtle protections for back end servers, including some defense against cross-origin attacks. The helmet package provides a lot of protection for a front end server, which is not what we're building.  When you deploy your React application to the Internet, you can configure your Internet service with protections like what helmet provides.  We won't do that in this class.
 
+### Enhanced Logoff Functionality
+
+**Improved logoff function with proper session clearing:**
+```javascript
+exports.logoff = async (req, res) => {
+  try {
+    // Clear the JWT cookie
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+    
+    // Clear any session data if using sessions
+    if (req.session) {
+      req.session.destroy();
+    }
+    
+    res.status(200).json({ message: "Logoff successful" });
+  } catch (err) {
+    console.error('User logoff error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+```
+
+**Key improvements:**
+- Properly clears JWT cookie with security options
+- Clears session data if present
+- Uses environment-based security settings
+- Maintains error handling
+
 Let's see what you're going to need:
 
 - The user model, router, and controller.  That much you have.
