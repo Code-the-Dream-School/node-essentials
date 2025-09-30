@@ -21,6 +21,8 @@
 
 As part of the Rubric for the Final Project, we ask you to add something extra.  Here are some ideas on things to add.  This is not an exhaustive list.  You may think of other things you'd like to add instead.  We do ask that you make changes only to the back end, and not to the React front end.  This is so that you don't get distracted writing React code when you need to focus on Node, Express, and SQL.  For the items listed in this lesson, you don't have to build them according to the approach described.  Also, these are just outlines -- you'll have to figure out the exact steps yourself.
 
+Don't try to do too much!  Just one or two of the ideas below, or something else you think of, should suffice.
+
 For most of these ideas, you'll need to modify the database schema using Prisma.  You'll also add additional routes or parameters to existing routes.  You then test with Postman, as (except for the Oauth idea), the front end doesn't support the additional function you add.  Be careful about authorization for any routes you add! You don't want one user to be able to do something to records belonging to a different user.
 
 An extra for the extra: When you add a function, consider creating a Jest unit test for the function that you add. 
@@ -66,25 +68,25 @@ User is now authenticated in your app
 ### **Implementation Steps**
 
 
-1. Your sample front end includes a Google logon button.  But, if you click it, you get an error message back, because you haven't implemented the back end route that it calls.  That route is /users/googleLogon, and the front end sends a POST with a body of `{authorizationCode: xxxxx}`, where the xxxxx is the authorization code obtained from Google.
+1. Your sample front end includes a Google logon button.  But, if you click it, you get an error message back, because you haven't implemented the back end route that it calls.  That route is /users/googleLogon, and the front end sends a POST with a body of `{authorizationCode: xxxxx}`, where the xxxxx is the authorization code obtained from Google.  You need to add support to your back end for this route.
 
-2. You need to use a Google provided library on the back end, which is google-auth-library.
+2. You need to use a Google provided library on the back end, which is google-auth-library.  This provides a way to send the authorization code to Google, so that if it is valid, identity information about the user is returned, including a name and email address.
 
-3. Once the user is authenticated, you need to have a record in the database corresponding to that user.  The token will convey the user's name and email.  See if you have a database record for that user.  If not, create one.  As the hashedPassword field is mandatory, you'll have to put something bogus in that.  Once you've found or created the user record, set the JWT cookie, and return the user's name and a csrfToken in the response to the front end.  You can test this one with the front end, but it would be difficult to test with Postman or Jest.
+3. Once the user is authenticated, you need to have a record in the database corresponding to that user.  See if you have a database record for that user.  If not, create one.  As the hashedPassword field is mandatory, so you'll have to put something bogus in that.  Once you've found or created the user record, set the JWT cookie, and return the user's name and a csrfToken in the response to the front end.  You can test this one with the front end, but it would be difficult to test with Postman or Jest.
 
 ## **11.3 Todos in Folders**
 
-There are various ways to implement this, but you'll need to extend the data model.  One way is to create a folders table.  Each folder would belong to a user, and a user may have many folders.  A folder would have many tasks.  So, you'd need an optional foreign key added to the tasks table, that being the folder id.  Not all of a user's tasks would belong to a folder.  You'd need to have a route that changes folders, to add or remove a task from a given folder.  You'd need to have a way to retrieve the user's list of folders, so that you can get the id for the folder.  You could change the GET for /tasks to pass a query parameter like folder=xxxxx, and if that query parameter is present, the tasks from that folder are returned.
+There are various ways to implement this, but you'll need to extend the data model.  One way is to create a folders table.  Each folder would belong to a user, and a user may have many folders.  A folder would have many tasks.  So, you'd need an optional foreign key added to the tasks table, that being the folder id.  Not all of a user's tasks would belong to a folder.  You'd need to have a route that creates a folder for the logged on user.  You'd need to have a way to add task to a given folder,or to remove a task from a folder.  Perhaps this could be done with a query parameter for the task update operation.  You'd need to have a way to retrieve the user's list of folders, so that you can get the id for each folder.  You could change the GET for /tasks support a query parameter like folder=xxxxx, and if that query parameter is present, the tasks from that folder are returned.
 
 ## **11.4 Role Based Access Control**
 
 You'd need to extend the user model to add a role column.  One way to do this is to add an optional string called roles, which would have a comma delimited list of the roles the user has.  You could keep it simple for now.  For example, you might have a "manager" role.  The manager is keeping tabs on all the users, to see who is progressing at getting their todos done.  The manager would have special access to one or several routes that allow them to see everyone's tasks.  You'd have to have some kind of standalone program that sets the value of the roles string for a given user.  At logon time, if the user record has a role attribute, you'd include that in the JWT.  Your authentication middleware would store this information, if present in the JWT, into req.user.roles.  The special manager routes would deny access if req.user.roles isn't present or doesn't include "manager".
 
-Now, the manager probably doesn't want to see only the list of tasks, but also the name and email for the owner of each task.  You can do this with one Prisma query. Can you figure out how.
+Now, the manager probably doesn't want to see only the list of tasks, but also the name and email for the owner of each task.  You can do this with one Prisma query. Can you figure out how?
 
 ## **11.5 Pagination of Result Sets**
 
-Your React application does do pagination.  The way it does it, of course, is to load the entire list of tasks, and then just show some of them.  If the list you are paginating is long, that can be unwise.  You can have Prisma do the pagination for you -- but the front end has to keep track of which page of the result set is to be shown, so that the user can scroll back and forth.  Prisma pagination is described **[here.](https://www.prisma.io/docs/orm/prisma-client/queries/pagination)**  You would probably want to create a standalone program that could populate the database with several hundred tasks, so that you can test your work.  You can test this with Postman.
+Your React application does do pagination.  The way it does it, of course, is to load the entire list of tasks, and then just show some of them.  If the list you are paginating is long, that can be unwise.  You can have Prisma do the pagination for you.  Prisma pagination is described **[here.](https://www.prisma.io/docs/orm/prisma-client/queries/pagination)**  You would have query parameters that specify which page you want, when you do a GET for /tasks.  You would probably want to create a standalone program that populates the database with several hundred tasks for a given user, so that you can test your work.  You could test pagination this with Postman.
 
 ## **11.6 Documenting Your APIs with Swagger**
 
@@ -108,23 +110,4 @@ You could add a backlog table.  Each entry would be the title for a task.  Each 
 
 These are some ideas.  Don't try to do them all, just one or two as your schedule permits, or do some other idea that you come up with.  Keep it simple!
 
-## **Submit Your Assignment on GitHub**
 
-📌 **Follow these steps to submit your work:**
-
-#### **1️⃣ Add, Commit, and Push Your Changes**
-
-- Within your node-homework folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment11` branch.
-- Push that branch to GitHub.
-
-#### **2️⃣ Create a Pull Request**
-
-- Log on to your GitHub account.
-- Open your `node-homework` repository.
-- Select your `assignment11` branch. It should be one or several commits ahead of your main branch.
-- Create a pull request.
-
-#### **3️⃣ Submit Your GitHub Link**
-
-- Your browser now has the link to your pull request. Copy that link.
-- Paste the URL into the **assignment submission form**.
