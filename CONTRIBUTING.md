@@ -59,7 +59,7 @@ A description of what you changed and why
 We’ll be running a pilot program in November with a new group of students.
 Your contributions now are especially valuable in making sure everything is polished and ready.
 
-🙌 Questions or Issues?
+🙌 Questions ?
 
 If you run into trouble, please DM Gina Castromonte or John McGarvey 
 
