@@ -65,8 +65,18 @@ exports.register = async (req, res) => {
 
 exports.logoff = async (req, res) => {
   try {
-
-    res.clearCookie("jwt");
+    // Clear the JWT cookie
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+    
+    // Clear any session data if using sessions
+    if (req.session) {
+      req.session.destroy();
+    }
+    
     res.status(200).json({ message: "Logoff successful" });
   } catch (err) {
     console.error('User logoff error:', err);
