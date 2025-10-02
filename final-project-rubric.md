@@ -22,44 +22,38 @@
 
 \[ \] Appropriate handling of error conditions.
 
-\[ \] Automated test cases for all the operations on task records listed above.  Testing of REST requests using Supertest, to include user registration, logon, retrieval of task records, and logoff, with appropriate validation of each result.
+\[ \] Automated test cases for all the operations on task records listed above.  Testing of REST requests using Jest, to include user registration, logon, retrieval of task records, and logoff, with appropriate validation of each result.
 
-\[ \] Conversion of the React task list application created in the react class, so that it leverages each of the REST APIs of the Express application for user registration/logon/logoff and for all operations on tasks.
+\[ \] Deployment of the Express back end application to Render.com, where it uses a Neon.tech Postgres database.
 
-\[ \] Deployment of the Express back end application to Render.com, where it would use a Neon.tech Postgres database.
-
-\[ \] Deployment of the converted React task list application to Render.com.  The deployed React application would call the deployed REST application.
-
-\[ \] Validation that the deployed applications work as expected.
+\[ \] Validation that the deployed back end application works as expected.
 
 \[ \] Follow best practice on the organization of Express code modules and use of Eslint and Prettier.
 
-\[ \] Extra function: One or several additions to make your project stand out.  Here are some suggestions.  Just a couple of these would suffice.
+\[ \] Extra function: One or several additions to make your project stand out.  Here are some suggestions.  Just a couple of these would suffice.  Please choose something that doesn't involve a front end change.  You can test and demonstrate these changes with Postman.
 
-- Logon using a Google button.
+- Allow users to be configured with a role, and implement an API that requires this role.  For example, a "boss" role could see all tasks, regardless of which user owns them.
+- Logon using a Google button.  This one actually involves a front end change, but the front end part is provided for you.
 - Swagger documentation for the API, with an automatically generated UI built from Swagger.
 - Organizing tasks into folders.
 - An update many tasks operation, where a user could mark many tasks completed with one REST request.
 - A delete many tasks operation, where a user could delete a collection of tasks with one REST request.
 - Pagination of the task list.
-- Filtering of the task list, e.g. to show only uncompleted tasks.
-- Log records, so that a user can log a series of status records for any given task.
+- Filtering of the task list, e.g. to show only uncompleted tasks, or the tasks where the name matches a given regular expression.
+- Log records, so that a user can log a series of status records for any given task, to indicate progress.
 - Use your imagination!
 
-Please don't spend a lot of time on React front end appearance.  That is not the purpose of this class.
+Please don't spend time on React front end appearance.  That is not the purpose of this class.
 
 ## Project Demo Details
 
 It is good practice to talk about what you have learned and know about project as you will be asked to talk about your experiences in job interviews. This is why we ask all students to give a short demo of their final projects. This demo is NOT graded and your performance in the **demo will have no bearing on your graduation**. Please record a 3-5 minute presentation that touches on all of the following:
 
 \[ \] Provide a quick overview of the app.  
-\[ \] Demonstrate your app's CRUD functionality.  
-\[ \] Show your app mounting in the browser.  
-\[ \] Show logging in and/or user creation.  
+\[ \] Show logging in and/or user creation. 
+\[ \] Demonstrate your app's CRUD functionality. The provided front end could be used and/or Postman.
 \[ \] Create a record in the database using the app. 
-\[ \] Show how data is read.
-\[ \] Update a record. 
-\[ \] Delete a record. 
+\[ \] Show retrieval of task records, and/or update or delete of individual records, and talk about security protections.
 \[ \] Show any additional features of the app such as pagination, search functionality, or anything you may have included. 
 \[ \] Share what the most challenging part of the project and what you enjoyed working on the most or answer any of the following questions: 
 
