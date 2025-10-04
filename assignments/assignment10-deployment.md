@@ -1,4 +1,4 @@
-# **Assignment 3 — A Front End, and Deployment to the Internet**
+# **Assignment 10 — A Front End, and Deployment to the Internet**
 
 ## **Task 1: Calling Your Back End from a React Front End**
 
@@ -37,7 +37,7 @@ You are going to deploy your back end to the cloud.  An application in the cloud
    npx prisma migrate deploy
    ```
 
-   This command creates the tables your app needs in the Neon databsae, according to the schema in your Prisma schema file.
+   This command creates the tables your app needs in the Neon database, according to the schema in your Prisma schema file.
 
 5.  Start up your app.  Test it with Postman.  Of course, as you are using a new database, the user entries you created with register are not present yet, nor are any task entries.  So, create new ones.  Everything should work as before.  Then try it with the sample front end.  Everything should work as before.
 
@@ -52,7 +52,7 @@ You are going to deploy your back end to the cloud.  An application in the cloud
     1. Select public Git repository, and give the URL of your node-homework repository, and click Connect.
     2. Use all the default values, except for the ones below.  You could try to change the name, which will default to node-homework-x, where x is some number, but of course, you have to specify a name that no one else is using.
     3. For Branch, use main.
-    4. For Build Command, use: `npm install --production & npx prisma migrate deploy` .  This installs the packages you need (but not the ones that are used only for development and test).  It also makes sure that your database schema is current.
+    4. For Build Command, use: `npm install --production && npx prisma migrate deploy` .  This installs the packages you need (but not the ones that are used only for development and test).  It also makes sure that your database schema is current.
     5. For Run Command, use: `npm start`
     6. Make sure AutoDeploy is set to off.  Otherwise it will redeploy every time you change the main branch.
     7. Make sure the instance type is set to Free.
@@ -92,19 +92,10 @@ Change the `.env` file for your front end.  For the VITE_BASE_URL, put in the UR
 
 2. One mitigation is to put some protection into the registration process.  As it is, anyone could register with any email address, whether or not it is real.  The standard fix is to send something to that email address and then require the user to prove that they got it, before completing each registration.  We could teach that, but the emails you send would probably go to the spam folder, and if you put a link in an email, it is flagged as suspicious, so there are some complications to the process.
 
-## **Task 6: Recording Your Work**
+## **Task 6: Submitting Your Work**
 
-Your assignment reviewer will check that you have a working service on the Internet.  You need to provide the URL.  Create an assignment10 branch in node-homework.  Create a file called render-url.txt in the root of the node-homework directory.  Put the URL of your Render service in this file.  Only this file will be in this week's PR.
+**Note** This one is a little different.  You haven't written any code for this lesson, so your node-homework repository is unchanged.  There is no branch to create, nothing to commit, no PR to do.
 
-📌 Follow these steps to submit your work:
+**So do this instead.**
 
-1️⃣ Add, Commit, and Push Your Changes  
-Within your node-homework folder, do a git add and a git commit for the files you have created, so that they are added to the assignment10 branch.
-Push that branch to GitHub.  
-2️⃣ Create a Pull Request  
-Log on to your GitHub account.
-Open your node-homework repository.
-Select your assignment10 branch. It should be one or several commits ahead of your main branch.
-Create a pull request.  
-3️⃣ Submit Your GitHub Link  
-Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  
+Copy the URL of your Render.com service.  When you submit your homework, you put this URL in the homework submission form, instead of putting in a link to a PR.  This allows your homework reviewer to see that your deployment has succeeded and that the applicaiton runs.
