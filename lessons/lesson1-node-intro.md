@@ -7,13 +7,14 @@
 **Topics**:
 
 1. What is Node?
-2. Running Node
-3. Syntax differences between Node and browser side JavaScript
-4. Other Important Differences between Node and Browser JavaScript
-5. File System Access with Async Operations
-6. More on Async Functions
+2. Asynchronous Programming
+3. Running Node
+4. Syntax differences between Node and browser side JavaScript
+5. Other Important Differences between Node and Browser JavaScript
+6. File System Access with Async Operations
+7. More on Async Functions
 
-## **4.1 What is Node**
+## **1.1 What is Node**
 
 The JavaScript language was created to run inside the browser, so as to create rich and responsive web applications.  It is an interpreted language that is platform independent, running on Mac, Linux, Windows, and other platforms.  Browser side JavaScript runs in a sandbox.  The code you run in the browser is loaded from the Internet and can't be trusted, so there are things that JavaScript isn't allowed to do when running in the browser, like accessing the local file system or opening a server side socket. To provide security protections, browser side JavaScript runs in a sandbox, a protected area that blocks off various functions.
 
@@ -27,13 +28,72 @@ Because of this approach, web application servers written in JavaScript are fast
 
 Here is a basic video summary of node capabilities: [What is Node.js?](https://youtu.be/uVwtVBpw7RQ)
 
-## **4.2 Running Node**
+## **1.2 Asynchronous Programming**
 
-At your terminal, type `Node`.  (You should have completed the setup assignment.  If this command doesn't do anything, go back and do the setup.)  This starts the environment, and you can enter and run JavaScript statements.  Try a console.log().  You may notice one difference from the browser environment.  Where does the output appear?  It appears in your terminal.  Obvious, right?  If you open up the console in your browser developer tools, you will not see the output for Node console.log() statements.  We have had some folks fresh from the React class who develop a Node/Express application, put console.log() debugging statements in, and go to the browser console to see them.
+### **The Call Stack**
 
-You should have set up your `node-homework` repository and folder.  In the terminal, cd to that folder and start VSCode.  Create a first.js file in the assignment1 directory, with a console.log() statement in it.  Start a VSCode terminal, and type "node ./assignment1/first".  This is how you tell Node to start a program you write.  You do not have to give the `.js` extension.  Ok, so much for the very simple stuff.
+Computer code is merely a sequence of instruction steps. The sequence of instructions utilized in Node.js is referred to as the **call stack**.
 
-## **4.3 Syntax Differences between Node and Browser Based JavaScript**
+A stack is a data structure like a stack of pancakes. Instructions are put on the stack and then run from the most recent (top) and down to the bottom of the stack. This is called **Last In First Out (LIFO)** order.
+
+Node cannot run multiple instructions simultaneously; however, there is a clever workaround. For any task that cannot be completed immediately, it can be moved off the stack to the event loop.
+
+### **The Event Loop**
+
+The event loop is a holding area for instructions that are pending. When a pending instruction is ready to be processed, it is put into a queue.
+
+A queue is a data structure just like the waiting line that forms when you go to the bank. The sequence of a queue is **First In First Out (FIFO)**.
+
+In Node, when the call stack finishes all of its operations, it then begins processing instructions from the queues in the event loop.
+
+### **Non-Blocking Operations**
+
+Even though Node can only run one instruction at a time, the event loop prevents pending operations from blocking the program. The event loop allows many instructions to be performed asynchronously.
+
+This makes the Node environment more performant for some things than would be possible in Python or Ruby, which don't handle asynchronous operations as efficiently.
+
+Here is a basic video summary of Node capabilities: [What is Node.js?](https://youtu.be/uVwtVBpw7RQ)
+
+## **1.3 Running Node**
+
+### **What is Node?**
+
+Node is an application just like other applications you are familiar with. Photoshop edits photos, browsers browse websites, Node.js runs JavaScript.
+
+A difference is that Node does not have a graphical user interface. Therefore, to utilize it directly you must use the command line.
+
+At your terminal, type `Node`. (You should have completed the setup assignment. If this command doesn't do anything, go back and do the setup.) This starts the environment, and you can enter and run JavaScript statements.
+
+### **Node.js Environment**
+
+We have established that Node.js runs JavaScript on your machine outside the browser. In other words, it is a JavaScript runtime environment.
+
+In your terminal in the Node environment, try a `console.log()`. You may notice one difference from the browser environment. Where does the output appear? It appears in your terminal. Obvious, right?
+
+However, if you open up the console in your browser developer tools, you will not see the output for Node `console.log()` statements. We have had some folks fresh from the React class who develop a Node/Express application, put `console.log()` debugging statements in, and go to the browser console to see them.
+
+### **Node.js vs The Browser**
+
+The browser and Node are environments with notable differences:
+
+**Browser:**
+- Mostly interacts with the DOM or Web Platform APIs (i.e., Cookies)
+- The document, window, and other objects provided by the browser
+- All of these do not exist in Node
+
+**Node.js:**
+- APIs via modules (i.e., filesystem)
+- Those do not exist in browser
+
+With Node.js you control the environment, not Chrome, not Firefox, not Edge. For example, you decide which version of Node to use and other variables of the environment.
+
+There are also some small differences in JavaScript syntax when using Node, as we'll learn.
+
+### **Running Your First Node Program**
+
+You should have set up your `node-homework` repository and folder. In the terminal, cd to that folder and start VSCode. Create a first.js file in the assignment1 directory, with a `console.log()` statement in it. Start a VSCode terminal, and type "node ./assignment1/first". This is how you tell Node to start a program you write. You do not have to give the `.js` extension. Ok, so much for the very simple stuff.
+
+## **1.4 Syntax Differences between Node and Browser Based JavaScript**
 
 There are a couple of syntax differences in Node.  Browser side JavaScript follows the ESM standard for importing and exporting functions and objects to/from other modules.  In browser side JavaScript, you load other modules as follows:
 
@@ -73,18 +133,18 @@ module.exports = { add, multiply }
 
 The ESM syntax is also supported in Node.  In that case, you use files with extension `.mjs`.  However, **we will use CJS in this course.**  So get used to doing `require`.  By the way, combining ESM and CJS in one project is a messy business, but it can be done.  We won't be doing that.
 
-## **4.4 Other Important Differences between Node and Browser JavaScript**
+## **1.5 Other Important Differences between Node and Browser JavaScript**
 
 In browser side JavaScript, you always have access to the window and document objects, and through them, you have access to the DOM.  For Node, there is no window, no document, and no DOM.
 
 What you have instead in Node is a global object. This includes the following attributes and functions:
 
-- process: This has information about the currently running process, including, in particular, all the environment variables, which are key-value pairs in `process.env`.  `process.argv` contains the arguments that were passed when Node started this program from the command line.  `[process.argv[0]` has the fully qualified filename of the node program.  When node starts a program you specify, `process.argv[1]` has the fully qualified name of that program. If other arguments are passed when the program is started, they show up as subsequent entries in the `process.argv` array.
+- process: This has information about the currently running process, including, in particular, all the environment variables, which are key-value pairs in `process.env`.  `process.argv` contains the arguments that were passed when Node started this program from the command line.  `process.argv[0]` has the fully qualified filename of the node program.  When node starts a program you specify, `process.argv[1]` has the fully qualified name of that program. If other arguments are passed when the program is started, they show up as subsequent entries in the `process.argv` array.
 - __dirname: The directory where the current module resides.
 - __filename: The fully qualified filename of the current module.
 - console: console.log() is available, just as it is in client side JavaScript.
 - module: This is not actually a global, because each module in the program has a different module object. The fully qualified filename of the current module is in `module.name`.  `module.exports` contains the variable from the module that is exported and is returned when another module does a require() for this one. This might be a function, a value, or, often, an object with various functions and/or values. 
-- require(): Used to get access to exports from other modules.  If a module calls `require("http")`, it is loadig the built-in Node.js module called http. If the module name isn't built-in, Node.js will then look for it in the installed npm packages. If a module calls `require("../utils/parser")`, it is loading the `../utils/parser.js` module, where the pathname is relative to the current module.  Also, if `require.main` equals the current module, the current module is the one that was started by node.
+- require(): Used to get access to exports from other modules.  If a module calls `require("http")`, it is loading the built-in Node.js module called http. If the module name isn't built-in, Node.js will then look for it in the installed npm packages. If a module calls `require("../utils/parser")`, it is loading the `../utils/parser.js` module, where the pathname is relative to the current module.  Also, if `require.main` equals the current module, the current module is the one that was started by node.
 
 The variables you declare inside of a node module are available only within that module, unless you export them, or unless you attach them to the global object, like:
 
@@ -102,9 +162,9 @@ Node provides a REPL, which stands for Read Evaluate Print Loop.  It is just a t
 
 You have used npm to do package management for your React project.  We will also use npm to do package management for your Node project.
 
-## **4.5 File System Access with Async Operations**
+## **1.6 File System Access with Async Operations**
 
-As we've said, Node let's you access the file system.  The functions you use are documented here: [https://nodejs.org/api/fs.html](https://nodejs.org/api/fs.html).  You will see some synchronous file access functions.  You could, for example, do:
+As we've said, Node lets you access the file system.  The functions you use are documented here: [https://nodejs.org/api/fs.html](https://nodejs.org/api/fs.html).  You will see some synchronous file access functions.  You could, for example, do:
 
 ```js
 const fileHandle = fs.openSync("./tmp/file.txt", "w");
@@ -137,7 +197,7 @@ const fs = require("fs");
 const doFileOperations = async () => {
   // we need this separate function because you can't do an await 
   // statement in mainline JavaScript code
-  filehandle = await new Promise((resolve, reject) => {
+  const filehandle = await new Promise((resolve, reject) => {
     fs.open("./tmp/file.txt", "w", (err, filehandle) => {
       return err ? reject(err) : resolve(filehandle);
     });
@@ -160,7 +220,7 @@ const fs = require("fs/promises"); // get the promise enabled version of the API
 
 const doFileOperations = async () => { // you can't use await in mainline code, so you need this
   const fileHandle = await fs.open("./tmp/file.txt", "w");
-}
+};
 
 try {
   doFileOperations();
@@ -197,7 +257,7 @@ If the original function returns an error in the callback, the wrapper does a re
 
 The promisify function doesn't work in all cases.  For example, `setTimeout((cb), interval)` doesn't have the right function signature.
 
-## **4.6 More on Async Functions**
+## **1.7 More on Async Functions**
 
 The flow of control in async functions has certain traps for the unwary, so it is wise to understand it fully.  In your `node-homework/assignment1` folder are two programs called `callsync.js` and `callsync2.js`.  Here is the first of these:
 
