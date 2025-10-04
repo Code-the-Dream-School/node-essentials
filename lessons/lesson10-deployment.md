@@ -48,7 +48,7 @@ If you were to take a peek, you'd see code like this.  The code below marks a ta
 
 Now, it may be tempting to make changes to the React front end, so that it looks nicer or does more stuff.  Well ... don't!  Not that this would be bad, but remember that you are now trying to learn Node.  If you spend time on the front end, as much fun as that is, you will get distracted from what you need to learn about the back end.
 
-In a future interation of the React class, students will implement a front end that communicates with a Node based back end that is deployed on the Internet, and the React project will include items 1 through 5 above, instead of using Airtable.  Then, in the Node class, they'll build the Node back end for their own front end.
+In a future iteration of the React class, students will implement a front end that communicates with a Node based back end that is deployed on the Internet, and the React project will include items 1 through 5 above, instead of using Airtable.  Then, in the Node class, they'll build the Node back end for their own front end.
 
 ## **2.2 Issues in Internet Deployment**
 
@@ -89,7 +89,18 @@ This is just an outline.  Explicit steps will be provided in your assignment.
 
 5. You will then create a free account on Render.com.
 
-6. You will then add a service to this account.  When you create a service, Render provides a very basic deployment pipeline.  You point it at your Github repository and it loads the code from there.  You provide a build command, which does the `npm install`, the Prisma configuration, and the table creation or update.  The build always makes sure that the database schema is current.  You provide a run command, which will start your Node application after it has been built.  You provide a name to be used in the URL, something like nodehomework-23 or whatever you choose --- but you can't use a name that someone else is using.  Finally, you configure environment variables.  Your `.env` file isn't in Github, of course, so you have to configure those separately.  The ones you need are the JWT secret and the Database URL.
+6. You'll then add a new service in Render.com  
+    Render gives you a simple deployment pipeline. Follow these steps:
+
+    1. Connect your repo → Point Render at your GitHub repository.
+    2. Build command → Install dependencies and set up Prisma:   
+        npm install && npx prisma migrate deploy
+    3. Run command → Start your Node app:  
+        npm start
+    4. Service name → Pick a unique name (e.g. nodehomework-23). This becomes part of your Render URL.
+    5. Environment variables → Since .env isn’t in GitHub, configure them in Render’s dashboard:  
+        DATABASE_URL → from Neon  
+        JWT_SECRET → your JWT secret  
 
 7. You will then start the deployment of your Render.com service.
 
