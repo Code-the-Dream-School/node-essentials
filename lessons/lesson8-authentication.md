@@ -10,7 +10,7 @@
 2. Authentication part 1: Establishing a browser session with a back end.
 3. Authentication part 2: Maintaining the browser session with the back end.
 4. Some potential pitfalls.
-5. Passport: What it is, and how to use it.
+5. NPM packages you need.
 6. Other security problems to address.
 
 
@@ -62,9 +62,9 @@ Typically the front end and back end are running on different hosts, so the auth
 5. The cookie has the domain set to the domain of the back end host.
 6. The Set-Cookie is sent in response to a fetch request with `credentials: 'include'`.
 
-Setting up HTTPS connections in a development environment is a little bit complicated.  Instead, the front end communicates with the back end via a proxy in the middle.  The proxy intercepts each request to the back end, and, when it sends the back end response to the user's browser, it makes it look as if it came from the same host that the front end is running on.  In this case, when the Set-Cookie header is received, it doesn't appear to be a cross-site cookie to the browser.  In the development environment, cookie is sent without `secure` flag, without any domain, and with `SameSite: "Lax"`.  In our project, the Vite proxy will handle cross-origin requests in development.
+Setting up HTTPS connections in a development environment is a little bit complicated, so we don't bother.  Instead, the front end communicates with the back end via a proxy in the middle.  The proxy intercepts each request to the back end, and, when it sends the back end response to the user's browser, it makes it look as if it came from the same host that the front end is running on.  In this case, when the Set-Cookie header is received, it doesn't appear to be a cross-site cookie to the browser.  In the development environment, cookie is sent without `secure` flag, without any domain, and with `SameSite: "Lax"`.  In our project, the Vite proxy will handle cross-origin requests in development.
 
-An HttpOnly cookie is the **only** general purpose secure approach for maintaining the authenticated session in a browser application.  An all too common practice is for the back end to send a session token to the front end in the body of a REST request.  The token is then stored in localStorage or sessionStorage for transmission with subsequent requests.  **Such an approach is bad for security.** If there is a security hole anywhere in front end code, the session token could be captured by an attacker and reused.  Do not do it this way.  Credentials and other sensitive data must never be stored in localStorage or sessionStorage.
+An HttpOnly cookie is the **only** general purpose secure approach for maintaining the authenticated session in a browser application.  An all too common practice is for the back end to send a session token to the front end in the body of a REST request.  The token is then stored in localStorage or sessionStorage for transmission with subsequent requests.  **Such an approach is bad for security.** If there is a security hole anywhere in front end code, the session token could be captured by an attacker and reused.  Despite the risk, storing the credential in localStorage or sessionStorage is not an uncommon practice for existing applications, and there are some measures one can take to reduce the risk, though none of them are bulletproof. Our recommendation is: Do not do it this way.
 
 How does this fit with distributed authentication?  If, for example, the user is doing sign on with Google, the front end receives the Google authentication token but does not store it.  That token is sent to the back end and the back end sets the HttpOnly cookie.
 
@@ -78,7 +78,7 @@ The approach described above can leave a back door open.  Once the cookie is set
 
 The first line of defense against the CSRF attack is the CORS (Cross Origin Resource Sharing) configuration.  The browser observes that the front and back end URLs are not the same, for either the request from the banking front end or the request from the attacker front end.  The front end URL is its "origin", and the back end has a different origin.  So, before the browser sends a request to the back end, it sends a "pre-flight" request, making sure that the front end URL is allowed to access the back end, and making sure not to send any cookies or headers to that back end unless they are permitted by the back end.  The back end CORS configuration includes only certain allowed origins.  
 
-Unfortunately, CORS is not enough.  Some requests can bypass CORS.  One example is a GET request.  This is why you never want to make data changes on the back end in response to a GET!  Even some POST requests can bypass CORS.  Some back ends, if they only accept the "application/json" content type, may rely on CORS to protect against CSRF, and technically that should suffice, but it's best to add the protection described below.  If the back end accepts data that has been posted in a form, the content type is "application/x-www-form-urlencoded", and in this case CSRF protections are essential, as such requests can bypass CORS.
+Unfortunately, CORS is not enough.  Some requests can bypass CORS.  One example is a GET request.  This is why you never want to make data changes on the back end in response to a GET!  CSRF attacks are blind -- the attacker has no access to the response -- so this doesn't matter so much, but even some POST requests can bypass CORS.  Some back ends, if they only accept the "application/json" content type, may rely on CORS to protect against CSRF, and technically that should suffice, but it's best to add the protection described below.  If the back end accepts data that has been posted in a form, the content type is "application/x-www-form-urlencoded", and in this case CSRF protections are essential, as such requests can bypass CORS.
 
 ### **Preventing CSRF Attacks with a Token**
 
@@ -92,15 +92,10 @@ One common naive idea is to configure the front end with some kind of secret tha
 
 There is no secure place for the front end to store a secret.  If you have a front end that uses an environment variable, take a look at the sources tab in your browser developer tools.  The value of your environment variable is there for all to see.  **There is no secure place for the front end to store a secret.**
 
-## **8.5 Passport: What it is, and how to use it.**
-
-Passport is an authentication framework often used with Express. **Note:** Passport is just a framework.  For example, if you use basic authentication with user IDs and passwords, Passport will store those for you, and will check them as the user logs on ... but only if you provide the code that performs these functions.  Passport just provides a place to plug in the code you provide.  The value that Passport provides is in its support for lots of plugins, for Google, for GitHub, for JSON Web Tokens, etc., so that you can add those over time to enhance your application. 
+## **8.5 The NPM Packages You Will Use**
 
 You will use five packages in this lesson:
 
-- passport
-- passport-local
-- passport-jwt
 - jsonwebtoken
 - cookie-parser
 - cors
@@ -110,7 +105,13 @@ You will use five packages in this lesson:
 
 Most of these packages are middleware, requiring minimal configuration and an app.use() statement.
 
-The passport package is the overall authentication framework.  The passport-local package provides support for local authentication, and you will configure it to validate the user ID and password with what is stored in the database.  The passport-jwt package is used as middleware.  For every request on a protected route, the middleware is invoked to validate a JSON Web Token (JWT) and to store information about the user in the req object to be passed on to the route handler.  Passport can be configured to use the express-session package.  When that is used, a secure HttpOnly cookie is created to be used as the session credential and to store session state.  You won't do it that way.  Instead, you'll use the jsonwebtoken package to create the JSON web token (JWT) to be stored as a cookie.  The JWT is signed, meaning that its contents, together with a secret, are hashed, and the hash is stored in the cookie as well as its contents.  This ensures that no attacker can spoof the cookie.  The signature is checked in the authentication middleware for every request on a protected route.  We don't encrypt the JWT or the cookie, although we could. The information in the cookie is accessible, for example using browser developer tools, but it doesn't matter for our use case.
+### **A Word About Passport**
+
+The Passport package is a widely used overall authentication framework.  If you are doing a variety of types of authentication, for which you want plug points, Passport provides this, and there are many plug-ins that you can add.  We do not include Passport in this lesson, because for "local" authentication, that is, authentication with a password that compares it against a value stored on the back end, Passport doesn't give much value, but adds complexity.  Also, the Passport online documentation has many annoying omissions.
+
+### **What You will do Instead**
+
+You'll use the jsonwebtoken package to create the JSON web token (JWT) to be stored as a cookie.  The JWT is signed, meaning that its contents, together with a secret, are hashed, and the hash is stored in the cookie as well as its contents.  This ensures that no attacker can spoof the cookie.  The signature is checked in the authentication middleware for every request on a protected route.  We don't encrypt the JWT or the cookie, although we could. The information in the cookie is accessible, for example using browser developer tools, but it doesn't matter for our use case.
 
 A protected route is any route behind the authentication middleware.  Some routes are not protected of course: the logon route can't be protected in this way, nor can the register route, because users need to access these before they have the session cookie established.  There may be other parts of the application that are public pages, so they don't need to be behind protected routes.
 
@@ -133,45 +134,3 @@ For denial of service, you will use middleware from the `express-rate-limit` pac
 You'll use the `cors` package, not to provide additional protection, but to grant limited access.  Your front end and back end will run on different origins, so this package is necessary to make things work.
 
 You'll also use the `helmet` package. Helmet provides subtle protections for back end servers, including some defense against cross-origin attacks. The helmet package provides a lot of protection for a front end server, which is not what we're building.  When you deploy your React application to the Internet, you can configure your Internet service with protections like what helmet provides.  We won't do that in this class.
-
-### Enhanced Logoff Functionality
-
-**Improved logoff function with proper session clearing:**
-```javascript
-exports.logoff = async (req, res) => {
-  try {
-    // Clear the JWT cookie
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    });
-    
-    // Clear any session data if using sessions
-    if (req.session) {
-      req.session.destroy();
-    }
-    
-    res.status(200).json({ message: "Logoff successful" });
-  } catch (err) {
-    console.error('User logoff error:', err);
-    res.status(500).json({ error: err.message });
-  }
-};
-```
-
-**Key improvements:**
-- Properly clears JWT cookie with security options
-- Clears session data if present
-- Uses environment-based security settings
-- Maintains error handling
-
-Let's see what you're going to need:
-
-- The user model, router, and controller.  That much you have.
-- A configuration utility for passport, passport-local, and passport-jwt.
-- Authentication middleware for the protected routes.  You have one, but it isn't up to snuff.
-- CSRF attack prevention.
-- app.use() statements for security middleware.
-
-Ok, let's get going!
