@@ -236,40 +236,46 @@ This is the way you'll do file I/O for the most part.  Once you have the fileHan
 In the `util` package, which is part of the node base, there is a slick way to wrapper functions that use callbacks to convert it to a function that returns a promise.  Many functions have a signature like:
 
 ```js
-function fnWithCallback(arg1, arg2, arg3, (err, return)) {
+function fnWithCallback(arg1, arg2, arg3, (err, data)) {
 
 }
 ```
 
-The arguments may be required or optional, but the last argument is required.  That's for the callback, and it has to pass err as the first parameter and the return value as the second parameter.  You can do:
+The arguments may be required or optional, but the last argument is required.  That's for the callback, and it has to pass the error produced by the function call as the first parameter and the returned value as the second parameter.  You can convert this callback-style function to return a Promise instead:
 
 ```js
 const { promisify } = require("util");
 const fnWithPromise = util.promisify(fnWithCallback);
 ```
 
-From an async function, you can now call `fnWithPromise` with an await:
+From an async function, you can now use `async/await`.  If the original function returns an error in the callback, the wrapper does calls `reject(err)` on the promise, which you can catch by calling `fnWithPromise` in a try/catch block.
 ```js
-const result = await fnWithAsync(arg1, arg2, arg3);
+async function doSomething() {
+    try {
+        const result = await fnWithPromise(arg1, arg2, arg3);
+        // ...
+    } catch(err) {
+        console.error(err);
+    }
+}
 ```
 
-If the original function returns an error in the callback, the wrapper does a reject(err) for the promise, which you can catch of you call `fnWithAsync` in a try/catch block.
 
-The promisify function doesn't work in all cases.  For example, `setTimeout((cb), interval)` doesn't have the right function signature.
+The promisify function doesn't work in all cases. For example, `setTimeout((cb), interval)` doesn't have the right function signature because the callback function does not have enough parameters and is not last in the argument list.
 
 ## **1.7 More on Async Functions**
 
 The flow of control in async functions has certain traps for the unwary, so it is wise to understand it fully.  In your `node-homework/assignment1` folder are two programs called `callsync.js` and `callsync2.js`.  Here is the first of these:
 
 ```js
-function syncfunc() {
-    console.log("In syncfunc.  No async operations here.")
-    return "Returned from syncfunc."
+function syncFunc() {
+    console.log("In syncFunc.  No async operations here.")
+    return "Returned from syncFunc."
 }
 
 async function asyncCaller() {
     console.log("About to wait.")
-    const res = await syncfunc()
+    const res = await syncFunc()
     console.log(res)
     return "asyncCaller complete."
 }
@@ -288,11 +294,11 @@ console.log("Finished.")
 
 See if you can guess which order the statements will appear in the log.  Then run the program.  Were you right?
 
-The asyncCaller() method calls syncfunc(), which is a synchronous function, with an await.  This is valid, and the await statement returns the value that syncfunc() returns.  But asyncCaller() is an async function, so it returns to the mainline code at the time of the first await statement, and what it returns is a promise.  Processing continues in asyncCaller only after the `Finished` statement appears, because that is the point at which the event loop gets a chance to return from await.  The subsequent `return` statement in asyncCaller is different from a `return` in a synchronous function.  A return statement in an async function does something extra: It resolves the promise returned by the async function to a value.  
+The asyncCaller() method calls syncFunc(), which is a synchronous function, with an await.  This is valid, and the await statement returns the value that syncFunc() returns.  But asyncCaller() is an async function, so it returns to the mainline code at the time of the first await statement, and what it returns is a promise.  Processing continues in asyncCaller only after the `Finished` statement appears, because that is the point at which the event loop gets a chance to return from await.  The subsequent `return` statement in asyncCaller is different from a `return` in a synchronous function.  A return statement in an async function does something extra: It resolves the promise returned by the async function to a value.  
 
 There are two ways to get the value a promise resolves to, those being, `await` and `.then`.  We can't do `await` in mainline code, so we use `.then` in this case.  The `.then` statement provides a callback that retrieves the value.  But the mainline code doesn't wait for the `.then` callback to complete.  Instead it announces `Finished.`, and only when the callback completes do we see what the promise resolves to.  In general, you don't want to use `.then` in your code because `.then` requires a callback, and that takes you straight back to callback hell.
 
-The other program, `callsync2.js`, is slightly different, and if you run it, you see that the order the logged statements appear in is slightly different.  The only functional change is that asyncCaller() does not do an await when it calls syncfunc(), so it runs all the way to the end of the function before the mainline code resumes.  But what asyncCaller returns is still a promise, and the `.then` for that promise still doesn't complete until after the mainline code reports the `Finished.`  Run this program to see the difference.  Async functions always return a promise.  You can use the `await` statement to call a synchronous function, or to resolve a promise, or to resolve a `thenable` which is an object that works like a promise, but may have additional capabilities.
+The other program, `callsync2.js`, is slightly different, and if you run it, you see that the order the logged statements appear in is slightly different.  The only functional change is that asyncCaller() does not do an await when it calls syncFunc(), so it runs all the way to the end of the function before the mainline code resumes.  But what asyncCaller returns is still a promise, and the `.then` for that promise still doesn't complete until after the mainline code reports the `Finished.`  Run this program to see the difference.  Async functions always return a promise.  You can use the `await` statement to call a synchronous function, or to resolve a promise, or to resolve a `thenable` (which is an object that works like a promise but may have additional capabilities).
 
 ### **Check for Understanding**
 
@@ -308,11 +314,11 @@ The other program, `callsync2.js`, is slightly different, and if you run it, you
 
 ### **Answers**
 
-1. Node is far simpler to learn than Java or Rust.  Many developers already know JavaScript because it is the native language for the browser front end.  C++ code is also more complex, and it is subject to dangerous memory reference errors.  Node's combination of a single threaded language with an event loop for asynchronous operations is highly performant.
+1. Node is far simpler to learn than Java or Rust.  Many developers already know JavaScript because it is the native language for the browser front end.  C++ code is also more complex, and it is subject to dangerous memory reference errors.  Node's benefits from being a single-threaded language with an event loop for asynchronous operations that is highly performant.
 
 2. In browser side JavaScript, you can't start a process, or start a server socket, or access the file system.  In browser side JavaScript, you have no access to hardware resources like the screen and the file system.
 
-3. Node is not good for compute intensive operations, like numerical calculation.  For that, you'd want C++ or Python.
+3. Node is not good for compute-intensive operations.  Instead, languages like C++ or Rust provide users more control over their program's memory management to maximize performance. JavaScript also may not be suitable for some use cases (ex: data analysis or machine learning, where Python is preferred for powerful libraries like NumPy and Pandas).
 
 4. You can get the value resolved from a Promise using `await` or `.then`.
 
