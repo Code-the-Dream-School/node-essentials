@@ -165,6 +165,32 @@ Modify your Express app.js. Add an app.use() statement, above your other routes.
 
 There is no TDD for this week.
 
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Answer 3 questions from Lesson 2:
+
+1. **How do Event Emitters and Listeners work in Node.js?**
+   - Explain the EventEmitter class and its purpose
+   - Discuss the synchronous nature of event emission 
+
+2. **What are the key differences between Node's HTTP module and Express.js?**
+   - Explain what Express provides that makes development easier
+   - Discuss middleware and routing concepts
+
+3. **How do you handle different HTTP methods and routes in a web server?**
+   - Explain HTTP methods (GET, POST, PUT, PATCH, DELETE)
+   - Show how to parse request bodies and headers
+   - Demonstrate route handling and response formatting
+   - Discuss error handling and status codes
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
+
 📌 Follow these steps to submit your work:
 
 1️⃣ Add, Commit, and Push Your Changes
@@ -177,3 +203,4 @@ Select your assignment2 branch. It should be one or several commits ahead of you
 Create a pull request.
 3️⃣ Submit Your GitHub Link
 Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.
+4️⃣ **Don't forget to include your video link in the submission form!**
