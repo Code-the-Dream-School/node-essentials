@@ -209,6 +209,34 @@ npm run tdd assignment4
 
 It's good that you got this fixed while you were storing passwords only in memory.  The next step for your project application is to store user and task records in a database.
 
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Answer 3 questions from Lesson 4:
+
+1. **How do you protect routes using middleware in Express?**
+   - Explain the concept of protected routes and why they're important
+   - Show how to create authentication middleware
+   - Demonstrate how to apply middleware to specific routes
+   - Discuss the difference between protected and public routes
+
+2. **What security vulnerabilities does data validation prevent and how do you implement validation?**
+   - Explain how validation prevents attacks like SQL injection and XSS
+   - Show your userSchema.js and taskSchema.js files and explain each validation rule
+
+3. **Why should you never store passwords in plain text and what are the security principles for password hashing?**
+   - Explain the security risks of storing plain text passwords
+   - Explain why you need salt and what rainbow attacks are
+   - Discuss why you should never invent your own cryptography
+   - Explain the difference between hashing and encryption
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples (when needed)
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
+
 ## **Submit Your Assignment on GitHub**
 
 📌 **Follow these steps to submit your work:**
@@ -229,6 +257,7 @@ It's good that you got this fixed while you were storing passwords only in memor
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
+- **Don't forget to include your video link in the submission form!**
 
 
 
