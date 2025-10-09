@@ -366,3 +366,34 @@ Run `npm run tdd assignment8` to make sure all the tests work.  Then, stop your 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
 
+---
+
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Short demos based on Lesson 8:
+
+1. **How do you implement secure authentication with JWT tokens?**
+   - Show your JWT token generation and signing process
+   - Walk through your middleware that validates JWT tokens
+   - Show how you protect routes and access user information
+
+2. **What security vulnerabilities does your authentication system prevent?**
+   - Explain CSRF protection and show your CSRF token implementation
+   - Demonstrate how HttpOnly cookies work vs localStorage
+   - Show your CORS configuration and explain why it's important
+   - Walk through your rate limiting and input sanitization
+
+3. **How do you handle user sessions and maintain security across requests?**
+   - Show how you store user information in JWT payloads
+   - Demonstrate the difference between authentication and authorization
+   - Walk through your logout process and token invalidation
+   - Show how you handle authentication errors and edge cases
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples 
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
+

@@ -99,3 +99,33 @@ Change the `.env` file for your front end.  For the VITE_BASE_URL, put in the UR
 **So do this instead.**
 
 Copy the URL of your Render.com service.  When you submit your homework, you put this URL in the homework submission form, instead of putting in a link to a PR.  This allows your homework reviewer to see that your deployment has succeeded and that the applicaiton runs.
+
+---
+
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Short demos based on Lesson 10:
+
+1. **How do you connect a React frontend to your Node.js backend API?**
+   - Demonstrate how the frontend makes API calls with credentials
+   - Walk through the authentication flow between frontend and backend
+   - Show how CSRF tokens are handled in the frontend
+
+2. **What are the key steps in deploying a Node.js application to the cloud?**
+   - Demonstrate running Prisma migrations on the cloud database
+   - Walk through your Render.com deployment configuration
+   - Show your deployed application running live 
+
+3. **How do you test and validate a deployed application?**
+   - Test your deployed API endpoints with Postman using the live URL
+   - Demonstrate the full application working with the React frontend
+   - Show how to check deployment logs and troubleshoot issues
+   - Explain the differences between local and production environments
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples 
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
