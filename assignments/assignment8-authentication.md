@@ -1,4 +1,4 @@
-# **Assignment 8 — Authentication with Passport and JWTs**
+# **Assignment 8 — Authentication with JWTs**
 
 ## **Assignment Instructions**
 
@@ -19,7 +19,7 @@ You can use `npm run tdd assignment8` to run tests for this assignment.
 
 2. Registration, when successful, must also set the cookie and include appropriate information in the response, that being the CSRF token and user name.
 
-3. A middleware routine must protect certain routes, including all the task routes and the logoff.  We protect the logoff so that a logoff can't be triggered by cross site request forgery, which might lead to spoofing attacks.  The middleware has to check that the cookie is present, that the JWT within the cookie is valid, and (for operations other than GET), that the CSRF token within the cookie matches the one in a header.  If all this succeeds, the middleware stores the ID of the user in req.user, so that request handlers can perform appropriate access control, and calls next().  Otherwise it returns a 401 (unauthorized).
+3. A middleware routine must protect certain routes, including all the task routes and the logoff.  We protect the logoff so that a logoff can't be triggered by cross site request forgery, which might lead to spoofing attacks.  The middleware has to check that the cookie is present, that the JWT within the cookie is valid, and (for operations other than GET), that the CSRF token within the cookie matches the one in a header.  If all this succeeds, the middleware stores the ID of the user in req.user, so that request handlers can perform appropriate access control, and then it calls next().  Otherwise it returns a 401 (unauthorized).
 
 4. Logoff must clear the cookie.
 
@@ -41,7 +41,7 @@ Sometimes you might want to put other information in the JWT, such as a user rol
 
 ## **Setting the Cookie**
 
-You need to generate a JWT secret. Because no one else has the secret, no one else can create a cookie the server will honor.  There are various ways to get a good random secret.  Here is one: [https://www.random.org/strings/](https://www.random.org/strings/). Then store this secret in your .env file as JWT_SECRET.
+You need to generate a JWT secret. Because no one else has the secret, no one else can create a cookie the server will honor.  There are various ways to get a good random secret.  Here is one: [https://www.random.org/strings/](https://www.random.org/strings/). Get a secret and store it in your .env file as JWT_SECRET.
 
 Add the following utility routine to controllers/userController.js:
 
@@ -133,7 +133,7 @@ This should be done pretty early in the chain, so that the cookie is available w
 
 You should now test `/user/register` and `/user/logon` with Postman.  You should see two differences from previous behavior.  First, you should see the csrfToken being returned in the body of the request.  Second, you should see the jwt cookie being set.  However, none of your task routes will work, nor will your logoff route, because the csrfToken is not in the X-CSRF-TOKEN header.  Try them out to make sure this is true.  
 
-You want to catch csrfToken when it is returned from a register or logon.  Open up the logon request in postman and you see a Tests tab.  Click on that, and plug in the following code:
+You want to catch csrfToken when it is returned from a register or logon.  Open up the logon request in Postman and you see a Tests tab.  Click on that, and plug in the following code:
 
 ```js
 const jsonData = pm.response.json();

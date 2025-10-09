@@ -1,8 +1,8 @@
-# **Lesson 8 — Authentication, Passport, and Security**
+# **Lesson 8 — Authentication and Security**
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will learn basic concepts underlying authentication in browser based applications.  Students will learn best practices and potential pitfalls for authentication.  Students will learn how to use the Passport package in Node.js for authentication.  Students will also learn how to mitigate other types of security risks.
+**Learning objective**: Students will learn basic concepts underlying authentication in browser based applications.  Students will learn best practices and potential pitfalls for authentication.  Students will learn how to use the basic authentication with passwords and JSON web tokens in cookies for authentication.  Students will also learn how to mitigate other types of security risks.
 
 **Topics**:
 
@@ -45,7 +45,7 @@ In the application you are building, there are three kinds of authentication:
 
 5. Many others: Public key authentication, authentication based on special hardware devices, biometric, etc.
 
-We are only going to implement basic authentication, but we will use the Passport authentication framework. As time permits, you might add support for Google authentication, but that's optional.
+We are only going to implement basic authentication. As time permits, you might add support for Google authentication in assignment 11, but that's optional.
 
 ## **8.3 Authentication part 2: Maintaining the browser session with the back end.**
 
