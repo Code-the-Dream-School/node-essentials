@@ -314,7 +314,7 @@ The other program, `callsync2.js`, is slightly different, and if you run it, you
 
 ### **Answers**
 
-1. Node is far simpler to learn than Java or Rust.  Many developers already know JavaScript because it is the native language for the browser front end.  C++ code is also more complex, and it is subject to dangerous memory reference errors.  Node's benefits from being a single-threaded language with an event loop for asynchronous operations that is highly performant.
+1. Node is far simpler to learn than Java or Rust.  Many developers already know JavaScript because it is the native language for the browser front end.  C++ code is also more complex, and it is subject to dangerous memory reference errors.  Node benefits from being a single-threaded language with an event loop for asynchronous operations that is highly performant.
 
 2. In browser side JavaScript, you can't start a process, or start a server socket, or access the file system.  In browser side JavaScript, you have no access to hardware resources like the screen and the file system.
 
