@@ -316,6 +316,50 @@ app.post('/api/users/login', async (req, res) => {
 **Important Security Note:**
 The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.
 
+**Middleware Update:** Unlike lesson 4 where you created a simple auth middleware that checked `getLoggedOnUser()`, lesson 6 uses the same global user_id approach but with database operations. The auth middleware pattern from lesson 4 can still be applied here to centralize authentication checks before database queries.
+
+### Logoff Controller Implementation
+
+**Logoff with Session Clearing:**
+```javascript
+// Logoff endpoint
+exports.logoff = async (req, res) => {
+  try {
+    // Clear the global user ID for session management
+    global.user_id = null;
+    
+    res.status(200).json({ message: "Logoff successful" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+```
+
+### Auth Middleware Implementation
+
+**Create `/middleware/auth.js`:**
+```javascript
+const { StatusCodes } = require("http-status-codes");
+
+module.exports = (req, res, next) => {
+  if (!global.user_id) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "Unauthorized" });
+  }
+  next();
+};
+```
+
+**Update `app.js` to use middleware:**
+```javascript
+const authMiddleware = require('./middleware/auth');
+
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', authMiddleware, taskRoutes);
+```
+
 ### Task Controller Updates
 
 **Before (Memory Storage):**

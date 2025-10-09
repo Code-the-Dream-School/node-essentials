@@ -85,6 +85,11 @@ exports.login = async (req, res) => {
 
 exports.logoff = async (req, res) => {
   try {
+    // Clear any session data if using sessions
+    if (req.session) {
+      req.session.destroy();
+    }
+    
     res.status(200).json({ message: "Logoff successful" });
   } catch (err) {
     console.error('User logoff error:', err);

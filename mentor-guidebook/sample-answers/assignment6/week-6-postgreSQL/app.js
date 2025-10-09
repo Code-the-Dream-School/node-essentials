@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('./db');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const authMiddleware = require('./middleware/auth');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -10,7 +11,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/users', userRoutes);
-app.use('/api/tasks', taskRoutes);
+app.use('/api/tasks', authMiddleware, taskRoutes);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

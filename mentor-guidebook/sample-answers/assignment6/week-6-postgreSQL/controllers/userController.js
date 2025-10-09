@@ -81,6 +81,9 @@ exports.login = async (req, res) => {
 
 exports.logoff = async (req, res) => {
   try {
+    // Clear the global user ID for session management
+    global.user_id = null;
+    
     res.status(200).json({ message: "Logoff successful" });
   } catch (err) {
     res.status(500).json({ error: err.message });

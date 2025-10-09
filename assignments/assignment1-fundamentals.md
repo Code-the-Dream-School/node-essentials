@@ -57,6 +57,32 @@
   - Uses the `fs.promises` API to write and then read a file (`demo.txt`)
   - Create a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log the first 40 characters (or any summary) to the console. When the stream ends, log a message like "Finished reading large file with streams." Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
 
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Answer 3 questions from Lesson 1:
+
+1. **What is Node.js and how does it differ from running JavaScript in the browser?**
+   - Explain the key differences between browser JavaScript and Node.js
+   - Discuss the V8 engine and how Node uses it
+   - Mention key use cases for Node.js
+
+2. **Explain the difference between CommonJS and ES Modules.**
+   - Explain when you would use each approach
+   - Discuss the syntax differences (require vs import, module.exports vs export)
+
+3. **What are the main differences between Node and browser JavaScript environments?**
+   - Compare global objects (window vs global, process, __dirname, __filename)
+   - Discuss file system access capabilities
+   - Explain the event loop and asynchronous programming in Node
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples (when needed)
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
+
 ## To Submit an Assignment
 
 1. Do these commands:
@@ -68,5 +94,6 @@
     ```
 2. Go to your `node-homework` repository on GitHub.  Select your `assignmentx` branch, the branch you were working on.  Create a pull request.  The target of the pull request should be the main branch of your GitHub repository.
 3. Once the pull request (PR) is created, your browser contains the URL of the PR. Copy that to your clipboard.  Include that link in your homework submission.
+4. **Don't forget to include your video link in the submission form!**
 
 

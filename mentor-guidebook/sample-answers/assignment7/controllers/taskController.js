@@ -4,7 +4,6 @@ const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 exports.index = async (req, res) => {
   try {
     const { 
-      user_id, 
       status, 
       priority, 
       date_range, 
@@ -16,14 +15,8 @@ exports.index = async (req, res) => {
       fields
     } = req.query;
     
-    if (!user_id) {
-      return res.status(401).json({ error: "User ID required" });
-    }
-
-    const userId = parseInt(user_id);
-    if (isNaN(userId)) {
-      return res.status(400).json({ error: "Invalid user ID" });
-    }
+    // Use userId from auth middleware
+    const userId = req.userId;
     
     let pageNum = parseInt(page);
     let limitNum = parseInt(limit);
@@ -137,11 +130,10 @@ exports.index = async (req, res) => {
 exports.show = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id, fields } = req.query;
+    const { fields } = req.query;
     
-    if (!user_id) {
-      return res.status(401).json({ error: "User ID required" });
-    }
+    // Use userId from auth middleware
+    const userId = req.userId;
 
     // Dynamic field selection
     let selectFields = {
@@ -166,7 +158,7 @@ exports.show = async (req, res) => {
     const task = await prisma.task.findFirst({
       where: { 
         id: parseInt(id), 
-        userId: parseInt(user_id) 
+        userId: userId 
       },
       select: selectFields
     });
@@ -184,11 +176,8 @@ exports.show = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { user_id } = req.query;
-    
-    if (!user_id) {
-      return res.status(401).json({ error: "User ID required" });
-    }
+    // Use userId from auth middleware
+    const userId = req.userId;
 
     const { error, value } = taskSchema.validate(req.body);
     
@@ -206,7 +195,7 @@ exports.create = async (req, res) => {
         title,
         isCompleted,
         priority,
-        userId: parseInt(user_id)
+        userId: userId
       }
     });
     
@@ -220,11 +209,9 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id } = req.query;
     
-    if (!user_id) {
-      return res.status(401).json({ error: "User ID required" });
-    }
+    // Use userId from auth middleware
+    const userId = req.userId;
 
     const { error, value } = patchTaskSchema.validate(req.body);
     
@@ -240,7 +227,7 @@ exports.update = async (req, res) => {
     const updatedTask = await prisma.task.update({
       where: { 
         id: parseInt(id),
-        userId: parseInt(user_id)
+        userId: userId
       },
       data: { title, isCompleted, priority }
     });
@@ -258,16 +245,14 @@ exports.update = async (req, res) => {
 exports.deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id } = req.query;
     
-    if (!user_id) {
-      return res.status(401).json({ error: "User ID required" });
-    }
+    // Use userId from auth middleware
+    const userId = req.userId;
 
     await prisma.task.delete({
       where: { 
         id: parseInt(id),
-        userId: parseInt(user_id)
+        userId: userId
       }
     });
     
@@ -288,12 +273,10 @@ exports.deleteTask = async (req, res) => {
  */
 exports.bulkCreate = async (req, res) => {
   try {
-    const { user_id } = req.query;
     const { tasks } = req.body;
     
-    if (!user_id) {
-      return res.status(401).json({ error: "User ID required" });
-    }
+    // Use userId from auth middleware
+    const userId = req.userId;
 
     if (!Array.isArray(tasks) || tasks.length === 0) {
       return res.status(400).json({ error: "Tasks array is required and must not be empty" });
@@ -317,7 +300,7 @@ exports.bulkCreate = async (req, res) => {
       } else {
         validTasks.push({
           ...value,
-          userId: parseInt(user_id),
+          userId: userId,
           priority: value.priority || 'medium'
         });
       }

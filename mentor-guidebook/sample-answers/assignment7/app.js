@@ -3,6 +3,7 @@ const prisma = require('./prisma/db');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const authMiddleware = require('./middleware/auth');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,8 +12,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/users', userRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/analytics', analyticsRoutes);
+app.use('/api/tasks', authMiddleware, taskRoutes);
+app.use('/api/analytics', authMiddleware, analyticsRoutes);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

@@ -68,6 +68,35 @@ Get this running in sqlcommand, and then add the line to your homework file.
 
 Then run the tdd test until the fourth test completes.
 
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Answer 3 questions from Lesson 5:
+
+1. **What are the key concepts of relational databases and how do they work?**
+   - Explain primary keys, foreign keys, and table relationships
+   - Discuss one-to-one, one-to-many, and many-to-many associations
+   - Explain what constraints are and why they're important
+   - Show examples of how tables relate to each other
+
+2. **What are the main SQL operations and how do you use them effectively?**
+   - Explain the purpose of SELECT, INSERT, UPDATE, and DELETE
+   - Show how to use JOINs to combine data from multiple tables
+   - Demonstrate GROUP BY, HAVING, and aggregation functions
+   - Explain the difference between WHERE and HAVING clauses
+
+3. **How do you work with data from multiple tables and perform aggregations?**
+   - Explain how to use JOINs to combine data from different tables
+   - Show how to use GROUP BY with aggregation functions like SUM, COUNT, AVG
+   - Explain the difference between WHERE and HAVING clauses
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show SQL examples (when needed)
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
+
 ## **Submit Your Assignment on GitHub**
 
 📌 **Follow these steps to submit your work:**
@@ -88,3 +117,4 @@ Then run the tdd test until the fourth test completes.
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
+- **Don't forget to include your video link in the submission form!**
