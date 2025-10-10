@@ -11,8 +11,9 @@
 3. Running Node
 4. Syntax differences between Node and browser side JavaScript
 5. Other Important Differences between Node and Browser JavaScript
-6. File System Access with Async Operations
-7. More on Async Functions
+6. Node.js Documentation and Libraries
+7. File System Access with Async Operations
+8. More on Async Functions
 
 ## **1.1 What is Node**
 
@@ -158,9 +159,71 @@ Because Node runs on a server, and not on the browser, you can safely store secr
 
 Node provides a REPL, which stands for Read Evaluate Print Loop.  It is just a terminal session with Node, into which you can type JavaScript statements, and they'll execute.  You start it by just typing `Node`.
 
-You have used npm to do package management for your React project.  We will also use npm to do package management for your Node project.
+You have used npm to do package management for your React project.  We will also use npm to do package management for your Node project.
 
-## **1.6 File System Access with Async Operations**
+## **1.6 Node.js Documentation and Libraries**
+
+Node.js provides extensive online documentation that is essential for developers. The primary resource is the official Node.js API documentation available at [https://nodejs.org/api/](https://nodejs.org/api/). This site contains comprehensive guides, reference materials, and examples for all built-in modules and APIs.
+
+### **Navigating the Online Documentation**
+
+The Node.js documentation is organized by module, with each page detailing the functions, classes, and methods available. Key sections include:
+
+- **Stability Index**: Each API is marked with a stability index (0-3) indicating its maturity level. Avoid using APIs marked as experimental (0) in production code.
+- **Examples**: Most documentation pages include practical code examples showing how to use the APIs.
+- **Version Information**: Documentation specifies which Node.js version introduced or deprecated certain features.
+- **Search Functionality**: Use the search bar to quickly find specific functions or modules.
+
+When learning Node.js, bookmark the API docs and refer to them frequently. The documentation is your primary reference for understanding available tools and best practices.
+
+### **Standard Node.js Libraries**
+
+Node.js comes with a rich set of built-in modules that provide core functionality without requiring installation. These modules cover file system operations, networking, operating system interactions, and more. To use any built-in module, you simply `require()` it in your code:
+
+```js
+const fs = require('fs');  // File system operations
+const os = require('os');  // Operating system information
+const net = require('net'); // Networking (TCP sockets)
+const http = require('http'); // HTTP server and client
+const https = require('https'); // HTTPS server and client
+```
+
+Unlike browser JavaScript, which is limited by security sandboxes, Node.js allows direct access to these system-level capabilities. Built-in modules are always available and don't require `npm install`.
+
+### **NPM Libraries**
+
+Beyond the built-in modules, Node.js has access to thousands of third-party libraries through the Node Package Manager (NPM). These libraries extend Node.js functionality for tasks like database connections, authentication, testing, and more.
+
+#### **Finding and Installing NPM Packages**
+
+To find packages, visit [https://www.npmjs.com/](https://www.npmjs.com/) and search for your needs. Once you find a suitable package, install it using:
+
+```bash
+npm install package-name
+```
+
+Then require it in your code:
+
+```js
+const packageName = require('package-name');
+```
+
+#### **Evaluating Package Quality**
+
+When choosing an NPM package, consider these indicators of quality and reliability:
+
+- **Download Count**: Higher downloads suggest wider adoption and testing.
+- **GitHub Stars**: More stars indicate community approval.
+- **Last Updated**: Recent updates show active maintenance.
+- **Issues and Pull Requests**: A healthy ratio of open/closed issues suggests good support.
+- **Dependencies**: Fewer dependencies reduce complexity and potential security risks.
+- **License**: Ensure the license is compatible with your project.
+- **Documentation**: Well-documented packages are easier to use and troubleshoot.
+- **Maintainer Activity**: Check if maintainers are responsive to issues.
+
+Popular, well-maintained packages like Express.js, Lodash, and Axios are good examples of reliable NPM libraries. Always check for security vulnerabilities using `npm audit` after installation.
+
+## **1.7 File System Access with Async Operations**
 
 As we've said, Node lets you access the file system.  The functions you use are documented here: [https://nodejs.org/api/fs.html](https://nodejs.org/api/fs.html).  You will see some synchronous file access functions.  You could, for example, do:
 
@@ -261,7 +324,7 @@ async function doSomething() {
 
 The promisify function doesn't work in all cases. For example, `setTimeout((cb), interval)` doesn't have the right function signature because the callback function does not have enough parameters and is not last in the argument list.
 
-## **1.7 More on Async Functions**
+## **1.8 More on Async Functions**
 
 The flow of control in async functions has certain traps for the unwary, so it is wise to understand it fully.  In your `node-homework/assignment1` folder are two programs called `callsync.js` and `callsync2.js`.  Here is the first of these:
 
