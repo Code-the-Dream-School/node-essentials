@@ -2,7 +2,7 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will optionally explore various ideas for additional functions that may be added to an application.  Among the ideas presented are OAuth authentication using Google, adding additional associations to a data model, role based access control, pagination of result sets, updating many records with a single operation, and Swagger documentation of APIs.
+**Learning objective**: Students will optionally explore various ideas for additional functions that may be added to an application.  Among the ideas presented are OAuth authentication using Google, adding additional associations to a data model, role based access control, pagination of result sets, updating many records with a single operation, and Swagger documentation of APIs.  Students will also learn how to begin a new Node project.
 
 **Topics**:
 
@@ -15,6 +15,7 @@
 7. A progress log for each task
 8. Updating Many Records with a Single Operation
 9. Implementing a Task Backlog
+10. How to Begin Your Own Node Project
 
 
 ## **11.1 Ideas for your Todos Application**
@@ -27,7 +28,7 @@ For most of these ideas, you'll need to modify the database schema using Prisma.
 
 An extra for the extra: When you add a function, consider creating a Jest unit test for the function that you add. 
 
-All changes should be in a lesson11 branch.  You will submit your assignment as usual.  You can show what you add during your presentation.
+All changes should be in a lesson11 branch.  You will submit your assignment as usual -- but see the assignment instructions as there are a couple of extra steps.  You can show what you add during your presentation.
 
 ## **11.2 OAuth Authentication with Google**
 
@@ -76,7 +77,7 @@ User is now authenticated in your app
 
 ## **11.3 Todos in Folders**
 
-There are various ways to implement this, but you'll need to extend the data model.  One way is to create a folders table.  Each folder would belong to a user, and a user may have many folders.  A folder would have many tasks.  So, you'd need an optional foreign key added to the tasks table, that being the folder id.  Not all of a user's tasks would belong to a folder.  You'd need to have a route that creates a folder for the logged on user.  You'd need to have a way to add task to a given folder,or to remove a task from a folder.  Perhaps this could be done with a query parameter for the task update operation.  You'd need to have a way to retrieve the user's list of folders, so that you can get the id for each folder.  You could change the GET for /tasks support a query parameter like folder=xxxxx, and if that query parameter is present, the tasks from that folder are returned.
+There are various ways to implement this, but you'll need to extend the data model.  One way is to create a folders table.  Each folder would belong to a user, and a user may have many folders.  A folder would have many tasks.  So, you'd need an optional foreign key added to the tasks table, that being the folder id.  Not all of a user's tasks would belong to a folder.  You'd need to have a route that creates a folder for the logged on user.  You'd need to have a way to add task to a given folder,or to remove a task from a folder.  Perhaps this could be done with the task update operation.  You'd need to have a way to retrieve the user's list of folders, so that you can get the id for each folder.  You could change the GET for /tasks support a query parameter like folder=xxxxx, and if that query parameter is present, the tasks from that folder are returned.
 
 ## **11.4 Role Based Access Control**
 
@@ -110,4 +111,33 @@ You could add a backlog table.  Each entry would be the title for a task.  Each 
 
 These are some ideas.  Don't try to do them all, just one or two as your schedule permits, or do some other idea that you come up with.  Keep it simple!
 
+---
 
+## **11.10 How to Begin Your Own Node Project**
+
+You began this project by cloning the node-homework repository.  What if you want to create your own Node project? You don't need to do it now, but, for reference, here are steps you might use in the future.  Of course, different people do this in various ways.
+
+1. Create a repository on Github.  You use the plus button on the upper right of the Github page.  Give it a title, choose a visibility, give it a README, and perhaps give it a license.  Copy the URL for the newly created repository to your clipboard.
+
+2. Git clone the repository to your laptop.  Do not do the clone from within another Git repository.  Nested repositories are a mess.
+
+3. Change to the directory created when you cloned.  Start VSCode.  Create a .gitignore, typically with these files, but sometimes with others as well:
+
+    ```
+    node_modules/
+    tmp/
+    .env
+    .DS_Store
+    ```
+
+4. Run "npm init".  You can take the defaults, but you can change them as well.
+
+5. Do an npm install of the packages you know you will need.  Of course, you will probably add to this list over time.  Have a look at the packages you've accumulated for node-homework, as listed in package.json.  These are often useful for other projects.  Remember to use `--save-dev` for those packages that are only needed in development.
+
+6. Do a git add and commit of what you've done so far.  Then push it to your Github repository.  You still have only the main branch.
+
+7. Go back to your Github for the repository.  Open Settings -> Rules -> Rulesets and create a new branch ruleset. Call it "protect default branch".  Add a branch target for the default branch, which is main.  Restrict deletions, block force pushes, and **require a pull request before merging**.  What does this do for you?  It makes sure you don't push to main.  Whenever you work on a project, you create a branch, make changes to that branch, git add, git commit, git push (for the branch), and create a pull request.  These are good habits.
+
+This just describes the basics.  You could configure your Github repository with other steps governing the workflow, such as a trigger for automated tests, or automated syntax checking and code format checking.  You could create a specific form for pull requests, as is common for a team.
+
+---
