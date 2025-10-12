@@ -43,7 +43,7 @@ A transaction is a write operation on an SQL database that guarantees consistenc
 
 The transaction maintains consistency. When the read occurs, that entry is locked. (This depends on the isolation level and other stuff we won't get into now.) That lock is important, as otherwise there could be another withdrawal from the account that happens after the read but before the update, and the account would go overdrawn. Neither do you want the update that decreases the balance to complete while the update that increases the balance in the other account fails. That would anger the user, and justifiably so. With transactions, either both write operations succeed or neither succeeds.
 
-Relational databases' strength, by comparision with no-SQL databases, is the efficient handing of structured and interrelated data and transactional operations on that data.
+Relational databases' strength, by comparison with no-SQL databases, is the efficient handing of structured and interrelated data and transactional operations on that data.
 
 ### **Constraints**
 
