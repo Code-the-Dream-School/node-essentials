@@ -15,7 +15,7 @@
 
 ## **5.1 What SQL is, and Why it is Used**
 
-SQL (Structured Query Language) - is the standard language used to access relational databases such as MySQL, PostgreSQL. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database. The schema describes all the columns in each table, the **name** of each column (like "email" or "age") and the **data type** such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used - but MongoDB is pretty easy to learn. SQL is a deeper topic.
+SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used - but MongoDB is pretty easy to learn. SQL is a deeper topic.
 
 Read the following introduction: <https://www.theodinproject.com/lessons/databases-databases-and-sql>. Or, if you know this stuff, jump to the bottom of that page and do the Knowledge Check. Be sure that you understand the concepts of Primary Key and Foreign Key.
 
@@ -156,7 +156,7 @@ The primary key for the customer table is customer_id, and this is an autoincrem
 SELECT * FROM customers LIMIT 5;
 ```
 
-This shows you the schema for the customers table. Repeat this for each of the other tables. You will notice some foreign keys in several of the tables. Based on these, you should recognize that there are associations between these tables.
+This shows you the schema for the customers table. Run this same query for each of the other tables. You will notice some foreign keys in several of the tables. Based on the foreign keys, you should recognize that there are associations between these tables.
 
 ### **Check For Understanding**
 
@@ -224,7 +224,7 @@ Aliasing is also useful for renaming the columns returned in your results. Use d
 SELECT DISTINCT product_name "product names" FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN line_items l ON o.order_id = l.order_id JOIN products p ON l.product_id = p.product_id WHERE customer_name = 'Williams-Mack';
 ```
 
-Now the column will appear as "product names" instead of "product_name" in your results.
+Now the column will appear as "Product Names" instead of "product_name" in your results.
 
 Copy the statement above and run it in sqlcommand.
 
@@ -367,4 +367,4 @@ There are several ways to do SQL in Node. You can use the node-postgres package.
 - load-db.js. This connects to the database, creates the tables with the appropriate column names, data types, and schema constraints, and populates each table with values from CSV files, which are in the csv folder of your node-homework directory.
 - sqlcommand.js.
 
-Have a look at each of these programs, so that you can see how the node-postgres package (pg) works to perform SQL operations. Spend a little time with this. It's a good idea to learn how to use the pg package. However, it is much more common for Node application development to use an Object Relational Mapper (ORM). The ORM makes the schema management and data manipulation a lot easier. So, for reasons of brevity, your homework won't include any JavaScript. You will do the programming next week, using an ORM. The downside of using an ORM is that it hides many of the details of SQL from you, so if you were to start with the ORM, you wouldn't learn SQL as well as a backend developer needs to.
+Have a look at each of these programs, so that you can see how the node-postgres package (pg) works to perform SQL operations. Spend a little time with this. It's a good idea to learn how to use the pg package. However, it is much more common for Node application development to use an Object-Relational Mapper (ORM). The ORM makes the schema management and data manipulation a lot easier. So, for reasons of brevity, your homework won't include any JavaScript. You will do the programming next week, using an ORM. The downside of using an ORM is that it hides many of the details of SQL from you, so if you were to start with the ORM, you wouldn't learn SQL as well as a backend developer needs to.

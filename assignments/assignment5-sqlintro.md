@@ -16,7 +16,7 @@ The [SQL section of w3schools](https://www.w3schools.com/sql/default.asp) is a g
 
 Within sqlcommand, practice doing various SQL statements: SELECT, INSERT, UPDATE, DELETE, BEGIN, COMMIT, ROLLBACK. Your practice SQL statements should include the use of JOIN, GROUP BY, ORDER BY, HAVING, SUM, COUNT, etc. Do this until you feel confident in your SQL skills. Remember that you can reload the database as needed. Also, practice writing subqueries as well. Then proceed to the following tasks.
 
-**Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally - get one part working, then add more clauses, until everything works. If you run into problems, ask for assistance from a mentor or via the slack channel. If SQL is new to you, there is plenty to learn!
+**Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until everything works. If you run into problems, ask for assistance from a mentor or via the slack channel. If SQL is new to you, there is plenty to learn!
 
 ### **Task 1: Find the total price of each of the first 5 orders, ordered by order_id.**
 
