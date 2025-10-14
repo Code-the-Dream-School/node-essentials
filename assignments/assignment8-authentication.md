@@ -4,12 +4,17 @@
 
 This assignment is to be created in the node-homework folder.  As usual, create your assignment8 git branch.  Then npm install the following packages:
 
-- jsonwebtoken
-- cookie-parser
-- cors
-- express-xss-sanitizer
-- express-rate-limit
-- helmet
+```bash
+npm install jsonwebtoken cookie-parser cors express-xss-sanitizer express-rate-limit helmet
+```
+
+**Package Descriptions:**
+- `jsonwebtoken` - For creating and verifying JWT tokens
+- `cookie-parser` - For parsing cookies from HTTP requests
+- `cors` - For handling Cross-Origin Resource Sharing
+- `express-xss-sanitizer` - For protecting against XSS attacks
+- `express-rate-limit` - For rate limiting API requests
+- `helmet` - For setting security-related HTTP headers
 
 You can use `npm run tdd assignment8` to run tests for this assignment.  
 
@@ -27,6 +32,8 @@ Your app currently has a global user id, to simulate a logon and access control.
 
 ## **What do we Need in the JWT?**
 
+> **📚 Concept Review**: Before implementing JWT tokens, make sure you understand what they are and how they work. See **Lesson 8, Section 8.3** for a detailed explanation.
+
 We need the following:
 
 1. A cryptographic signature, to be sure that the JWT originates with our back end.  The signature relies on a secret, a long string that is impossible to guess.  You don't want this in the code, so you put it in the .env file.  The secret is used to sign the JWT and to verify inbound JWTs.
@@ -34,6 +41,8 @@ We need the following:
 2. Something that uniquely identifies the user, in our case, the id of the user record.
 
 3. The CSRF token.
+
+> **📚 Concept Review**: CSRF (Cross-Site Request Forgery) attacks are explained in **Lesson 8, Section 8.4**. Understanding how these attacks work will help you implement proper protection.
 
 4. A timeout, so that the JWT can't be used indefinitely.
 
