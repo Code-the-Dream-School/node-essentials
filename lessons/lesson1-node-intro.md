@@ -243,7 +243,7 @@ The arguments may be required or optional, but the last argument is required.  T
 
 ```js
 const { promisify } = require("util");
-const fnWithPromise = util.promisify(fnWithCallback);
+const fnWithPromise = promisify(fnWithCallback);
 ```
 
 From an async function, you can now use `async/await`.  If the original function returns an error in the callback, the wrapper does calls `reject(err)` on the promise, which you can catch by calling `fnWithPromise` in a try/catch block.
