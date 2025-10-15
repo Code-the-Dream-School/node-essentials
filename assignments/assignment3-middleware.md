@@ -184,9 +184,38 @@ The dogs are counting on you.
 
 ### Setup
 
+1. The `week-3-middleware` folder is already provided in your repository. This folder contains the skeleton code for the dog rescue application.
+
 2. To run the provided framework enter "npm run week3".  You do this before you start Postman testing.
 
-3. To run the test, enter "npm run tdd assignment3b".  Your task is to make the tests pass.
+3. To run the test, enter "npm run tdd assignment3b".  Your task is to modify the existing files in the week-3-middleware folder to make the tests pass.
+
+### **Advanced Middleware Implementation**
+
+The dog rescue team wants to add more robust middleware to their application. Implement these additional features:
+
+
+**Request Validation:**
+- Add middleware that validates the `Content-Type` header for POST requests
+- If a POST request doesn't have `application/json` content type, return a 400 error with a helpful message
+- Include the request ID in the error response
+
+**Error Handling Middleware:**
+- Create a custom `ValidationError` class that extends `Error` with a status code property
+- Add middleware to catch different error types and return appropriate HTTP status codes:
+  - `ValidationError` → 400 Bad Request
+  - `NotFoundError` → 404 Not Found  
+  - `UnauthorizedError` → 401 Unauthorized
+  - Default errors → 500 Internal Server Error
+- Log errors with different severity levels based on status code
+
+
+**Testing Your Implementation:**
+- Test with Postman to ensure all new middleware works correctly
+- Test that invalid content types return proper error responses
+-Error responses include the correct status code, message, and requestId
+-Unmatched routes return a 404 JSON response
+
 
 4. In **Postman**, set up the following routes.  They should all be in one collection called "dogs":
 
@@ -212,6 +241,8 @@ The dogs are counting on you.
 
 Your work will involve editing `app.js` to add the expected middleware. Do **not** modify the existing route logic in `routes/dogs.js`.
 
+**Important:** Pay attention to the **order** of your middleware! As you learned in Lesson 3, middleware executes in the order it's defined. Place each middleware in the correct position in the chain.
+
 1. **Built-In Middleware**  
 
    * The `POST /adopt` endpoint doesn’t seem to be processing requests as expected. This route expects a `name`, `email`, and `dogName`, but the controller keeps erroring. Implement the appropriate middleware to parse JSON requests on this endpoint.  
@@ -233,9 +264,74 @@ Your work will involve editing `app.js` to add the expected middleware. Do **not
 
 * Catch any uncaught errors and respond with a `500 Internal Server Error` error status and a JSON response body with the `requestID` and an error message. You can test this middleware with the `/error` endpoints
 
+## **Task 3: Enhanced Middleware Features**
+
+The dog rescue team wants to add more robust middleware to their application. Implement these additional features:
+
+**Remember:** Pay attention to middleware order! As you learned in Lesson 3, middleware executes in the order it's defined. Place each middleware in the correct position in the chain.
+
+### **Request Size Limiting**
+- Add middleware to limit request body size to prevent large requests from crashing the server
+- Use `express.json({ limit: '1mb' })` and `express.urlencoded({ limit: '1mb' })` for form data
+- This middleware should come before your routes
+
+### **Content-Type Validation**
+- Add middleware that validates the `Content-Type` header for POST requests
+- If a POST request doesn't have `application/json` content type, return a 400 error with a helpful message
+- Include the request ID in the error response
+
+### **404 Handler**
+- Add a proper 404 handler that runs after all routes
+- It should return a JSON response with status 404 and include the request ID:
+  ```js
+  {
+    "error": "Route not found",
+    "requestId": "your-request-id"
+  }
+  ```
+
+## **Task 4: Advanced Error Handling**
+
+Implement sophisticated error handling using custom error classes:
+
+### **Custom Error Classes**
+- Create a new file called `errors.js` in the `week-3-middleware` folder
+- Create a `ValidationError` class that extends `Error` with a status code property (400)
+- Create a `NotFoundError` class for 404 errors
+- Create an `UnauthorizedError` class for 401 errors
+- Export all error classes from the `errors.js` file
+- Import and use these error classes in your `app.js` and `routes/dogs.js` files
+
+### **Error Handling Middleware**
+- Add middleware to catch different error types and return appropriate HTTP status codes:
+  - `ValidationError` → 400 Bad Request
+  - `NotFoundError` → 404 Not Found  
+  - `UnauthorizedError` → 401 Unauthorized
+  - Default errors → 500 Internal Server Error
+- Log errors with different severity levels based on status code (ERROR, WARN, INFO)
+- Ensure all error responses include the request ID for debugging
+
+### **Security Headers**
+- Add middleware that sets basic security headers:
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: DENY`
+  - `X-XSS-Protection: 1; mode=block`
+- **Important:** This middleware should run for all responses, so place it early in your middleware chain (after request ID and logging, but before body parsing)
+- These headers help protect against common web vulnerabilities
+
+## **Task 5: Testing Your Implementation**
+
+Test all your new middleware features:
+
+- **Basic Functionality:** Ensure all existing routes still work
+- **Content-Type Validation:** Test that invalid content types return proper error responses
+- **Error Handling:** Test different error types return appropriate status codes
+- **Security Headers:** Check that security headers are present in all responses
+- **404 Handling:** Test that unmatched routes return proper 404 responses
+
 ### Checking Your Work
 
-You start the server for this exercise with `npm run week3`.  You stop it with a Ctrl-C.  You run `npm run tdd assignment3b` to run the test for this exercise.  Also use Postman to test.  Confirm the responses in Postman and the logs in your server terminal match the expectations in the deliverables.
+You start the server for this exercise with `npm run week3`.  You stop it with a Ctrl-C.  You run `npm run tdd assignment3` to run the test for this exercise.  Also use Postman to test.  Confirm the responses in Postman and the logs in your server terminal match the expectations in the deliverables.
 
 ## Video Submission
 
