@@ -1,4 +1,4 @@
-# **Assignment 4 — Introduction to Databases and SQL**
+# **Assignment 4 — Security Middleware, Validation, and Password Hashing**
 
 ## **Assignment Instructions**
 
