@@ -237,6 +237,33 @@ Your work will involve editing `app.js` to add the expected middleware. Do **not
 
 You start the server for this exercise with `npm run week3`.  You stop it with a Ctrl-C.  You run `npm run tdd assignment3b` to run the test for this exercise.  Also use Postman to test.  Confirm the responses in Postman and the logs in your server terminal match the expectations in the deliverables.
 
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube (unlisted), Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Answer 3 questions from Lesson 3:
+
+1. **What is the architecture of an Express application and how do its components work together?**
+   - Explain the main architectural components: app instance, middleware, route handlers, and error handlers
+   - Discuss the order of middleware execution and why it matters
+   - Demonstrate the difference between middleware and route handlers
+
+2. **How do you handle HTTP requests and responses in Express?**
+   - Explain the structure of HTTP requests (method, path, headers, body)
+   - Show how to access request data (req.method, req.path, req.body, req.query)
+   - Demonstrate response methods (res.json(), res.send(), res.status())
+
+3. **What is REST and how does it relate to Express applications?**
+   - Explain REST principles and HTTP methods
+   - Show how to design RESTful API endpoints
+   - Discuss status codes and proper API responses
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
+
 ## **Submit Your Assignment on GitHub**
 
 📌 **Follow these steps to submit your work:**
@@ -257,5 +284,6 @@ You start the server for this exercise with `npm run week3`.  You stop it with a
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
+- **Don't forget to include your video link in the submission form!**
 
 

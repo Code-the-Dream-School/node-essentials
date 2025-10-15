@@ -764,6 +764,35 @@ Your browser now has the link to your pull request. Copy that link, to be includ
 
 ---
 
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Short demos based on Lesson 6:
+
+1. **How do you connect Node.js to PostgreSQL and what are the benefits over in-memory storage?**
+   - Show your database connection setup in `db.js`
+   - Explain connection pooling and why it's important
+   - Walk through your database schema and explain foreign key relationships
+
+2. **What is an ORM and how does Prisma improve database operations?**
+   - Show your Prisma schema file and explain the model definitions
+   - Demonstrate the difference between raw SQL queries and Prisma methods
+   - Show how Prisma handles relationships with `include` and `select`
+   - Explain type safety and autocomplete benefits
+
+3. **How do you transform raw SQL queries to Prisma operations?**
+   - Walk through a specific database operation (like creating a user or fetching tasks)
+   - Show how Prisma handles error codes and validation
+   - Demonstrate the generated Prisma Client and its methods
+
+**Video Requirements**:
+- Show actual code from your assignment
+- Explain concepts clearly while demonstrating
+- Keep demos focused and concise
+
+---
+
 ## Resources
 
 - [Prisma Documentation](https://www.prisma.io/docs/)

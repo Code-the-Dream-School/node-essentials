@@ -420,6 +420,36 @@ Your browser now has the link to your pull request. Copy that link, to be includ
 
 ---
 
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Short demos based on Lesson 7:
+
+1. **How do you use Prisma's advanced querying features for analytics and reporting?**
+   - Show your analytics controller and explain `groupBy` operations
+   - Walk through a complex query that uses filtering and sorting
+   - Show how you use `_count` aggregations for user statistics
+
+2. **What are database transactions and how do you implement them with Prisma?**
+   - Explain why transactions are important for data consistency
+   - Demonstrate what happens when a transaction fails (rollback)
+   - Walk through your bulk operations using `createMany`
+
+3. **When and how do you use raw SQL with Prisma's `$queryRaw`?**
+   - Show your task search endpoint that uses raw SQL
+   - Explain why you chose raw SQL over Prisma methods for this case
+   - Demonstrate parameterized queries to prevent SQL injection
+   - Show the difference between `$queryRaw` and `$queryRawUnsafe`
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples 
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission
+
+---
+
 ## Resources
 
 - [Prisma Documentation](https://www.prisma.io/docs/)

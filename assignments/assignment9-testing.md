@@ -410,8 +410,8 @@ const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion")
 const prisma = require("../db/prisma");
 const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
-const { register, logoff } = require("../controllers/userController");
-const { logonRouteHandler, jwtMiddleware } = require("../passport/passport")
+const { register, logoff, login } = require("../controllers/userController");
+const jwtMiddleware = require("../middleware/jwtMiddleware")
 
 // a few useful globals
 let saveRes = null;
@@ -460,7 +460,7 @@ describe("testing logon, register, and logoff", () => {
       body: { email: "bob@sample.com", password: "Pa$$word20" },
     });
     saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(logonRouteHandler, req, saveRes);
+    await waitForRouteHandlerCompletion(login, req, saveRes);
     expect(saveRes.statusCode).toBe(200); // success!
   });
 })
@@ -678,3 +678,35 @@ To run the TDD for assignment 9, run `npm run lesson9TDD` .  You should get test
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
+
+---
+
+## Video Submission
+
+Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+
+**Video Content**: Short demos based on Lesson 9:
+
+1. **How do you write effective unit tests for validation schemas and business logic?**
+   - Show your validation test file and explain the test structure
+   - Demonstrate testing both valid and invalid inputs
+   - Walk through a specific test case and explain the assertions
+   - Show how you test edge cases and error conditions
+
+2. **How do you test Express API endpoints with supertest?**
+   - Show your API test file and explain the supertest setup
+   - Demonstrate testing different HTTP methods and status codes
+   - Walk through testing authentication and protected routes
+   - Show how you test request/response data validation
+
+3. **What testing strategies help ensure comprehensive coverage?**
+   - Explain the different types of tests (unit, integration, API)
+   - Show how you organize your test files and describe blocks
+   - Demonstrate running tests and interpreting results
+   - Walk through testing error scenarios and security vulnerabilities
+
+**Video Requirements**:
+- Keep it concise (3-5 minutes)
+- Use screen sharing to show code examples 
+- Speak clearly and explain concepts thoroughly
+- Include the video link in your assignment submission

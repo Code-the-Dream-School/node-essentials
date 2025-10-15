@@ -68,7 +68,7 @@ You should see a version number like `psql (PostgreSQL) 14.x`.
 <details>
 <summary style="font-size: 1.3em;">Postgresql on Windows</summary>
 
-The installer for Postgresql is [here](https://www.postgresql.org/download/windows).  You will need to assign a password for Postgres itself.  Think of one and write it down.  You will be prompted for it during the install.  You will also need a password for `mypguser`.  This is a special Postgres ID to be used for database access. Think of one and write it down.  Of course, don't reuse existing passwords.
+The installer for Postgresql is [here](https://www.postgresql.org/download/windows).  You will need to assign a password for Postgres itself.  Think of one and write it down.  You will be prompted for it during the installation.  You will also need a password for `mypguser`.  This is a special Postgres ID to be used for database access. Think of one and write it down.  Of course, don't reuse existing passwords.
 
 Run the install program, accepting all default values.  Once it completes, open the Windows services panel and verify that the Postgresql service is running. Then open a `cmd` prompt (not Git Bash) and type the following, entering the Postgres password when prompted, and substituting the `mypguser` passwrod for `<pg-password>`:
 
@@ -233,6 +233,7 @@ Before creating a new branch, make sure your local `main` branch is up to date:
 git checkout main
 git pull origin main
 git checkout -b assignment2
+```
 
 ## The `node-homework` Project Structure
 
