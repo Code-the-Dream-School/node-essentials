@@ -7,8 +7,9 @@
 
 1. A React Front End for the API
 2. Issues in Internet Deployment
-3. How you will Deploy
-4. Thinking About Your Capstone Project
+3. More security for Internet Deployment
+4. How you will Deploy
+5. Thinking About Your Capstone Project
 
 ## **2.1 A React Front End for the API**
 
@@ -75,7 +76,17 @@ Whew, a long list! These days, most businesses don't want to sign up for all of 
 
 There is a downside to the cloud, which is that you are dependent on your cloud provider.  In particular, they can get to all your data, so you have to trust them.  Technologies exist to protect your data and code from abuse by vulnerabilities or bad actors at your cloud provider, but they are complicated, and require more hardware that you have to own.  Serious leaks have occurred because of security failures by cloud providers.
 
-## **2.3 How You Will Deploy**
+## **2.3 More Security for Internet Deployment**
+
+Before you deploy, you must be sure that you have enough security built into your back end to prevent misuse.  In Assignment 8, you added quite a few things, but there is still one big hole.  For all the tasks routes and the logoff route, the caller has to have a cookie created by the back end.  And for the logon route, the caller has to have an email address and a password. But for the register route, you have no protection at all.  This creates two risks:
+
+1. Someone could register with an email address they don't own.
+
+2. A bot could register unlimited user records.
+
+Typically, you'd fix (1) by sending a notification with some temporary key to the user's email.  They'd have to send it back somehow to prove that they really own that email address.  We won't have you fix that at the moment, which makes it all the more important to address (2).  You'll do that in your assignment by using the Google reCaptcha service.
+
+## **2.4 How You Will Deploy**
 
 This is just an outline.  Explicit steps will be provided in your assignment.
 
@@ -110,7 +121,7 @@ This is just an outline.  Explicit steps will be provided in your assignment.
 
 When you use the Render.com free plan, builds are slow.  Your application goes to sleep if it is idle for a while.  It takes a while for it to come back up.  Be patient ... and don't rely on Render.com for your class demo!
 
-## **2.4 Thinking About Your Capstone Project**
+## **2.5 Thinking About Your Capstone Project**
 
 Review the rubric for the class final project.  Once you complete assignment 10, you will have satisfied nearly all the requirements of the rubric, except one: Do something extra.  There are ideas in the rubric for what the "something extra" might be.  In lesson 11, there are some tips on how to do these.  You may elect to do something else entirely.  However!  Remember that this class is about Node.  You don't want to mess with the front end.  So, you may just be adding APIs or adding additional parameters to existing APIs, or extending the database in some way, and to test and demonstrate, you may have to rely on Postman.  The front end we provide has some function you can leverage, as described in lesson 11.
 
