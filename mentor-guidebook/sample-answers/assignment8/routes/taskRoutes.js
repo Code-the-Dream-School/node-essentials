@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { index, show, create, update, deleteTask, bulkCreate } = require('../controllers/taskController');
-const { jwtMiddleware } = require('../passport/passport');
+const jwtMiddleware = require('../middleware/jwtMiddleware');
 
 // All task routes are protected with JWT middleware
 router.use(jwtMiddleware);
