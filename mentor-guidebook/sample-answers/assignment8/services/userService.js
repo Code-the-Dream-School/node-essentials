@@ -1,64 +1,40 @@
-const prisma = require('../prisma/db');
-const bcrypt = require('bcrypt');
+const prisma = require("../db/prisma");
+const crypto = require("crypto");
+const util = require("util");
 
-/**
- * Verify user password for authentication
- * @param {string} email - User's email
- * @param {string} password - User's password
- * @returns {Object} - Object containing user data and validation result
- */
-exports.verifyUserPassword = async (email, password) => {
-  try {
-  
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
+const scrypt = util.promisify(crypto.scrypt);
 
-    if (!user) {
-      return { user: null, isValid: false };
-    }
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const derivedKey = await scrypt(password, salt, 64);
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
 
+async function comparePassword(inputPassword, storedHash) {
+  const [salt, key] = storedHash.split(":");
+  const keyBuffer = Buffer.from(key, "hex");
 
-    const isValid = password === user.password;
+  const derivedKey = await scrypt(inputPassword, salt, 64);
 
-    if (isValid) {
-      return { user, isValid: true };
-    } else {
-      return { user: null, isValid: false };
-    }
-  } catch (error) {
-    console.error('Error verifying user password:', error);
-    throw error;
-  }
-};
+  return crypto.timingSafeEqual(keyBuffer, derivedKey);
+}
 
-/**
- * Create a new user
- * @param {Object} userData - User data object
- * @returns {Object} - Created user
- */
-exports.createUser = async (userData) => {
-  try {
-    const { name, email, password } = userData;
-    
+async function createUser(data) {
+  const hashed = await hashPassword(data.password);
+  delete data.password;
+  return await prisma.user.create({
+    data: { ...data, hashedPassword: hashed },
+  });
+}
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
-    
-    if (existingUser) {
-      throw new Error('User already exists');
-    }
+async function verifyUserPassword(email, inputPassword) {
+  const user = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" }}});
+  if (!user) return { user: null, isValid: false };
 
+  return {
+    user,
+    isValid: await comparePassword(inputPassword, user.hashedPassword),
+  };
+}
 
-    const newUser = await prisma.user.create({
-      data: { name, email, password },
-      select: { id: true, name: true, email: true }
-    });
-
-    return newUser;
-  } catch (error) {
-    console.error('Error creating user:', error);
-    throw error;
-  }
-};
+module.exports = { createUser, verifyUserPassword };

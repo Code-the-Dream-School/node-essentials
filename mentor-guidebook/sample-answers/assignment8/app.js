@@ -12,9 +12,6 @@ const rateLimiter = require('express-rate-limit');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Initialize Passport
-require('./passport/passport');
-
 // Security middleware - must come first
 app.use(
   rateLimiter({
