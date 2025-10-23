@@ -76,7 +76,7 @@ Here's the code you'll need to add to the register method, just before userSchem
 
 You have run the TDD for this assignment as well as the Postman test -- but these aren't very good tests in this case.  You are just using the bypass, and not a real token.  You'll correct this in the next lesson.
 
-## **Task 1: Calling Your Back End from a React Front End**
+## **Task 2: Calling Your Back End from a React Front End**
 
 For this step, create a new terminal session.  Make sure that your active directory is **not** the node-homework folder.  You want the front end files to be completely separate.
 
@@ -148,11 +148,11 @@ Note 1: Because you are running a free service, it will go to sleep after it idl
 
 Note 2: If you make changes to your app and push your commits to your main Github branch, you can go to your Render dashboard, select your web service, and click on Manual Deploy to get the new version loaded.
 
-## **Task 4: Testing Your Deployed Back End with Postman**
+## **Task 5: Testing Your Deployed Back End with Postman**
 
 Each of your Postman tests references the `urlBase` Postman environment variable.  Change that environment variable so that it has the URL of the Render.com service you created.  Then, try each of the operations, to make sure everything works.  Make sure that your Node app is not running on your local machine, so that you know the REST requests are going to your service on Render.
 
-## **Task 5: Testing Your Deployed Back End with the Front End**
+## **Task 6: Testing Your Deployed Back End with the Front End**
 
 Change the `.env` file for your front end.  For the VITE_BASE_URL, put in the URL of your service on Render.  Then try out the front end to see that everything still works.
 
