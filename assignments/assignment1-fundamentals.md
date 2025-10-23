@@ -27,6 +27,10 @@
 
 ## Assignment Tasks
 
+**Setup Note:** Before starting, make sure you have a  `sample-files` directory in your `assignment1` folder. This directory will be used for file operations in tasks 3 and 4.
+
+**Important:** Follow the exact formatting requirements specified in each task. The automated tests expect specific console output formats, so pay attention to spacing, capitalization, and punctuation in your console.log statements.
+
 ### 1. Node.js Fundamentals
 - In a markdown file (`node-fundamentals.md`), answer the following:
   - What is Node.js?
@@ -36,10 +40,14 @@
   - Explain the difference between CommonJS and ES Modules. Give a code example of each.
 
 ### 2. Exploring Node Globals
-- Create a script (`globals-demo.js`) that logs the following:
-  - The value of `__dirname` and `__filename`
-  - The current process ID and platform using `process`
-  - A custom global variable (attach a property to `global` and log it)
+- Create a script (`globals-demo.js`) that logs the following with **exact formatting**:
+  - `console.log('__dirname:', __dirname);`
+  - `console.log('__filename:', __filename);`
+  - `console.log('Process ID:', process.pid);` 
+  - `console.log('Platform:', process.platform);` 
+  - A custom global variable: `global.myCustomVar = 'Hello, global!';` followed by `console.log('Custom global variable:', global.myCustomVar);`
+
+**Important:** Use exactly one space after the colon in each console.log statement, and use the exact capitalization shown above for "Process ID" and "Platform".
 
 ### 3. Asynchronous JavaScript
 - Create a script (`async-demo.js`) that:
@@ -48,6 +56,15 @@
   - Converts the callback code to use Promises, then async/await
   - Uses `try/catch` for error handling
   - **Important:** For each async pattern (callback, promise, async/await), your console output should include the phrase `Hello, async world!` to match the file content and test expectations.
+  - **File Setup:** In your `sample-files` directory, create a `sample.txt` file containing exactly "Hello, async world!" (without quotes) for the async demo to read.
+
+**Console Output Examples:**
+When you run your async-demo.js, you should see output like:
+```
+Callback read: Hello, async world!
+Promise read: Hello, async world!
+Async/Await read: Hello, async world!
+```
 
 
 ### 4. Node Core Modules
@@ -55,7 +72,31 @@
   - Uses the `os` module to log system information (platform, CPU, memory)
   - Uses the `path` module to join two paths and log the result
   - Uses the `fs.promises` API to write and then read a file (`demo.txt`)
-  - Create a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log the first 40 characters (or any summary) to the console. When the stream ends, log a message like "Finished reading large file with streams." Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
+  - Creates a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log the first 40 characters (or any summary) to the console. When the stream ends, log a message like "Finished reading large file with streams." Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
+
+**Console Output Examples:**
+When you run your core-modules-demo.js, you should see output like:
+```
+Platform: darwin
+CPU: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+Total Memory: 17179869184
+Joined path: /path/to/sample-files/folder/file.txt
+fs.promises read: Hello from fs.promises!
+Read chunk: This is a line in a large file...
+Finished reading large file with streams.
+```
+
+## Testing Your Work
+
+After completing each script, run it to make sure it produces the expected output:
+
+```bash
+node globals-demo.js
+node async-demo.js  
+node core-modules-demo.js
+```
+
+The automated tests will check that your output matches the expected format. If a test fails, check that your console.log statements use the exact spacing and capitalization shown in the examples above.
 
 ## Video Submission
 
