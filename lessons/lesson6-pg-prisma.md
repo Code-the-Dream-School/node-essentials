@@ -153,7 +153,7 @@ PORT=3000
 
 **Note:** The PostgreSQL URL format may vary depending on your operating system. For detailed information about different URL formats for Windows, Mac, and Linux, see Assignment 0.
 
-**Security Note:** Never commit your `.env` file to version control. It contains sensitive information like passwords.
+**Security Note:** Never commit your `.env` file to version control. It contains sensitive information like passwords. Make sure to add `.env` to your `.gitignore` file to prevent accidentally committing it to GitHub.
 
 ---
 
@@ -195,6 +195,8 @@ CREATE TABLE tasks (
 - **`REFERENCES users(id)`**: Creates a foreign key relationship
 - **`DEFAULT CURRENT_TIMESTAMP`**: Automatically sets the current time
 
+**Important:** After creating your schema, make sure to run `psql -f schema.sql` to create the tables in your database before testing your application.
+
 ---
 
 ## 6. Node.js Database Integration
@@ -227,11 +229,13 @@ module.exports = pool;
 **Understanding the Code:**
 - **`Pool`**: Manages multiple database connections efficiently
 - **`connectionString`**: Uses your DATABASE_URL from environment variables
-- **`ssl`**: Required for some hosting platforms (like Heroku)
+- **`ssl`**: Required for some hosting platforms (like Heroku). For local development, you can remove this line as most local PostgreSQL setups don't require SSL.
 - **`module.exports`**: Makes the pool available to other files
 
 ### Why Use Connection Pooling?
 Instead of creating a new connection for each database operation, a pool maintains several connections and reuses them. This is more efficient and faster than creating connections on demand.
+
+**Important:** When stopping your application, use `await pool.end()` to close all connections cleanly and prevent connection leaks.
 
 ---
 
@@ -496,6 +500,37 @@ app.get('/health', async (req, res) => {
 7. **Test task retrieval**: `GET /api/tasks` (uses global.user_id, no query parameter needed)
 
 **Note:** After login, the user_id is stored globally, so task operations don't require passing user_id as a query parameter. This matches the behavior from lesson 4.
+
+### Example Postman Requests and Responses
+
+**Health Check Endpoint:**
+```
+GET /health
+Response: 200 OK
+{
+  "status": "ok",
+  "db": "connected"
+}
+```
+
+**User Registration:**
+```
+POST /api/users/register
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "name": "John Doe",
+  "password": "password123"
+}
+
+Response: 201 Created
+{
+  "id": 1,
+  "email": "john@example.com",
+  "name": "John Doe"
+}
+```
 
 ---
 
@@ -874,6 +909,8 @@ npx prisma generate
 - Creates a client in `node_modules/.prisma/client`
 - Provides type-safe database operations
 
+**Important:** You must run `npx prisma generate` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.
+
 ### Using the Generated Client
 
 **1. Create Client Instance**
@@ -1133,10 +1170,10 @@ const tasks = await prisma.task.findMany({
 Prisma provides specific error codes for different scenarios:
 
 **Common Error Codes:**
-- **`P2002`**: Unique constraint violation (duplicate email)
-- **`P2025`**: Record not found
-- **`P2003`**: Foreign key constraint violation
-- **`P2014`**: Invalid relation
+- **`P2002`**: Unique constraint violation (duplicate email) → Return 400 Bad Request
+- **`P2025`**: Record not found → Return 404 Not Found
+- **`P2003`**: Foreign key constraint violation → Return 400 Bad Request
+- **`P2014`**: Invalid relation → Return 400 Bad Request
 
 ### Implementing Error Handling
 ```javascript
@@ -1149,6 +1186,18 @@ try {
   if (error.code === 'P2002') {
     return res.status(400).json({ 
       error: "User with this email already exists" 
+    });
+  }
+  
+  if (error.code === 'P2025') {
+    return res.status(404).json({ 
+      error: "Record not found" 
+    });
+  }
+  
+  if (error.code === 'P2003') {
+    return res.status(400).json({ 
+      error: "Invalid reference - related record does not exist" 
     });
   }
   
@@ -1191,6 +1240,8 @@ process.on('beforeExit', async () => {
   await prisma.$disconnect();
 });
 ```
+
+**Important:** Always call `await prisma.$disconnect()` when shutting down your application or in tests to close database connections cleanly and prevent connection leaks.
 
 ### Query Optimization
 **Select Only Needed Fields:**
