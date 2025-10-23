@@ -4,20 +4,23 @@ const { createUser, verifyUserPassword } = require("../services/userService");
 const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
 
-const setJwtCookie = (req, res, user) => {
-  // Sign JWT
-  const payload = { id: user.id, csrfToken: randomUUID() }; 
-  req.user = payload; // this is a convenient way to return the csrf token to the caller.
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }); // 1 hour expiration
-
-  // Set cookie.  Note that the cookie flags have to be different in production and in test.
-  res.cookie("jwt", token, {
+const cookieFlags = (req) => {
+  return {
     ...(process.env.NODE_ENV === "production" && { domain: req.hostname }), // add domain into cookie for production only
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    maxAge: 3600000, // 1 hour expiration.  Ends up as max-age 3600 in the cookie.
-  });
+  };
+};
+
+const setJwtCookie = (req, res, user) => {
+  // Sign JWT
+  const payload = { id: user.id, csrfToken: randomUUID() };
+  req.user = payload; // this is a convenient way to return the csrf token to the caller.
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }); // 1 hour expiration
+
+  // Set cookie.  Note that the cookie flags have to be different in production and in test.
+  res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
   return payload.csrfToken; // this is needed in the body returned by login() or register()
 };
 
@@ -62,7 +65,7 @@ const register = async (req, res) => {
 };
 
 const logoff = async (req, res) => {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt", cookieFlags(req));
   res.sendStatus(StatusCodes.OK);
 };
 
