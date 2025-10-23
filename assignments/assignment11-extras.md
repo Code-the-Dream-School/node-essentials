@@ -6,7 +6,7 @@ Your assignment is to complete the final project and to prepare your final prese
 
 Make your changes to an assignment11 branch of your node-homework repository.  Do a complete test. If you are adding or modifying APIs, test them.  If you are enabling Swagger, make sure that you can see the Swagger user interface.
 
-**Important** Create a file in node-homework called project-summary.txt.  Include the URL of your deployed service on Render.com.  We hope that you do add some extra function.  If you do add extra function, describe what you added.  In particular, if you add or modify any REST APIs, document the new or modified APIS, with enough information that your reviewer can try them out: the path, the method, the query parameters if any, and the body if any.
+**Important** We hope that you do add some extra function.  If you do add extra function, describe what you added in the file project-summary.txt.  In particular, if you add or modify any REST APIs, document the new or modified APIS, with enough information that your reviewer can try them out: the path, the method, the query parameters if any, and the body if any.
 
 ## **Submit Your Assignment on GitHub**
 

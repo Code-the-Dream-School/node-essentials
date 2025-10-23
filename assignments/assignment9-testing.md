@@ -664,7 +664,7 @@ To run the TDD for assignment 9, run `npm run lesson9TDD` .  You should get test
 
 #### **1️⃣ Add, Commit, and Push Your Changes**
 
-- Within your node-homework folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment11` branch.
+- Within your node-homework folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment9` branch.
 - Push that branch to GitHub.
 
 #### **2️⃣ Create a Pull Request**
