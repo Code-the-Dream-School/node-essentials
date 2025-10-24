@@ -258,18 +258,18 @@ const fs = require("fs");
 const doFileOperations = async () => {
   // we need this separate function because you can't do an await 
   // statement in mainline JavaScript code
-  const filehandle = await new Promise((resolve, reject) => {
-    fs.open("./tmp/file.txt", "w", (err, filehandle) => {
-      return err ? reject(err) : resolve(filehandle);
+  try {
+    const filehandle = await new Promise((resolve, reject) => {
+      fs.open("./tmp/file.txt", "w", (err, filehandle) => {
+        return err ? reject(err) : resolve(filehandle);
+      });
     });
-  });
+  } catch (err) {
+    console.log("An error occurred.", err);
+  }
 };
 
-try {
-  doFileOperations();
-} catch (err) {
-  console.log("an error occurred.");
-}
+doFileOperations(); // You can't put the try/catch here: The error would be thrown after the try/catch block completes.
 ```
 
 Please look carefully at how this is done.  You will need to do it from time to time, because some functions that you will need to use only support callbacks.  The wrappering isn't very hard.  Every time you do the wrapper, it looks just the same.  You do need the try/catch once you wrapper the function.  Of course, the advantage is that subsequent file operations, also wrappered the same way, could be added without having to create a nested series of callbacks.  Be careful when you create such a wrapper.  The callback inside your wrapper must always call resolve() or reject(), or your process hangs.
@@ -280,14 +280,14 @@ Fortunately, most Node functions do support promises.  There are promise based v
 const fs = require("fs/promises"); // get the promise enabled version of the API
 
 const doFileOperations = async () => { // you can't use await in mainline code, so you need this
-  const fileHandle = await fs.open("./tmp/file.txt", "w");
+  try {
+    const fileHandle = await fs.open("./tmp/file.txt", "w");
+  } catch (err) {
+    console.log("A error occurred.", err);
+  }
 };
 
-try {
-  doFileOperations();
-} catch (err) {
-  console.log("an error occurred.");
-}
+doFileOperations(); 
 ```
 
 This is the way you'll do file I/O for the most part.  Once you have the fileHandle, you can do `fileHandle.read()`, `fileHandle.write()`, and `fileHandle.close()`, all of them async functions you call with await.
