@@ -59,7 +59,7 @@ emitter.emit("tell", "second message");
 emitter.emit("tell", "all done");
 ```
 
-Try this program out.  We only have "tell" and "error" as event names in this case, but typically there would be more named events.  The listeners for a given event are called in the order they register, and the emitting of events is synchronous, although it be made asynchronous.
+Try this program out.  We only have "tell" and "error" as event names in this case, but typically there would be more named events.  The listeners for a given event are called in the order they register, and the emitting of events is synchronous, although it can be made asynchronous.
 
 This may seem pretty simple, and it is -- but it enables you to write programs where one function communicates with many others, depending on the conditions.  The mainline code could have logic that says, if X happens, notify a, b, and c, but if Y happens, notify c and d.  This gives plugpoints where developers can add modules to listen for events.  This simple model is exploited extensively in the Node `http` package.
 
