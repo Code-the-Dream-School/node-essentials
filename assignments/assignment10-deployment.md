@@ -127,7 +127,7 @@ You are going to deploy your back end to the cloud.  An application in the cloud
 
     1. Select public Git repository, and give the URL of your node-homework repository, and click Connect.
     2. Use all the default values, except for the ones below.  You could try to change the name, which will default to node-homework-x, where x is some number, but of course, you have to specify a name that no one else is using.
-    3. For Branch, use main.
+    3. For Branch, use assignment10. **Note: for your final project, you should switch this to the main branch, but your deployment for this lesson requires the code changes of the assignment10 branch.**
     4. For Build Command, use: `npm install --production && npx prisma migrate deploy` .  This installs the packages you need (but not the ones that are used only for development and test).  It also makes sure that your database schema is current.
     5. For Run Command, use: `npm start`
     6. Make sure AutoDeploy is set to off.  Otherwise it will redeploy every time you change the main branch.
@@ -146,7 +146,7 @@ You are going to deploy your back end to the cloud.  An application in the cloud
 
 Note 1: Because you are running a free service, it will go to sleep after it idles for a while.  It will wake up when a request is received, but the restart takes a few minutes each time.
 
-Note 2: If you make changes to your app and push your commits to your main Github branch, you can go to your Render dashboard, select your web service, and click on Manual Deploy to get the new version loaded.
+Note 2: If you make changes to your app and push your commits to Github, you can go to your Render dashboard, select your web service, and click on Manual Deploy to get the new version loaded.
 
 ## **Task 5: Testing Your Deployed Back End with Postman**
 
