@@ -256,9 +256,9 @@ Route handlers and middleware frequently do asynchronous operations, often for d
 
 ## **Middleware Functions, Route Handlers, and Error Handling**
 
-Let's sum up common characteristics of middleware functions and response handlers.  Let's also
+Let's sum up common characteristics of middleware functions and response handlers.
 
-1. They are each called with the parameters req and res, or possibly req, res, and next.  They may be declared as async functions.
+1. Middleware functions typically take three parameters — `req`, `res`, and `next` — which allow them to process the request, modify the response, or pass control to the next function. They may be declared as async functions.
 
 2. Once they are called, these functions do processing based on the information in the req object: method, path, path parameters, query parameters, headers, cookies, the body.  Every request has a method and path, but the other request attributes may or may not be present.
 
