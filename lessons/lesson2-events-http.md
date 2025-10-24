@@ -2,7 +2,8 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will gain familiarity with event emitters and listeners.  Students will use the Node http package to create an HTTP server that handles a few routes and responds with JSON.  Students will create a POST route in the http server and test it using Postman.  Students will learn the elements of Express and will create a basic Express server.
+**Learning objective**: Students will gain familiarity with event emitters and listeners.  Students will use the Node http package to create an HTTP server that handles a few routes and responds with JSON.  Students will create a POST route in the http server and test it using Postman.  Students will learn the elements of Express and will create a basic Express server.  
+
 **Topics**:
 
 1. Event Emitters and Listeners.
