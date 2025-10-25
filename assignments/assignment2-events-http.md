@@ -37,7 +37,7 @@ This, of course, is a web page.
 Then change your logic so that you handle requests for the URL `'/time'`. A JSON document should be returned with an attribute `'time'` that has a value of the current time as a string.
 
 Once you've got that code in place, restart your server and test the new URL from your browser. Then, add logic to handle requests for `'/timePage'`. It should return the page above.  
-You will need to set the header content-type to be: `"text/html; charset=utf-8"`.
+You will need to set the header content-type to be: `"text/html; charset=utf-8"`. See documentation about headers [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Type).
 
 Then restart your server and try that URL. You should see the page with a button.  
 Click on the button, and you should see the time. The button causes a fetch to your server.  
