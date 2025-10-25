@@ -283,7 +283,12 @@ You could also try POST requests using Postman. The `req.query` object gives the
 You can add them to your request from your browser or from Postman by putting something like `?height=7&color=brown` at the end of the URL you send from your browser or Postman. 
 This middleware is useful — it could help with debugging. We haven't explained how to get `req.body`, but eventually you could get that as well.
 
-**There is no TDD for this week.**
+**Run The Tests**
+  - After completing the tasks, run the tests using:
+     ```bash
+     npm run tdd assignment2
+     ```
+  - Make sure all tests pass before submitting your work.
 
 ## Video Submission
 
