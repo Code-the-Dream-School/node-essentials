@@ -115,7 +115,7 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
         message: "That route is not available.",
       }),
     );
-  } else if (req.url.pathname === "/secret") {
+  } else if (req.url === "/secret") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
