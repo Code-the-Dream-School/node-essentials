@@ -2,7 +2,8 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will gain familiarity with event emitters and listeners.  Students will use the Node http package to create an HTTP server that handles a few routes and responds with JSON.  Students will create a POST route in the http server and test it using Postman.  Students will learn the elements of Express and will create a basic Express server.
+**Learning objective**: Students will gain familiarity with event emitters and listeners.  Students will use the Node http package to create an HTTP server that handles a few routes and responds with JSON.  Students will create a POST route in the http server and test it using Postman.  Students will learn the elements of Express and will create a basic Express server.  
+
 **Topics**:
 
 1. Event Emitters and Listeners.
@@ -59,7 +60,7 @@ emitter.emit("tell", "second message");
 emitter.emit("tell", "all done");
 ```
 
-Try this program out.  We only have "tell" and "error" as event names in this case, but typically there would be more named events.  The listeners for a given event are called in the order they register, and the emitting of events is synchronous, although it be made asynchronous.
+Try this program out.  We only have "tell" and "error" as event names in this case, but typically there would be more named events.  The listeners for a given event are called in the order they register, and the emitting of events is synchronous, although it can be made asynchronous.
 
 This may seem pretty simple, and it is -- but it enables you to write programs where one function communicates with many others, depending on the conditions.  The mainline code could have logic that says, if X happens, notify a, b, and c, but if Y happens, notify c and d.  This gives plugpoints where developers can add modules to listen for events.  This simple model is exploited extensively in the Node `http` package.
 
@@ -256,9 +257,9 @@ Route handlers and middleware frequently do asynchronous operations, often for d
 
 ## **Middleware Functions, Route Handlers, and Error Handling**
 
-Let's sum up common characteristics of middleware functions and response handlers.  Let's also
+Let's sum up common characteristics of middleware functions and response handlers.
 
-1. They are each called with the parameters req and res, or possibly req, res, and next.  They may be declared as async functions.
+1. Middleware functions typically take three parameters — `req`, `res`, and `next` — which allow them to process the request, modify the response, or pass control to the next function. They may be declared as async functions.
 
 2. Once they are called, these functions do processing based on the information in the req object: method, path, path parameters, query parameters, headers, cookies, the body.  Every request has a method and path, but the other request attributes may or may not be present.
 
