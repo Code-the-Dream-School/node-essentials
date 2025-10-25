@@ -299,7 +299,12 @@ SELECT * FROM line_items WHERE order_id = 252;
 
 Actually, in this case, you don't need to. But suppose you are doing a bank transfer. You want to be sure that when you do the transfer, there is enough money in the source account, so you do a SELECT to check, within the transaction. If the isolation level for the transaction is SERIALIZABLE, that locks the record in the table, so that it can't change before the transfer occurs. If there isn't enough money, the right step is to rollback the transaction and tell the user tough luck. But, in the case above, the customer_id, the product_id, and the employee_id aren't going to change.
 
-### **Locking and Database Isolation Levels**
+### **Advanced Topic: Locking and Database Isolation Levels**
+
+The actual behavior of the database during the transaction depends on the configured **isolation level**.  This is an advanced topic.  Sooner or later, every back end developer that uses SQL has to understand about isolation levels, and you may be asked about it during a job interview.  But, for now, the following section is optional.  The default isolation level for your Posgres database ensures the behavior you need for this project.
+
+<details>
+<summary style="font-size: 1.3em;">Understanding Isolation Levels</summary>
 
 While a transaction is in progress, the records it touches in the database may be locked. This can be important to maintain consistency, for example for the bank transfer case above. But, there is a downside. If you hold a lock, other concurrent processes that attempt to access the relevant records have to wait. Eventually either your transaction times out or those other processes do. So, if you have a transaction in process, you don't want to diddle about. Get the work done and COMMIT or ROLLBACK.
 
@@ -356,9 +361,11 @@ There are four standard isolation levels for relational databases:
 
 4. SERIALIZABLE: In this case, the records retrieved **are locked** for the duration of the transaction. So then Tom can't go overdrawn, given the sequence above.
 
-The more isolation you have, the greater the locking cost, but the stronger your guarantees of data integrity. Try to remember these levels. You could be asked about them in a job interview.
+The more isolation you have, the greater the locking cost, but the stronger your guarantees of data integrity.
 
 The default isolation level for the Postgres database you are using is READ COMMITTED. You can change this default when establishing a connection, and you can also change it for a particular transaction.
+
+</details>
 
 ## **5.6 SQL in a Node Application**
 
