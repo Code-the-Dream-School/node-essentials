@@ -1208,6 +1208,38 @@ try {
 }
 ```
 
+### Database Connection Errors
+
+Prisma throws a `PrismaClientInitializationError` when it cannot connect to the database. This commonly occurs when the database server isn't running. You can handle this in your error handler middleware:
+
+```javascript
+app.use((err, req, res, next) => {
+  console.error('Error occurred:', err.message);
+  
+  // Handle database connection failures
+  if (err?.name === "PrismaClientInitializationError") {
+    console.log("Couldn't connect to the database. Is it running?");
+    return res.status(500).json({ 
+      error: "Database connection failed",
+      message: "Couldn't connect to the database. Is it running?"
+    });
+  }
+  
+  // Handle other Prisma errors
+  if (err.code === 'P2002') {
+    return res.status(400).json({ error: "Duplicate entry" });
+  }
+  
+  // Default error response
+  res.status(500).json({ error: "Internal server error" });
+});
+```
+
+**Benefits:**
+- Provides clear feedback when the database is unavailable
+- Improves debugging and user experience
+- Catches connection issues early
+
 ### Validation and Error Prevention
 ```javascript
 // Check if user exists before updating
