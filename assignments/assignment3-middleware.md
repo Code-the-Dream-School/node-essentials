@@ -1,6 +1,6 @@
 # **Assignment 3 — Extending Your Express App, and a Middleware Debugging Exercise**
 
-This assignment is to be done in the node-homework folder.  Within that folder, create an ёassignment3` ```git branch``` for your work.  As you work on this assignment, add and commit your work to this branch periodically.
+This assignment is to be done in the node-homework folder.  Within that folder, create an `assignment3` ```git branch``` for your work.  As you work on this assignment, add and commit your work to this branch periodically.
 
 > REMEMBER: Commit messages should be meaningful. `Week 3 assignment` is not a meaningful commit message.
 
