@@ -1,6 +1,6 @@
 # **Assignment 3 — Extending Your Express App, and a Middleware Debugging Exercise**
 
-This assignment is to be done in the node-homework folder.  Within that folder, create an assignment3 git branch for your work.  As you work on this assignment, add and commit your work to this branch periodically.
+This assignment is to be done in the node-homework folder.  Within that folder, create an ёassignment3` ```git branch``` for your work.  As you work on this assignment, add and commit your work to this branch periodically.
 
 > REMEMBER: Commit messages should be meaningful. `Week 3 assignment` is not a meaningful commit message.
 
@@ -10,9 +10,9 @@ You have started work on the application you'll use for your final project.  You
 
 For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the '/user' path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.
 
-You can't test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right hand side, you see an icon that is a rectangle with a little eye.  No, it doesn't mean the Illuminati.  This is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
+You cannot test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left-hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right-hand side, you see an icon that is a rectangle with a little eye.  No, it doesn't mean the Illuminati.  This is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
 
-Hover over the node-homework collection and you'll see three dots. Click on those, and select 'add request'.  Give it a name, perhaps `register`.  A new request, by default, is a GET, but there is a pulldown to switch it to POST.  Save the request, and then send it.  If your Express app is running, you should see your message come back.  Of course, to create a user record, you need data in the body of the request.  So, click on the body tab for the request.  Select the `raw` option.  There's a pulldown to the right that says `Text`.  Click on that, and choose the JSON option.  Then, put JSON in for the user you want to create.  You need a name, an email, and a password.  Remember that this is JSON, not a JavaScript object, so you have to have double quotes around the attribute names and string values.  Save the request again, and then send it.  The result is the same of course -- the request handler doesn't do more than send a message at the moment.
+Hover over the node-homework collection and you'll see three dots. Click on those, and select 'add request'.  Give it a name, perhaps `register`.  A new request, by default, is a GET, but there is a pulldown to switch it to POST.  Save the request, and then send it.  If your Express app is running, you should see your message come back.  Of course, to create a user record, you need data in the body of the request.  So, click on the body tab for the request.  Select the `raw` option.  There's a pulldown to the right that says `Text`.  Click on that, and choose the JSON option.  Then, put JSON data in for the user you want to create.  You need a name, an email, and a password.  Remember that this is JSON, not a JavaScript object, so you have to have double quotes around the attribute names and string values.  Save the request again, and then send it.  The result is the same of course -- the request handler doesn't do more than send a message at the moment.
 
 Go back to app.js.  You need to be able to get the body of the request.  For that you need middleware, in this case middleware that Express provides.  Add this line above your other routes:
 
@@ -79,7 +79,7 @@ Let's list all the hokey things you just did.
 
 3. You don't know if the email is unique.  You are going to use the email as the userid, but a bunch of entries could be created with the same email.
 
-4. You stored the plain text password, very bad for security.
+4. You stored the plain text password, which is very insecure.
 
 5. Only one user can be logged on at a time.
 
@@ -102,7 +102,7 @@ The show function returns a single task, and the index function returns all the 
 
 ### **Back to the Coding***
 
-When creating a new record, it is standard practice to return the object just created, but of course, you don't want to send back the password.
+When creating a new record, it is standard practice to return the object just created, but of course, you don't want to send back the user password.
 
 Change the code for the route as follows:
 
@@ -151,7 +151,7 @@ Here's a spec.
 
 1. You need to have a `/user/logon` POST route.  That one would get a JSON body with an email and a password.  The controller function has to do a find() on the storedUsers array for an entry with a matching email.  If it finds one, it checks to see if the password matches.  If it does, it returns a status code of OK, and a JSON body with the user name.  The user name is convenient for the front end, because it can show who is logged on.  The controller function for the route would also set the value of loggedOnUser to be the entry in the storedUsers array that it finds.  (You don't make a copy, you just set the reference.)  If the email is not found, or if the password doesn't match, the controller returns an UNAUTHORIZED status code, with a message that says Authentication Failed.
 
-2. You need to have a `/user/logoff` POST route.  That one would just set the loggedOnUser to null and return a status code of OK.  You could do res.sendStatus(), because you don't need to send a body.
+2. You need to have a `/user/logoff` POST route.  That one would just set the loggedOnUser to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
 
 3. You add the handler functions to the userController, and you add the routes to the user.js router, doing the necessary exports and requires.
 
@@ -186,9 +186,9 @@ The dogs are counting on you.
 
 1. The `week-3-middleware` folder is already provided in your repository. This folder contains the skeleton code for the dog rescue application.
 
-2. To run the provided framework enter "npm run week3".  You do this before you start Postman testing.
+2. To run the provided framework enter ```npm run week3``` in terminal.  You do this to start server before you begin testing with Postman.
 
-3. To run the test, enter "npm run tdd assignment3b".  Your task is to modify the existing files in the week-3-middleware folder to make the tests pass.
+3. To run the test, enter ```npm run tdd assignment3b``` in terminal.  Your task is to modify the existing files in the `week-3-middleware folder` to make the tests pass.
 
 ### **Advanced Middleware Implementation**
 
@@ -213,8 +213,8 @@ The dog rescue team wants to add more robust middleware to their application. Im
 **Testing Your Implementation:**
 - Test with Postman to ensure all new middleware works correctly
 - Test that invalid content types return proper error responses
--Error responses include the correct status code, message, and requestId
--Unmatched routes return a 404 JSON response
+- Error responses include the correct status code, message, and requestId
+- Unmatched routes return a 404 JSON response
 
 
 4. In **Postman**, set up the following routes.  They should all be in one collection called "dogs":
@@ -308,7 +308,7 @@ Implement sophisticated error handling using custom error classes:
   - `NotFoundError` → 404 Not Found  
   - `UnauthorizedError` → 401 Unauthorized
   - Default errors → 500 Internal Server Error
-- Log errors with different severity levels based on status code (ERROR, WARN, INFO)
+- Log errors with different severity levels based on the status code (ERROR, WARN, INFO)
 - Ensure all error responses include the request ID for debugging
 
 ### **Security Headers**
@@ -352,7 +352,7 @@ Record a short video (3–5 minutes) on YouTube (unlisted), Loom, or similar pla
 3. **What is REST and how does it relate to Express applications?**
    - Explain REST principles and HTTP methods
    - Show how to design RESTful API endpoints
-   - Discuss status codes and proper API responses
+   - Discuss HTTP status codes and proper API responses
 
 **Video Requirements**:
 - Keep it concise (3-5 minutes)
