@@ -42,6 +42,8 @@ PORT=3000
 
 **Note:** The PostgreSQL URL format may vary depending on your operating system. For detailed information about different URL formats for Windows, Mac, and Linux, see Assignment 0.
 
+**Security Note:** Never commit your `.env` file to version control. It contains sensitive information like passwords. Make sure to add `.env` to your `.gitignore` file to prevent accidentally committing it to GitHub.
+
 #### c. Create Database Tables
 Create a file called `schema.sql` with the following tables:
 
@@ -66,7 +68,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 ```
 
 **Requirements:**
-- Run the SQL to create your tables
+- Run the SQL to create your tables using: `psql -f schema.sql`
 - Ensure the foreign key relationship is properly established
 - Verify tables are created in your database
 
@@ -90,7 +92,9 @@ module.exports = pool;
 **Requirements:**
 - Use environment variables for database configuration
 - Implement connection pooling for efficiency
-- Handle SSL configuration for deployment
+- Handle SSL configuration for deployment (for local development, you can remove the ssl line as most local PostgreSQL setups don't require SSL)
+
+**Important:** When stopping your application, use `await pool.end()` to close all connections cleanly and prevent connection leaks.
 
 #### b. Test Database Connection
 Add a health check endpoint to verify database connectivity:
@@ -253,6 +257,37 @@ Test your endpoints using Postman or curl:
 - Health check endpoint
 
 **Note:** After login, the user_id is stored globally, so task operations don't require passing user_id as a query parameter. This matches the behavior from lesson 4.
+
+### Example Postman Requests and Responses
+
+**Health Check Endpoint:**
+```
+GET /health
+Response: 200 OK
+{
+  "status": "ok",
+  "db": "connected"
+}
+```
+
+**User Registration:**
+```
+POST /api/users/register
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "name": "John Doe",
+  "password": "password123"
+}
+
+Response: 201 Created
+{
+  "id": 1,
+  "email": "john@example.com",
+  "name": "John Doe"
+}
+```
 
 ---
 
@@ -468,6 +503,8 @@ npx prisma generate
 - Generate the Prisma Client for use in your application
 - Ensure no data loss during the process
 
+**Important:** You must run `npx prisma generate` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.
+
 ### 2. Create Prisma Database Connection
 
 #### a. Create Database Client File
@@ -484,6 +521,8 @@ module.exports = prisma;
 - Create a single Prisma instance
 - Export the client for use in other files
 - Handle the client properly in your application
+
+**Important:** Always call `await prisma.$disconnect()` when shutting down your application or in tests to close database connections cleanly and prevent connection leaks.
 
 ### 3. Transform Your Controllers
 
@@ -625,9 +664,9 @@ Implement proper error handling for Prisma operations:
 - Log errors for debugging purposes
 
 **Error Codes to Handle:**
-- **P2002**: Unique constraint violation (duplicate email)
-- **P2025**: Record not found
-- **P2003**: Foreign key constraint violation
+- **P2002**: Unique constraint violation (duplicate email) → Return 400 Bad Request
+- **P2025**: Record not found → Return 404 Not Found
+- **P2003**: Foreign key constraint violation → Return 400 Bad Request
 
 **Example Implementation:**
 ```js
@@ -642,7 +681,23 @@ try {
       error: "User with this email already exists" 
     });
   }
-  // Handle other errors...
+  
+  if (error.code === 'P2025') {
+    return res.status(404).json({ 
+      error: "Record not found" 
+    });
+  }
+  
+  if (error.code === 'P2003') {
+    return res.status(400).json({ 
+      error: "Invalid reference - related record does not exist" 
+    });
+  }
+  
+  console.error('Prisma error:', error);
+  res.status(500).json({ 
+    error: "Internal server error" 
+  });
 }
 ```
 

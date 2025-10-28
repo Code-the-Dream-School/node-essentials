@@ -37,7 +37,7 @@ This, of course, is a web page.
 Then change your logic so that you handle requests for the URL `'/time'`. A JSON document should be returned with an attribute `'time'` that has a value of the current time as a string.
 
 Once you've got that code in place, restart your server and test the new URL from your browser. Then, add logic to handle requests for `'/timePage'`. It should return the page above.  
-You will need to set the header content-type to be: `"text/html; charset=utf-8"`.
+You will need to set the header content-type to be: `"text/html; charset=utf-8"`. See documentation about headers [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Type).
 
 Then restart your server and try that URL. You should see the page with a button.  
 Click on the button, and you should see the time. The button causes a fetch to your server.  
@@ -283,7 +283,12 @@ You could also try POST requests using Postman. The `req.query` object gives the
 You can add them to your request from your browser or from Postman by putting something like `?height=7&color=brown` at the end of the URL you send from your browser or Postman. 
 This middleware is useful — it could help with debugging. We haven't explained how to get `req.body`, but eventually you could get that as well.
 
-**There is no TDD for this week.**
+**Run The Tests**
+  - After completing the tasks, run the tests using:
+     ```bash
+     npm run tdd assignment2
+     ```
+  - Make sure all tests pass before submitting your work.
 
 ## Video Submission
 
