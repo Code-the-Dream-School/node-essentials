@@ -18,7 +18,7 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tasks table with foreign key relationship
+-- Tasks table with a foreign key relationship
 CREATE TABLE tasks (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
@@ -73,7 +73,7 @@ Your database should contain some test data to practice with:
 **Users:**
 
 - At least 2-3 users with different names and emails
-- Think of them as test accounts for practicing your queries
+- Think of them as test accounts for practicing your queries.
 
 **Tasks:**
 
@@ -203,7 +203,7 @@ Before proceeding with Lesson 7, you should be able to:
 
 ## Lesson Overview
 
-Building on your Prisma ORM knowledge from Lesson 6b, this lesson explores **Advanced Prisma features** that will make your database operations more powerful and efficient. You'll learn how to handle complex queries, optimize performance, and work with advanced database patterns.
+Building on your Prisma ORM knowledge from Lesson 6b, this lesson explores **advanced Prisma features** that will make your database operations more powerful and efficient. You'll learn how to handle complex queries, optimize performance, and work with advanced database patterns.
 
 **What You'll Learn:**
 
@@ -215,7 +215,7 @@ Building on your Prisma ORM knowledge from Lesson 6b, this lesson explores **Adv
 
 - **Batch operations for better performance**: Master techniques for handling multiple records efficiently. Use batch operations when importing data, bulk updating user preferences, or processing large datasets without overwhelming your database.
 
-- **Raw SQL with $queryRaw when needed**: Understand when Prisma's built-in features aren't enough and how to safely use raw SQL. Use $queryRaw for complex searches across multiple fields, custom aggregations, or database-specific features that Prisma doesn't support.
+- **Raw SQL with $queryRaw when needed**: Understand when Prisma's built-in features aren't enough and how to safely use raw SQL. Use `$queryRaw` for complex searches across multiple fields, custom aggregations, or database-specific features that Prisma doesn't support.
 
 - **Performance optimization techniques**: Learn how to make your database queries faster and more efficient. Use these techniques when your app starts getting slower with more users, or when you need to handle larger amounts of data without performance degradation.
 
@@ -471,7 +471,7 @@ const filteredTasks = await prisma.task.findMany({
 
 ### a. Why Use Transactions?
 
-Transactions ensure that multiple database operations either all succeed or all fail together, maintaining data consistency.
+Transactions ensure that multiple database operations either all succeed or all fail together, maintaining data consistency. This is essential for maintaining database integrity when performing related operations.
 
 **Example: User registration with welcome task**
 
@@ -647,15 +647,17 @@ const searchResults = await prisma.$queryRaw`
 ```javascript
 // ✅ SAFE: Use template literals with $queryRaw
 const userTasks = await prisma.$queryRaw`
-  SELECT * FROM tasks 
-  WHERE user_id = ${userId} 
+  SELECT * FROM tasks
+  WHERE user_id = ${userId}
   AND title ILIKE ${`%${searchTerm}%`}
 `;
 
 // ✅ SAFE: Use $queryRawUnsafe with parameters
 const userTasks = await prisma.$queryRawUnsafe(
-  "SELECT * FROM tasks WHERE user_id = $1 AND title ILIKE $2",
-  [userId, `%${searchTerm}%`]
+  `SELECT * FROM tasks
+   WHERE user_id = ? AND title ILIKE ?`,
+  userId,
+  `%${searchTerm}%`
 );
 
 // ❌ DANGEROUS: Direct string concatenation (NEVER DO THIS)
@@ -683,8 +685,8 @@ const result = await prisma.$queryRaw`
 
 // DO: Use $queryRawUnsafe with parameters
 const result = await prisma.$queryRawUnsafe(
-  "SELECT * FROM users WHERE email = $1",
-  [email]
+  "SELECT * FROM users WHERE email = ?",
+  email
 );
 ```
 

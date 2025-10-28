@@ -1,18 +1,21 @@
 # Assignment 7: Advanced Prisma ORM Features
 
 ## Learning Objectives
-- Implement eager loading to optimize database queries and eliminate N+1 problems
+
+- Implement eager loading to optimize database queries and eliminate N+1 query problem
 - Use groupBy operations for data aggregation and analytics
 - Implement database transactions for data consistency
 - Perform batch operations for better performance
 - Use advanced Prisma query patterns and filtering
 - Implement raw SQL with $queryRaw when needed
-- Apply performance optimization techniques
+- Apply performance optimization techniques using Prisma’s advanced query capabilities.
 
 ## Assignment Overview
+
 Building on your existing Prisma application from Lesson 6b, you'll enhance it with advanced features learned in Lesson 7. You'll add analytics endpoints, implement complex queries, and optimize performance while maintaining the same API structure.
 
 ## Prerequisites
+
 - Completed Lesson 6b with a working Prisma application
 - PostgreSQL database with users and tasks tables
 - Basic understanding of Prisma ORM operations
@@ -25,15 +28,18 @@ Building on your existing Prisma application from Lesson 6b, you'll enhance it w
 ### 1. Enhanced Task Analytics API
 
 #### a. User Productivity Analytics Endpoint
+
 Create a new endpoint `GET /api/analytics/users/:id` that provides comprehensive user statistics:
 
 **Requirements:**
+
 - Use `groupBy` to count tasks by completion status
 - Include recent task activity (last 10 tasks)
 - Calculate weekly progress metrics
 - Use eager loading to fetch related user data efficiently
 
 **Expected Response:**
+
 ```json
 {
   "taskStats": [
@@ -59,9 +65,11 @@ Create a new endpoint `GET /api/analytics/users/:id` that provides comprehensive
 ```
 
 #### b. User List with Task Counts
+
 Create `GET /api/analytics/users` endpoint that shows all users with their task statistics:
 
 **Requirements:**
+
 - Show all users with their total task counts
 - Include pending (incomplete) tasks for each user (limit to 5 tasks per user)
 - Use `_count` aggregation for efficient counting
@@ -70,6 +78,7 @@ Create `GET /api/analytics/users` endpoint that shows all users with their task 
 - Include user creation date for sorting
 
 **Expected Response:**
+
 ```json
 {
   "users": [
@@ -100,23 +109,27 @@ Create `GET /api/analytics/users` endpoint that shows all users with their task 
 ### 2. Advanced Query Implementation
 
 #### a. Complex Task Filtering
+
 Enhance your existing `GET /api/tasks` endpoint to support advanced filtering:
 
 **New Query Parameters:**
+
 - `status`: Filter by completion status
-- `priority`: Filter by priority (required - add this field to your schema)
+- `priority`: Filter by priority (required - remember to add this field to your Prisma schema)
 - `date_range`: Filter by creation date range
 - `search`: Text search in task titles
 - `sort_by`: Sort by different fields
 - `sort_order`: Ascending or descending order
 
 **Implementation Requirements:**
+
 - Use Prisma's advanced `where` clauses with `AND`, `OR`, `NOT`
 - Implement proper input validation
 - Use `select` to limit returned fields for performance
 - Add pagination support
 
 **Expected Response:**
+
 ```json
 {
   "tasks": [
@@ -141,9 +154,11 @@ Enhance your existing `GET /api/tasks` endpoint to support advanced filtering:
 ```
 
 #### b. Task Search with Raw SQL
+
 Create a new endpoint `GET /api/analytics/tasks/search` that uses `$queryRaw` for complex text search:
 
 **Requirements:**
+
 - Search across task titles and user names
 - Use PostgreSQL's `ILIKE` for case-insensitive search
 - Implement relevance scoring (exact matches first)
@@ -151,17 +166,19 @@ Create a new endpoint `GET /api/analytics/tasks/search` that uses `$queryRaw` fo
 - Include user information in results
 
 **Example Query:**
+
 ```sql
-SELECT t.*, u.name as user_name
+SELECT t.*, u.name AS user_name
 FROM tasks t
 JOIN users u ON t.user_id = u.id
 WHERE t.title ILIKE $1 OR u.name ILIKE $1
-ORDER BY 
+ORDER BY
   CASE WHEN t.title ILIKE $1 THEN 1 ELSE 2 END,
   t.created_at DESC
 ```
 
 **Expected Response:**
+
 ```json
 {
   "results": [
@@ -183,9 +200,11 @@ ORDER BY
 ### 3. Database Transactions
 
 #### a. User Registration with Welcome Tasks
+
 Enhance your user registration to create initial tasks automatically:
 
 **Requirements:**
+
 - Use `$transaction` to ensure data consistency
 - Create user account
 - Create 3 welcome tasks (e.g., "Complete your profile", "Add your first task", "Explore the app")
@@ -193,6 +212,7 @@ Enhance your user registration to create initial tasks automatically:
 - Return the created user with their welcome tasks
 
 **Expected Response:**
+
 ```json
 {
   "user": {
@@ -226,9 +246,11 @@ Enhance your user registration to create initial tasks automatically:
 ```
 
 #### b. Bulk Task Operations
+
 Implement `POST /api/tasks/bulk` for creating multiple tasks:
 
 **Requirements:**
+
 - Accept an array of task objects
 - Use `createMany` for batch insertion
 - Validate all tasks before insertion
@@ -236,6 +258,7 @@ Implement `POST /api/tasks/bulk` for creating multiple tasks:
 - Use transactions if you need to ensure all-or-nothing behavior
 
 **Expected Response:**
+
 ```json
 {
   "message": "Bulk task creation successful",
@@ -247,14 +270,17 @@ Implement `POST /api/tasks/bulk` for creating multiple tasks:
 ### 4. Performance Optimization
 
 #### a. Implement Pagination
+
 Add pagination to all list endpoints:
 
 **Requirements:**
+
 - Use `take` and `skip` for offset-based pagination
 - Add pagination metadata to responses
-- Handle edge cases (invalid page numbers, empty results)
+- Handle edge cases gracefully (invalid page numbers, empty results, or out-of-range pages)
 
 **Expected Response:**
+
 ```json
 {
   "data": [
@@ -278,15 +304,18 @@ Add pagination to all list endpoints:
 ```
 
 #### b. Selective Field Loading
+
 Optimize your existing endpoints to load only necessary fields:
 
 **Requirements:**
+
 - Use `select` to exclude sensitive data (passwords)
 - Implement different response schemas for different use cases
 - Add a `fields` query parameter to let clients specify which fields they need
 - Document the available field options
 
 **Expected Response:**
+
 ```json
 {
   "users": [
@@ -305,17 +334,21 @@ Optimize your existing endpoints to load only necessary fields:
 ### 5. Error Handling and Validation
 
 #### a. Enhanced Error Handling
+
 Improve error handling across your application:
 
 **Requirements:**
+
 - Handle Prisma-specific error codes (P2025, P2002, etc.)
 - Provide meaningful error messages
 - Implement proper HTTP status codes
 
 #### b. Input Validation
+
 Enhance your existing validation:
 
 **Requirements:**
+
 - Validate date ranges for analytics queries
 - Sanitize search inputs
 - Validate pagination parameters
@@ -325,6 +358,7 @@ Enhance your existing validation:
 ## Implementation Guidelines
 
 ### File Structure
+
 Your enhanced application should maintain the same structure as Lesson 6b, with these additions:
 
 ```
@@ -345,15 +379,18 @@ project/
 ```
 
 ### Code Quality Requirements
+
 - Use async/await consistently
 - Implement proper error handling
 - Follow consistent naming conventions
 - Use environment variables for configuration
 
 ### Testing Requirements
+
 Test all new endpoints with Postman or similar tools:
 
 1. **Analytics Endpoints:**
+
    - Test `GET /api/analytics/users/:id` with existing users and tasks
    - Test `GET /api/analytics/users` with pagination
    - Test `GET /api/analytics/tasks/search` with search queries
@@ -361,12 +398,14 @@ Test all new endpoints with Postman or similar tools:
    - Test with empty data sets
 
 2. **Advanced Filtering:**
+
    - Test `GET /api/tasks` with all filter combinations (status, priority, date_range, search)
    - Verify pagination works correctly
    - Test edge cases (invalid parameters)
    - Test sorting by different fields
 
 3. **Transactions:**
+
    - Test `POST /api/users/register` with welcome tasks creation
    - Test `POST /api/tasks/bulk` with bulk task creation
    - Test failure scenarios (verify rollback)
@@ -382,18 +421,18 @@ Test all new endpoints with Postman or similar tools:
 ## Submission Requirements
 
 ### Code Submission
+
 - All enhanced files with new functionality
 - Updated Prisma schema (if you added new fields)
 - Environment configuration
 - Clear documentation of new endpoints
-
-
 
 ---
 
 ## Submission Instructions
 
 ### 1️⃣ Add, Commit, and Push Your Changes
+
 Within your `node-homework` folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment7` branch.
 
 ```bash
@@ -403,15 +442,18 @@ git push origin assignment7
 ```
 
 ### 2️⃣ Create a Pull Request
+
 1. Log on to your GitHub account
 2. Open your `node-homework` repository
 3. Select your `assignment7` branch. It should be one or several commits ahead of your main branch
 4. Create a pull request with a descriptive title like "Assignment 7: Advanced Prisma Features"
 
 ### 3️⃣ Submit Your GitHub Link
+
 Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.
 
 **Important:** Make sure your pull request includes:
+
 - All the updated files from your existing Lesson 6b application
 - New analytics endpoints and advanced query implementations
 - Transaction handling and performance optimizations
@@ -427,11 +469,13 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 **Video Content**: Short demos based on Lesson 7:
 
 1. **How do you use Prisma's advanced querying features for analytics and reporting?**
+
    - Show your analytics controller and explain `groupBy` operations
    - Walk through a complex query that uses filtering and sorting
    - Show how you use `_count` aggregations for user statistics
 
 2. **What are database transactions and how do you implement them with Prisma?**
+
    - Explain why transactions are important for data consistency
    - Demonstrate what happens when a transaction fails (rollback)
    - Walk through your bulk operations using `createMany`
@@ -443,8 +487,9 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
    - Show the difference between `$queryRaw` and `$queryRawUnsafe`
 
 **Video Requirements**:
+
 - Keep it concise (3-5 minutes)
-- Use screen sharing to show code examples 
+- Use screen sharing to show code examples
 - Speak clearly and explain concepts thoroughly
 - Include the video link in your assignment submission
 
