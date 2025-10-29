@@ -177,7 +177,7 @@ Your server will start and automatically restart whenever you change your code. 
 
 You don't want all your Express code in `app.js`. That would be a mess.  
 There are standard ways to organize it.  
-The error handler is middleware. So, create a middleware folder inside your assignment2 folder. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
+The error handler is middleware. So, create a middleware folder inside node-homework. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
 Put this code in `error-handler.js`
 
 ```js
