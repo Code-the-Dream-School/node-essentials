@@ -64,13 +64,17 @@ app.get("/", (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-try {
-  app.listen(port, () =>
-    console.log(`Server is listening on port ${port}...`),
-  );
-} catch (error) {
-  console.log(error);
+if (require.main === module) {
+  try {
+    app.listen(port, () =>
+      console.log(`Server is listening on port ${port}...`),
+    );
+  } catch (error) {
+    console.log(error);
+  }
 }
+
+module.exports = app;
 ```
 Start this app from your VSCode terminal with:
 
@@ -177,7 +181,7 @@ Your server will start and automatically restart whenever you change your code. 
 
 You don't want all your Express code in `app.js`. That would be a mess.  
 There are standard ways to organize it.  
-The error handler is middleware. So, create a middleware folder. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
+The error handler is middleware. So, create a middleware folder inside node-homework. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
 Put this code in `error-handler.js`
 
 ```js
@@ -242,7 +246,7 @@ Your Express program opens a port.
 You need to be sure that port is closed when the program exits. If there are other open connections, such as database connections, they must also be cleaned up. If not, you may find that your program becomes a zombie process, and that the port you had been listening on is still tied up.  
 This is especially important when you are running a debugger or an automated test.
 
-Here is some code to put at the bottom of `app.js` to ensure a clean exit:
+Here is some code to put at the bottom of `app.js`. Please make sure it is placed before this line of code `module.exports = app;`:
 
 ```js
 let isShuttingDown = false;
