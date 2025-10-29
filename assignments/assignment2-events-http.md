@@ -64,13 +64,17 @@ app.get("/", (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-try {
-  app.listen(port, () =>
-    console.log(`Server is listening on port ${port}...`),
-  );
-} catch (error) {
-  console.log(error);
+if (require.main === module) {
+  try {
+    app.listen(port, () =>
+      console.log(`Server is listening on port ${port}...`),
+    );
+  } catch (error) {
+    console.log(error);
+  }
 }
+
+module.exports = app;
 ```
 Start this app from your VSCode terminal with:
 
@@ -242,7 +246,7 @@ Your Express program opens a port.
 You need to be sure that port is closed when the program exits. If there are other open connections, such as database connections, they must also be cleaned up. If not, you may find that your program becomes a zombie process, and that the port you had been listening on is still tied up.  
 This is especially important when you are running a debugger or an automated test.
 
-Here is some code to put at the bottom of `app.js` to ensure a clean exit:
+Here is some code to put at the bottom of `app.js`. Please make sure it is placed before this line of code `module.exports = app;`:
 
 ```js
 let isShuttingDown = false;
