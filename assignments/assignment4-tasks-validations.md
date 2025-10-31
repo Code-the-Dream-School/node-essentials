@@ -2,11 +2,11 @@
 
 ## **Assignment Instructions**
 
-All of the work for this assignment goes into your project.  You do not use the assignment4 folder.  Instead, you'll make changes to your app.js and to your controllers, routers, and middleware. Before you start, create a new branch called assignment4 from the main branch.
+All of the work for this assignment goes into your project.  You will do not use the assignment4 folder.  Instead, you'll make changes to your app.js and to your controllers, routers, and middleware. Before you start, create a new branch called `assignment4` from the main branch.
 
 ### **The Task Routes**
 
-You have created route handlers that allow users to register, to logon, and to logoff.  Now, you add capabilities so that each user can do create, update, modify, and delete on task entries.  Here is the specification for your work.  But don't start yet.
+You have created route handlers that allow users to register, log in, and log off.  Now, you will add capabilities so that each user can create, update, modify, and delete on task entries.  Here is the specification for your work.  But don't start yet.
 
 Create a task controller and a task router.  You need to support the following routes:
 
@@ -24,7 +24,7 @@ So, that's five functions you need in the task controller, and five routes that 
 
 - What if there is no currently logged on user?
 - How do you assign an ID for each task?
-- To get, patch, or delete a task, how do you figure out which one you are going to work on?
+- To get, patch, or delete a task, -- how do you figure out which one you are going to work on?
 
 Let's solve each of these.  First, for every task route, we need to check whether there is a currently logged on user, and to return a 401 if there isn't.  If there is a logged on user, the job should pass to the task controller, and the task controller should handle the request.  So -- that's middleware.  Create a `/middleware/auth.js` file.  In it, you need a single function.  The function doesn't have to have a name, because it's going to be the only export.  It checks: is there a logged on user?  If not, it returns an UNAUTHORIZED status code and a JSON message that says "unauthorized".  If there is a logged on user, it calls next().  That sends the request on to the tasks controller.  Be careful that you don't do both of these: res.json() combined with next() would mess things up.
 
@@ -34,7 +34,7 @@ In app.js, you can then do:
 const authMiddleware = require("./middleware/auth");
 ```
 
-But, `app.use(authMiddleware)` would protect any route.  Then no one could register or logon.  You want it only in front of the tasks routes.  So, you do the following:
+But, `app.use(authMiddleware)` would protect any route.  Then no one could register or log on.  You want it only in front of the tasks routes.  So, you do the following:
 
 ```js
 const taskRouter = require("./routers/task");
@@ -45,7 +45,7 @@ That solves the first problem.  The authMiddleware gets called before any of the
 
 Protected routes act as a security barrier - they check if a user has a valid session before allowing access to sensitive operations like creating, reading, updating, or deleting tasks. Without this protection, anyone could potentially access or modify other users' data, which would be a serious security vulnerability in a real application.
 
-Let's go on to problem 2.  Within your tasks controller, `loggedOnUser` is a reference to an object, and you want to have a list of tasks within that object.  Each should have a unique ID  You didn't create that list when you stored the user object. First, create a little counter function in taskController.js, as follows:
+Let's go on to problem 2.  Within your tasks controller, `loggedOnUser` is a reference to an object, and you want to have a list of tasks within that object.  Each task should have a unique ID, but you didn't create that list when you initially stored the user object. First, create a little counter function in taskController.js, as follows:
 
 ```js
 const taskCounter = (() => {
@@ -72,7 +72,7 @@ loggedOnUser.tasklist.push(newTask);
 res.json(newTask);  // send it back, with an id attached
 ```
 
-Be a little careful about loggedOnUser.  You know that the logged on user can change.  So, you need to get the logged on user each time you need to refer to it.  On the other hand, once you have loggedOnUser, you can mutate that object it all you want.
+Be a little careful about `loggedOnUser`.  You know that the logged-on user can change.  So, you need to get the logged-on user each time you need to refer to it.  On the other hand, once you have `loggedOnUser`, you can mutate that object all you want.
 
 Now for problem 3.  When you have a route defined with a colon `:`, that has a special meaning.  The string following the colon is the name of a variable, and when a request comes in for this route, Express parses the value of the variable and stores it in req.params.  For the routes above, you would have `req.params.id`.  Now, be careful: this is a string, not an integer, so you need to convert it to an integer before you go looking for the right task.  Here's how you could do it in a deleteTask(req,res) function in your task controller:
 
@@ -90,7 +90,7 @@ if (loggedOnUser.tasklist) {  // if we have a list
 res.sendStatus(StatusCodes.NOT_FOUND); // else it's a 404.
 ```
 
-So, write the remaining methods, set up the routes, and test everything with Postman.  To test the operations that use a task ID, you would all of the tasks for the currently logged on user, so you know what the IDs are.  Postman will show you what is sent back.  Then you can show or patch or delete one of them.
+So, write the remaining methods, set up the routes, and test everything with Postman.  To test the operations that use a task ID, you would retrieve all tasks for the currently logged-on user first, so you know what the IDs are.  Postman will show you what is sent back.  Then you can show or patch or delete one of them.
 
 One hint about the update function in the task router.  You are doing a patch.  You don't want a complete replacement of the task object.  This means you use all the values from the body, but you leave any attributes of the task that aren't in the new body unchanged.  There are two (2) spiffy ways to do this:
 
@@ -100,7 +100,7 @@ const newTask = { ...currentTask, ...req.body}
 Object.assign(currentTask, req.body)
 ```
 
-The advantage of the second one is the current task is in a list, and you'd probably want to update it in place.  These are good tricks to remember.  But the database will do the same for you when you call an update.
+The advantage of the second one is the current task is in a list, and you'd probably want to update it in place.  These are good tricks to remember.  But the database will handle this automatically for you when you call an update.
 
 ### **The Automated Tests**
 
@@ -108,11 +108,11 @@ Run `npm run tdd assignment4` to see if your code works as expected.  Not all th
 
 ### **Validation of User Input**
 
-At present, your app stores whatever you throw at it with Postman.  There is no validation whatsoever.  Let's fix that.  There are various ways to validate user data.  We will eventually use a database access tool called Prisma, and it has validation built in, but it is very TypeScript oriented.  So we'll use a different library called Joi.  Do an npm install of it now.
+At present, your app stores whatever you throw at it with Postman.  There is no validation whatsoever.  Let's fix that.  There are various ways to validate user data.  We will eventually use a database access tool called Prisma, which has built-in runtime validation but is very TypeScript-oriented.  So we'll use a different library called Joi.  Install it now using `npm install joi` command. 
 
-Consider a user entry.  You need a name, an email, and a password.  You don't want any leading or trailing spaces.  You can't check whether the email is a real one, but you can check if it complies with the standards for email addresses.  You want to store the email address as lower case, because you need it to be unique in your data store, so you don't want to deal with case variations.  You don't want trivial, easily guessed passwords.  All of these attributes are required.
+Consider a user entry.  You need a name, an email, and a password.  You don't want any leading or trailing spaces.  You can't check whether the email is a real one, but you can check if it complies with the standards for email addresses.  You want to store the email address in lowercase, because you need it to be unique in your data store, so you don't want to deal with case variations.  You don't want trivial, easily guessed passwords.  All of these attributes are required.
 
-Consider a task entry.  You need a title.  You need a boolean for isCompleted.  If that is not provided, you want it to default to false.  The title is required in your req.body when you create the task entry, but if you are just updating the isCompleted, the patch request does not have to have a title.  We won't worry about the task id -- you automatically create this in your app.  In the database, each task will also have a userId, indicating which user owns the task, but that will be automatically created too.
+Consider a task entry.  You need a title.  You need a boolean for `isCompleted`.  If that is not provided, you want it to default to false.  The title is required in your `req.body` when you create the task entry, but if you are just updating the isCompleted, the patch request does not have to have a title.  We won't worry about the task id -- you automatically create this in your app.  In the database, each task will also have a userId, indicating which user owns the task, but that will be automatically created too.
 
 Joi provides a very simple language to express these requirements.  The Joi reference is [here](https://joi.dev/api/?v=17.13.3).  If a user sends a request where the data doesn't meet the requirements, Joi can provide error messages to send back.  And, if the entry to be created needs small changes, like converting emails to lower case, or stripping off leading and trailing blanks, Joi can do that too.  
 
@@ -138,7 +138,7 @@ const userSchema = Joi.object({
 module.exports = { userSchema };
 ```
 
-You can look at the code and guess what it does.  There are some nice convience functions, like email(), which checks for a syntactically valid email.  The only complicated one is the password.  This is a simple check for trivial passwords.  The password pattern is a regular expression, and the customized error message explains what is wrong if the password is inadequate.
+You can look at the code and guess what it does.  There are some nice convenience functions,  such as `.email()`, which checks for a syntactically valid email.  The only complicated one is the password.  This is a simple check for trivial passwords.  The password pattern uses a regular expression, and the customized error message explains what is wrong if the password doesn’t meet requirements.
 
 Here is the code for taskSchema.js:
 
@@ -158,13 +158,13 @@ const patchTaskSchema = Joi.object({
 module.exports = { taskSchema, patchTaskSchema };
 ```
 
-The `min(1)` means that while both title and isCompleted are optional in a patch task request, you have to have one of those attributes -- otherwise there's nothing to do.  To do a validation, you do the following:
+The `min(1)` means that while both `title` and `isCompleted` are optional in a patch task request, you have to have one of those attributes -- otherwise there's nothing to do.  To do a validation, you do the following:
 
 ```js
 const {error, value} = userSchema.validate({name: "Bob", email: "nonsense", password: "password", favoriteColor: "blue"}, {abortEarly: false})
 ```
 
-You do `{abortEarly: false}` so that you can get all the error information to report to the user, not just the first failure.  When the validate() call returns, if error is not null, there is something wrong with the request, and error.message says what the error is.  If error is null, then value has the object you want to store, which may be different from the original.  The email would have been converted to lower case, for example.  In this case, the email is not correct, the password is not allowed, and favoriteColor is not part of the schema, so there are three errors. 
+You do `{abortEarly: false}` so that you can get all the error information to report to the user, not just the first failure.  When the validate() call returns, if error is not null, there is something wrong with the request, and `error.message` says what the error is.  If error is null, then value has the object you want to store, which may be different from the original.  The email would have been converted to lower case, for example.  In this case, the email is invalid, the password fails the pattern, and favoriteColor is not part of the schema, so there are three errors. 
 
 Add validations to your create operations for users and tasks, and your to your update operation for tasks.  It is possible that these requests might be sent without a body, so you must first have:
 
@@ -172,13 +172,13 @@ Add validations to your create operations for users and tasks, and your to your 
 if (!req.body) req.body = {};
 ```
 
-Otherwise validation won't work right.  You then validate req.body.  If you get an error, you return a BAD_REQUEST status, and you send back a JSON body with the error message provided by the validation.  If you don't get an error, you go ahead and store the returned value, returning a CREATED, or an OK if an update completes.  Then test your work with Postman, trying both good and bad requests.  
+Otherwise, validation won't work right.  You then validate `req.body`.  If you get an error, you return a BAD_REQUEST status, and you send back a JSON body with the error message provided by the validation.  If you don't get an error, you go ahead and store the returned value, returning a CREATED, or an OK if an update completes.  Then test your work with Postman, trying both good and bad requests.  
 
 ### **Storing Only a Hash of the Passwords**
 
 You should never store user passwords.  If your database were ever compromised, your users would be in big trouble, in part because a lot of people reuse passwords, and you would be in big trouble too.
 
-Instead, at user registration, you create a random salt, concatenate the password and the salt, and compute a cryptographically secure hash.  You store the hash plus the salt.  Each user's password has a different salt.  When the user logs on, you get the salt back out, concatenate the password the user provides with the salt, hash that, and compare that with what you've stored.  You need a cryptography routine to do the hashing.  The scrypt algorithm is a good one.  Many times bcrypt is used, but it has some weaknesses, so it is now passé.  Scrypt is the old callback style, so you use util.promisify to convert it to promises.  Add the following code to userController.js:
+Instead, at user registration, you create a random salt, concatenate the password and the salt, and compute a cryptographically secure hash.  You store the hash plus the salt.  Each user's password has a different salt.  When the user logs on, you get the salt back out, concatenate the password the user provides with the salt, hash that, and compare that with what you've stored.  You need a cryptography routine to do the hashing.  The scrypt algorithm is a good one.   Although bcrypt is still common, it has known weaknesses and is considered now passé.  Scrypt is the old callback style, so you use util.promisify to convert it to promises.  Add the following code to userController.js:
 
 ```js
 const crypto = require("crypto");
@@ -199,9 +199,9 @@ async function comparePassword(inputPassword, storedHash) {
 }
 ```
 
-This code implements the hashing described.  You can stare at it a bit, but your typical AI helper can provide this code any time.  There's not much to learn or remember. 
+This code implements the hashing described.  You can stare at it a bit, but your typical AI helper can generate this code any time.  There's not much to learn or remember. 
 
-Change the register function to call hashPassword.  Right now, a user entry looks like `{ name, email, password }`.  Instead store `{name, email, hashedPassword }`.  Also, change the login method to use comparePassword.  Note that these are async functions, so you have to await the result. Once you have done all of this, test with Postman. Then run the automated tests with
+Change the register function to call hashPassword.  Right now, a user entry looks like `{ name, email, password }`.  Instead, store `{name, email, hashedPassword }`.  Also, change the login method to use comparePassword.  Note that these are async functions, so you have to await the result. Once you have done all of this, test with Postman. Then run the automated tests with
 
 ```bash
 npm run tdd assignment4
