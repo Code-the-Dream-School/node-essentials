@@ -18,6 +18,8 @@
 2. **Create a branch:**
    - Create a new branch for your work on assignment 1 (e.g., `assignment1`).
    - Make all your changes and commits on this branch.
+4. **Before you test:**
+   - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](../TDD-TESTING-GUIDE.md)
 3. **Run the tests:**
    - After completing the tasks, run the tests using:
      ```bash
