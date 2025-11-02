@@ -274,11 +274,11 @@ The req.get(headerName) function returns the value of a header associated with t
 
 The res object has the following methods:
 
-res.status()  This sets the HTTP status code
-res.cookie()  Causes a Set-Cookie header to be attached to the response.
-res.setHeader() Sets a header in the response
-res.json()    When passed a JavaScript object, this method converts the object to JSON and sends it back to the originator of the request
-res.send()    This sends plain text data, or perhaps HTML.
+- res.status() : This sets the HTTP status code 
+- res.cookie() : Causes a Set-Cookie header to be attached to the response 
+- res.setHeader() : Sets a header in the response 
+- res.json() : When passed a JavaScript object, this method converts the object to JSON and sends it back to the originator of the request 
+- res.send() : This sends plain text data, or perhaps HTML
 
 ## **3.8 Built-in vs. Custom Middleware**
 
