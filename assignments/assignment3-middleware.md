@@ -157,7 +157,6 @@ Here's a spec.
 
 4. You test with Postman to make sure all of this works.
 
-There is a TDD test for this lesson.  Run `npm run tdd assignment3a`
 
 For the rest of this assignment, you'll set your app aside for a moment, and learn some debugging skills.
 
@@ -179,7 +178,6 @@ You'll be implementing middleware that handles things like:
 * Request validation and parsing
 * Serving dog images as static files
 * Gracefully handling unexpected errors
-
 The dogs are counting on you.
 
 ### Setup
@@ -188,7 +186,7 @@ The dogs are counting on you.
 
 2. To run the provided framework enter ```npm run week3``` in terminal.  You do this to start server before you begin testing with Postman.
 
-3. To run the test, enter ```npm run tdd assignment3b``` in terminal.  Your task is to modify the existing files in the `week-3-middleware folder` to make the tests pass.
+3. To run the test, enter ```npm run tdd assignment3``` in terminal.  Your task is to modify the existing files in the `week-3-middleware folder` to make the tests pass.
 
 ### **Advanced Middleware Implementation**
 
