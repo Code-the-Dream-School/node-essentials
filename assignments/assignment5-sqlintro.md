@@ -47,7 +47,9 @@ So, part of your statement will be:
 ... FROM customers c JOIN (subquery) AS t ON ...
 ```
 
-After the ON clause, you `GROUP BY` customer_id and `ORDER BY` the customer_name. Note that you have two customer_id columns after the join, one being `customers.customer_id` and the other being `t.customer_id`, so you have to fully qualify your references to customer_id. Return the following columns: the customer name and the AVG of the total_price as `average_order_price`.
+After the ON clause, you `GROUP BY c.customer_id, customer_name` and `ORDER BY` the customer_name. Note that you have two customer_id columns after the join, one being `c.customer_id` and the other being `t.customer_id`, so you have to fully qualify your references to customer_id. Return the following columns: the customer name and the AVG of the total_price as `average_order_price`.
+
+It doesn't seem necessary to group by both customer_id and customer_name.  As the customer_id values are unique, the customer_name field will be the same for each row when you group by customer_id.  But some SQL implementations don't figure this out up front, so they don't know which value to return.  You don't know that customer_name is unique, so you can't rely on that grouping.
 
 Once you have this running in `sqlcommand`, add the statement to `assignment5-sql.txt`. Run the `tdd` test until the second test completes.
 
@@ -76,7 +78,9 @@ Then run the `tdd` test until the third test completes.
 
 Find all employees who are associated with more than five orders. You want the `first_name`, the `last_name`, and the count of the orders, which you return as `order_count`. To achieve this, perform a `JOIN` on the employees and orders tables. Then use `GROUP BY`, `COUNT`, and `HAVING` to filter the results, and sort them by `last_name`. Get this statement working in `sqlcommand`, and then add it to the assignment file.
 
-Hint: You can't use `order_count` in your `HAVING` clause. You have to use `COUNT(order_id)` instead. Also, you can't use `last_name` in your `ORDER BY` clause. This is a subtle point. The problem is that there are multiple rows after the join with the same `last_name` and `employee_id` for the different orders, while your `GROUP BY` is based on `employees.employee_id`, not `last_name`. To handle this correctly, use `ORDER BY MIN(last_name)`.
+Hint 1: You can't do `GROUP BY first_name, last_name` because you don't know that employees have unique names. You have to group by `employee_id`.  On the other hand, because you are returning the first_name and last_name in your SELECT, and you aren't aggregating on these fields, you need them in the `GROUP BY` as well.  You need `GROUP BY employees.employee_id, first_name, last_name`, because SQL might not figure out up front that there can't be several different first_name or last_name values in a group of rows when these are grouped only by employee_id.
+
+Hint 2: You can't use `order_count` in your `HAVING` clause. You have to use `COUNT(order_id)` instead.
 
 Get this running in `sqlcommand`, and then add the line to your homework file.
 
