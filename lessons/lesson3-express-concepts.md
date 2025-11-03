@@ -274,11 +274,11 @@ The req.get(headerName) function returns the value of a header associated with t
 
 The res object has the following methods:
 
-res.status()  This sets the HTTP status code
-res.cookie()  Causes a Set-Cookie header to be attached to the response.
-res.setHeader() Sets a header in the response
-res.json()    When passed a JavaScript object, this method converts the object to JSON and sends it back to the originator of the request
-res.send()    This sends plain text data, or perhaps HTML.
+- res.status() : This sets the HTTP status code 
+- res.cookie() : Causes a Set-Cookie header to be attached to the response 
+- res.setHeader() : Sets a header in the response 
+- res.json() : When passed a JavaScript object, this method converts the object to JSON and sends it back to the originator of the request 
+- res.send() : This sends plain text data, or perhaps HTML
 
 ## **3.8 Built-in vs. Custom Middleware**
 
@@ -669,8 +669,9 @@ Fourth, you could use the debugger built into VSCode.
 
 ### **Using the VSCode Debugger**
 
-1. Edit your node-homework `.vscode/launch.json`.  Here is one configuration you could use:
+1. In your node-homework folder, there should be a `.vscode/launch.json` file. Open that file. If you do not have it, please go to the VS code navigation tools on the left hand side and click on "Run and Debug ". In the "Run and Debug" window click on the highlighted "create a launch.json file". When prompted to choose the debugger, please choose node.js.   
 
+2. Once you have that file opened, include the following configuration in the file:
 ```js
 // .vscode/launch.json
 {
@@ -697,9 +698,11 @@ Fourth, you could use the debugger built into VSCode.
 }
 ```
 
-2. Edit a source code file, such as app.js.  There are line numbers for each line in the file.  If you click just to the left of the line number, a little red dot appears.  This is a breakpoint.  You can put them whereever you like in your code.  Click again to remove the breakpoint.
+3. Next, add .vscode/ to your .gitignore.
 
-3. At the top of your VSCode window, there is a Run tab.  Click on this and select "start debugging".
+4. Edit a source code file, such as app.js.  There are line numbers for each line in the file.  If you click just to the left of the line number, a little red dot appears.  This is a breakpoint.  You can put them where  ever you like in your code.  Click again to remove the breakpoint.
+
+5. At the top of your VSCode window, there is a Run tab.  Click on this and select "start debugging".
 
 Voilà.  Your program runs to the first breakpoint.  Your source file is displayed, and the program statement that is to run next is highlighted.  On the left side of your VSCode window, you see the debugger screen. The Variables section shows all the variables that are active in the context.  You can edit the values associated with each.  You can add variable names to the Watch section, so you can see how they change as you step through your program.  If you open the Call Stack section, you see the call stack.  An entry in the call stack will say `paused` or `paused on breakpoint`.  If you hover your mouse pointer over that, you see icons for continue, step over, step into, step out of, restart, and stop.  If the next line is a function call, step over runs the entire function call, step into goes into the function, and step out of runs all instructions until the return from the current function has completed.  If you do hit the continue button, it will run the program, and your Call Stack section will display a pause button that is usually ineffective.  You should first set a breakpoint before you hit continue, or add a breakpoint as it runs and then send a Postman request that will cause the breakpoint to be reached.  At the top of your VSCode window is a red square.  You click on that to end the debug session.
 
