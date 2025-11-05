@@ -13,7 +13,7 @@ By the end of this lesson, you will be able to:
 In this lesson, you will learn how to integrate PostgreSQL with your Node.js Express application. You'll move from storing data in memory (which gets lost when the server restarts) to using a persistent database that keeps your data safe and accessible.
 
 **Prologue:**
-Right now you are using `memoryStore.js` to store users and a list of tasks for each. For this lesson, you want to eliminate all use of `memoryStore.js`, and read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+Right now you are using `memoryStore.js` to store users and a list of tasks for each. For this lesson, you want to eliminate all use of `memoryStore.js`, and to read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
 
 **Prerequisites:** This lesson builds on the work you completed in **Week 4**, where you built a working Express application with in-memory storage. Make sure you have a functional Express app with user and task management before proceeding.
 
@@ -28,7 +28,7 @@ Right now you are using `memoryStore.js` to store users and a list of tasks for 
 ## 1. Understanding Databases vs. In-Memory Storage
 
 ### The Problem with In-Memory Storage
-When you store data in JavaScript arrays or objects, that data exists only while your server is running. When you restart your server, all the data disappears.
+When you store data in JavaScript arrays or objects, that data exists only while your server is running. When you restart your server, all the data disappears.  Also, your server only has so much memory, much less than a production application would typically need to store.
 
 **Example of the Problem:**
 ```javascript
@@ -98,39 +98,11 @@ tasks table:
 
 ---
 
-## 3. Setting Up PostgreSQL
-
-### Prerequisites
-Before starting this lesson, make sure you have:
-- PostgreSQL installed on your system
-- A basic understanding of SQL commands
-- Your existing Express application from previous lessons
-
-### Checking PostgreSQL Installation
-Open your terminal and run:
-```bash
-psql --version
-```
-
-If you see a version number (like `psql (PostgreSQL 15.0)`), PostgreSQL is installed. If not, follow the [official installation guide](https://www.postgresql.org/download/) for your operating system.
-
-### Creating Your Database
-1. **Start PostgreSQL service** (if not already running)
-2. **Create a new database:**
-   ```bash
-   createdb your_app_name
-   ```
-3. **Verify the database exists:**
-   ```bash
-   psql -l
-   ```
-
----
-
-## 4. Database Connection String
+## 3. Database Connection String
 
 ### Understanding Connection Strings
-A connection string tells your application how to connect to your database. It includes all the necessary information: username, password, host, port, and database name.
+
+A connection string tells your application how to connect to your database. It includes all the necessary information: username, password, host, port, and database name.  You set up several databases in Assignment 0, and you saved the connection strings in your `.env` file.
 
 **Format:**
 ```
@@ -144,26 +116,22 @@ postgresql://username:password@host:port/database_name
 - **port**: Database port number (default is `5432`)
 - **database_name**: The specific database you want to connect to
 
-### Setting Up Environment Variables
-Create or update your `.env` file:
-```env
-DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/your_app_name
-PORT=3000
-```
+The database connection string is slightly different depending on your OS platform.  You configured connection strings in your `.env` file as part of Assignment 0.  Remember that these typically contain a password, so you do not want these in your code!
 
-**Note:** The PostgreSQL URL format may vary depending on your operating system. For detailed information about different URL formats for Windows, Mac, and Linux, see Assignment 0.
+Your connection string may contain an "sslmode" parameter.  SSL is necessary when you connect to a cloud database, but not when you connect to a local machine.
 
 **Security Note:** Never commit your `.env` file to version control. It contains sensitive information like passwords. Make sure to add `.env` to your `.gitignore` file to prevent accidentally committing it to GitHub.
 
 ---
 
-## 5. Database Schema Design
+## 4. Database Schema Design
 
 ### What is a Schema?
-A database schema defines the structure of your database: what tables exist, what columns they have, and how they relate to each other.
+
+A database schema defines the structure of your database: what tables exist, what columns they have, and how they relate to each other.  The schema describes the datatype for the column (String, Int, etc.).  It describes whether a column is a primary key, or perhaps a foreign key.  It describes schema constraints: which attributes may not be null, which must be unique, etc..  The schema may also identify columns that are to be indexed for performance.
 
 ### Designing Your Tables
-Based on your existing Express app, you'll need two main tables:
+Based on your existing Express app, you'll need two main tables.  These are the SQL commands to create the tables:
 
 **Users Table:**
 ```sql
@@ -171,8 +139,8 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   name VARCHAR(30) NOT NULL,
-  hashedPassword VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  hashed_password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP 
 );
 ```
 
@@ -181,9 +149,9 @@ CREATE TABLE users (
 CREATE TABLE tasks (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
-  is_completed BOOLEAN DEFAULT FALSE,
+  is_completed BOOLEAN NOT NULL DEFAULT FALSE,
   user_id INTEGER REFERENCES users(id),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -195,24 +163,13 @@ CREATE TABLE tasks (
 - **`REFERENCES users(id)`**: Creates a foreign key relationship
 - **`DEFAULT CURRENT_TIMESTAMP`**: Automatically sets the current time
 
-**Important:** After creating your schema, make sure to run `psql -f schema.sql` to create the tables in your database before testing your application.
+Note that all table names and column names are lower case.  You can use mixed case names, but it adds complexity.  That is why snake-case is used, as in `created_at`.
 
 ---
 
-## 6. Node.js Database Integration
+## 5. Node.js Database Integration
 
-### Installing Required Packages
-```bash
-npm install pg dotenv
-```
-
-**Package Explanation:**
-- **`pg`**: PostgreSQL client for Node.js
-- **`dotenv`**: Loads environment variables from `.env` file
-- **`scrypt`**: Built-in Node.js crypto module for password hashing (from lesson 4)
-
-### Creating Database Connection
-Create a `db.js` file in your project root:
+You will use the `pg` package, which you'll install as part of the assignment.  In an Express application, you can have many concurrent requests.  You don't want to create a database connection for each of them.  So, you'll use a pool:
 
 ```javascript
 const { Pool } = require('pg');
@@ -220,7 +177,10 @@ require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+});
+
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
 });
 
 module.exports = pool;
@@ -229,163 +189,86 @@ module.exports = pool;
 **Understanding the Code:**
 - **`Pool`**: Manages multiple database connections efficiently
 - **`connectionString`**: Uses your DATABASE_URL from environment variables
-- **`ssl`**: Required for some hosting platforms (like Heroku). For local development, you can remove this line as most local PostgreSQL setups don't require SSL.
+- **`sslmode`**: Postgres hosting platforms (like the Neon one you will use) require SSL, and will have a connection string that specifies the sslmode. For local development, your socket is local so you don't need SSL.
 - **`module.exports`**: Makes the pool available to other files
+
+You also need the `pool.on('error' ...` event handling in case an idle pool connection throws an error.  Otherwise this can disrupt your node process.
 
 ### Why Use Connection Pooling?
 Instead of creating a new connection for each database operation, a pool maintains several connections and reuses them. This is more efficient and faster than creating connections on demand.
 
-**Important:** When stopping your application, use `await pool.end()` to close all connections cleanly and prevent connection leaks.
+**Important:** When stopping your application, use `await pool.end()` to close all connections cleanly and prevent connection leaks.  In your assignment, you'll add this logic to the shutdown handling for your app.
 
 ---
 
-## 7. Database Operations in Controllers
+## 6. Queries
 
-### Replacing Memory Storage with Database Queries
-You'll need to modify your existing controllers to use database operations instead of in-memory arrays.
+You'll do database queries in your controllers.  Here are some sample queries:
 
-### User Controller Updates
-
-**Before (Memory Storage):**
-```javascript
-// Old way - storing in memory
-const existingUser = storedUsers.find(user => user.email === email);
-if (existingUser) {
-  return res.status(400).json({ error: "User already exists" });
-}
-storedUsers.push({ id: nextId++, email, name, password });
+```js
+const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+const newUser = await pool.query(`INSERT INTO users (email, name, hashed_password) 
+    VALUES ($1, $2, $3) RETURNING id, email, name`,
+    [email, name, hashed_password]
+  );
 ```
 
-**After (Database Storage):**
-```javascript
-// New way - using database
-const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-if (existingUser.rows.length > 0) {
-  return res.status(400).json({ error: "User already exists" });
-}
+What happens is this.  When you issue the pool.query, you get a connection from the pool.  It may not be connected to an actual socket yet, in which case it is connected as you issue the query.  
 
-// Hash the password before storing (using scrypt from lesson 4)
-const crypto = require('crypto');
-const hashedPassword = crypto.scryptSync(password, 'salt', 64).toString('hex');
+The query itself is just SQL, except notice the `($1, $2, $3)`.  These are parameters you pass to the query, which are substituted.  Of course, you could use string interpolation to put the values in ... **but you better not!**  That would make your code vulnerable to an SQL injection attack, where the attacker adds hostile SQL in the middle of your statement.  With parameterized queries, SQL parameters are sanitized before they are substituted, and dangerous stuff is escaped.
 
-const result = await pool.query(
-  'INSERT INTO users (email, name, hashedPassword) VALUES ($1, $2, $3) RETURNING id, email, name',
-  [email, name, hashedPassword]
-);
+After a client connection is retrieved from the pool, the query is run, and once it is complete and the results have been returned, the client connection is returned to the pool.  If the server gets busy, the `pool.query()` operation may have to wait for an available connection.
 
-// Store the user ID globally for session management (not secure for production)
-global.user_id = result.rows[0].id;
-```
+All well and good, but what about transactions?  The `pool.query()` operation performs a single query in an automatically performed transaction. Suppose you need to do a series of queries in a single transaction?  In that case, the process is a little more complicated.
 
-### Login Controller Implementation
+```js
+async function runTransactionalWork() {
+  const client = await pool.connect(); // Checkout a client from the pool
 
-**Login with Password Verification:**
-```javascript
-// Login endpoint
-app.post('/api/users/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    
-    // Find user by email
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    const user = result.rows[0];
-    
-    // Compare hashed password
-    const crypto = require('crypto');
-    const hashedInputPassword = crypto.scryptSync(password, 'salt', 64).toString('hex');
-    const isValidPassword = hashedInputPassword === user.password;
-    
-    if (!isValidPassword) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    // Store user ID globally for session management (not secure for production)
-    global.user_id = user.id;
-    
-    res.json({ 
-      message: "Login successful", 
-      user: { id: user.id, email: user.email, name: user.name } 
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-```
+    await client.query("BEGIN"); // Start transaction
 
-**Important Security Note:**
-The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.
+    // Example operation #1
+    const userResult = await client.query(
+      `INSERT INTO users (email) VALUES ($1) RETURNING id`,
+      ["test@example.com"]
+    );
+    const userId = userResult.rows[0].id;
 
-**Middleware Update:** Unlike lesson 4 where you created a simple auth middleware that checked `getLoggedOnUser()`, lesson 6 uses the same global user_id approach but with database operations. The auth middleware pattern from lesson 4 can still be applied here to centralize authentication checks before database queries.
+    // Example operation #2
+    await client.query(
+      `INSERT INTO profiles (user_id, display_name) VALUES ($1, $2)`,
+      [userId, "Test User"]
+    );
 
-### Logoff Controller Implementation
+    // Example operation #3
+    const balanceResult = await client.query(
+      `UPDATE accounts SET balance = balance - 100 WHERE user_id = $1 RETURNING balance`,
+      [userId]
+    );
+    console.log("New balance:", balanceResult.rows[0].balance);
 
-**Logoff with Session Clearing:**
-```javascript
-// Logoff endpoint
-exports.logoff = async (req, res) => {
-  try {
-    // Clear the global user ID for session management
-    global.user_id = null;
-    
-    res.status(200).json({ message: "Logoff successful" });
+    await client.query("COMMIT"); // Success → commit the transaction
+    return { success: true, userId };
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    await client.query("ROLLBACK"); // Failure → rollback the transaction
+    console.error("Transaction failed, rolled back.", err);
+    throw err; // propagate error to caller
+  } finally {
+    client.release(); // Always release the client back to the pool
   }
-};
+}
 ```
+In sum:
 
-### Auth Middleware Implementation
+- checkout client
+- begin transaction
+- query
+- more queries
+- commit transaction
+- or, in case of errors, rollback the transaction
+- return the client to the pool.
 
-**Create `/middleware/auth.js`:**
-```javascript
-const { StatusCodes } = require("http-status-codes");
-
-module.exports = (req, res, next) => {
-  if (!global.user_id) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Unauthorized" });
-  }
-  next();
-};
-```
-
-**Update `app.js` to use middleware:**
-```javascript
-const authMiddleware = require('./middleware/auth');
-
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/tasks', authMiddleware, taskRoutes);
-```
-
-### Task Controller Updates
-
-**Before (Memory Storage):**
-```javascript
-// Old way - filtering in memory
-const userTasks = storedTasks.filter(task => task.user_id === global.user_id);
-```
-
-**After (Database Storage):**
-```javascript
-// New way - using database with global user_id
-const result = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [global.user_id]);
-const userTasks = result.rows;
-```
-
-**Note:** The user_id is retrieved from the global variable set during login, not from query parameters. This matches the behavior from lesson 4 where the user_id was stored globally after login.
-
----
-
-## 8. Security Concepts
-
-### SQL Injection Prevention
 **What is SQL Injection?**
 SQL injection is a security vulnerability where malicious users can execute unauthorized SQL commands through your application.
 
@@ -422,143 +305,32 @@ if (result.rows.length === 0) {
 }
 ```
 
+**Important Security Note:**
+YOu are goint to use a globally stored user_id.  This is a temporary makeshift.  The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
+
 ---
 
-## 9. Error Handling
+## 8. Error Handling
 
 ### Database Error Types
-Different types of errors can occur when working with databases:
+
+Different types of errors can occur when working with databases.  Typically you let these fall through to the global error handler middleware.  
+
+There are times when you will need to catch specific errors within your controller logic.  For example, if a user attempts to register with an email address that is already registered, you want to catch the error in the controller so that you can return an appropriate explanation to the user.
 
 **Connection Errors:**
-```javascript
-try {
-  await pool.query('SELECT 1');
-} catch (err) {
-  if (err.code === 'ECONNREFUSED') {
-    console.error('Database connection refused');
-  }
-}
-```
 
-**Query Errors:**
-```javascript
-try {
-  const result = await pool.query('SELECT * FROM non_existent_table');
-} catch (err) {
-  if (err.code === '42P01') {
-    console.error('Table does not exist');
-  }
-}
-```
+You want a special log message in your error handler for connection errors, in case you forget to start your Postgres service.
 
-### Implementing Proper Error Handling
-```javascript
-app.get('/health', async (req, res) => {
-  try {
-    await pool.query('SELECT 1');
-    res.json({ status: 'ok', db: 'connected' });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.status(500).json({ 
-      status: 'error', 
-      db: 'not connected', 
-      error: err.message 
-    });
-  }
-});
-```
+You may also get query errors.  For example, queries could time out.  A request to the pool could fail because all connections are tied up. There could be an attempt to write something to the database that doesn't comply with the schema.  In general, you'd just log these to the console in your global error handler, and return the 500 return code and corresponding JSON internal server error message.
+
+### A Health Check API
+
+It is common to have a health check  API, so that you can see if the application is functioning.  The health check gives immediate notice if connection to the database is not successful.
 
 ---
 
-## 10. Testing Your Database Integration
-
-### Health Check Endpoint
-Add this endpoint to verify your database connection:
-
-```javascript
-app.get('/health', async (req, res) => {
-  try {
-    await pool.query('SELECT 1');
-    res.json({ status: 'ok', db: 'connected' });
-  } catch (err) {
-    res.status(500).json({ 
-      status: 'error', 
-      db: 'not connected', 
-      error: err.message 
-    });
-  }
-});
-```
-
-### Testing Steps
-1. **Start your PostgreSQL database**
-2. **Start your Node.js server**
-3. **Test the health endpoint**: `GET /health`
-4. **Test user registration**: `POST /api/users/register` (this sets global.user_id)
-5. **Test user login**: `POST /api/users/login` (this sets global.user_id)
-6. **Test task creation**: `POST /api/tasks` (uses global.user_id, no query parameter needed)
-7. **Test task retrieval**: `GET /api/tasks` (uses global.user_id, no query parameter needed)
-
-**Note:** After login, the user_id is stored globally, so task operations don't require passing user_id as a query parameter. This matches the behavior from lesson 4.
-
-### Example Postman Requests and Responses
-
-**Health Check Endpoint:**
-```
-GET /health
-Response: 200 OK
-{
-  "status": "ok",
-  "db": "connected"
-}
-```
-
-**User Registration:**
-```
-POST /api/users/register
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "name": "John Doe",
-  "password": "password123"
-}
-
-Response: 201 Created
-{
-  "id": 1,
-  "email": "john@example.com",
-  "name": "John Doe"
-}
-```
-
----
-
-## 11. Key Benefits of Database Integration
-
-### Data Persistence
-- Your data survives server restarts
-- Data is safely stored on disk
-- Automatic backups can be configured
-
-### Scalability
-- Can handle thousands of users
-- Efficient querying with indexes
-- Better memory management
-
-### Security
-- User data isolation
-- SQL injection prevention
-- Access control and permissions
-
-### Professional Development
-- Real-world applications use databases
-- Industry standard practices
-- Better job market preparation
-
----
-
-## 12. Common Challenges and Solutions
+## 9. Common Challenges and Solutions
 
 ### Challenge: Database Connection Fails
 **Symptoms:** `ECONNREFUSED` error
@@ -595,7 +367,7 @@ In this lesson, you've learned:
 - **Proper error handling** for database operations
 
 ### Next Steps
-1. **Complete the assignment** following this lesson
+1. **Complete Assignment 6a** following this lesson
 2. **Test your database connection** and API endpoints
 3. **Continue to Lesson 6b** to learn about Prisma ORM
 
@@ -621,6 +393,9 @@ In this lesson, you've learned:
 
 **Remember:** This lesson builds on your Node.js fundamentals. Make sure you have a solid understanding of Express and basic database concepts before proceeding!
 
+### **Proceed to Assignment 6a**
+
+At this point, you should do the first half of your assignment (Assignment 6a).  Then, return to the lesson to learn about Object Relational Mappers (ORMs), before proceeding on to Assignment 6b.
 
 # Lesson 6b: Introduction to Prisma ORM
 
@@ -635,8 +410,6 @@ By the end of this lesson, you will be able to:
 
 ## Overview
 In this lesson, you'll learn about **Prisma ORM** - a modern, type-safe way to interact with databases in Node.js. You'll transform your existing PostgreSQL application from using raw SQL queries to using Prisma's intuitive API, gaining better type safety, autocomplete, and maintainability.
-
-**Prerequisites:** This lesson builds on **Assignment 6a**, where you successfully integrated PostgreSQL with your Express application. Make sure you have completed Assignment 6a with a working database connection before proceeding.
 
 **Why This Matters:**
 - **Developer Experience**: Better autocomplete and error detection
@@ -681,7 +454,8 @@ const user = await prisma.user.findUnique({
 ## 2. Introduction to Prisma
 
 ### What is Prisma?
-Prisma is a modern, open-source ORM for Node.js and TypeScript. It consists of three main tools:
+
+Prisma is a modern, open-source ORM for Node.js and TypeScript (except we won't use its TypeScript features). It consists of three main tools:
 
 1. **Prisma Schema**: A declarative way to define your database structure
 2. **Prisma Client**: An auto-generated, type-safe database client
@@ -704,6 +478,10 @@ Prisma is a modern, open-source ORM for Node.js and TypeScript. It consists of t
 | **Maintainability** | Harder | Easier |
 | **Learning Curve** | Lower for SQL users | Slightly higher |
 | **Performance** | Can be optimized | Good, with optimizations |
+
+### How it Works
+
+Under the covers, Prisma is making SQL calls, which are issued via socket connections to a database.  There is a connection pool.  Actually ... Prisma relies on the `pg` package to make this work.
 
 ---
 
@@ -735,7 +513,7 @@ Prisma is a modern, open-source ORM for Node.js and TypeScript. It consists of t
 **Models**
 Models represent your database tables as JavaScript classes:
 ```prisma
-model User {
+model UserExample {
   id    Int     @id @default(autoincrement())
   email String  @unique
   name  String
@@ -761,67 +539,9 @@ Relations define how models connect to each other:
 - **Many-to-One**: Many tasks can belong to one user
 - **One-to-One**: One user has one profile
 
----
-
-## 4. Setting Up Prisma in Your Project
-
-### Prerequisites
-Before starting this lesson, ensure you have:
-- Completed Lesson 6a with a working PostgreSQL application
-- Node.js and npm installed
-- PostgreSQL running with your existing database
-- Your Express application from Lesson 6a
-
-### Installation Steps
-
-**1. Install Prisma Dependencies**
-```bash
-npm install prisma @prisma/client
-```
-
-**2. Initialize Prisma**
-```bash
-npx prisma init
-```
-
-This creates:
-- `prisma/` directory with configuration files
-- `prisma/schema.prisma` - Your database schema definition
-- `.env` file (if it doesn't exist)
-
-**3. Configure Database Connection**
-Update your `.env` file to include the Prisma-specific DATABASE_URL:
-```env
-DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/yourdatabase?schema=public"
-```
-
-**Note:** The `?schema=public` parameter tells Prisma which database schema to use. The PostgreSQL URL format may vary depending on your operating system. For detailed information about different URL formats for Windows, Mac, and Linux, see Assignment 0.
+By default, every attribute listed must be non-null.  You can override this behavior.
 
 ---
-
-## 5. Understanding the Prisma Schema
-
-### Schema File Structure
-The `prisma/schema.prisma` file has three main sections:
-
-**1. Data Source**
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-- **provider**: Specifies which database you're using
-- **url**: Points to your environment variable
-
-**2. Generator**
-```prisma
-generator client {
-  provider = "prisma-client-js"
-}
-```
-- **provider**: Specifies the client type (JavaScript/TypeScript)
-- **output**: Where to generate the client (optional)
 
 **3. Models**
 ```prisma
@@ -829,7 +549,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String
-  hashedPassword  String
+  hashedPassword  String @map("hashed_password")
   tasks     Task[]
   createdAt DateTime @default(now()) @map("created_at")
   
@@ -848,7 +568,10 @@ createdAt DateTime @default(now()) @map("created_at")
 
 **Table Mapping**
 ```prisma
+model User {
+  ...
 @@map("users")
+}
 ```
 - **Prisma Model**: `User` (PascalCase, JavaScript convention)
 - **Database Table**: `users` (lowercase, SQL convention)
@@ -856,24 +579,31 @@ createdAt DateTime @default(now()) @map("created_at")
 **Relationship Mapping**
 ```prisma
 model Task {
-  userId Int  @map("user_id")
-  user   User @relation(fields: [userId], references: [id])
+  id           Int      @id @default(autoincrement())
+  title        String
+  createdAt DateTime @default(now()) @map("created_at)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId       Int @map("user_id")
+  isCompleted  Boolean  @default(false) @map("is_completed")
+  @@map("tasks")
 }
 ```
 - **Prisma Field**: `userId` (camelCase)
 - **Database Column**: `user_id` (snake_case)
 - **Relation**: Links to the `User` model via the `id` field
 
+With this schema, we have the same table names and column names as were created using the `CREATE TABLE` SQL statements at the start of this lesson.  In Prisma we use camel case column names and capitalized model names, but the column names are mapped to the lower case versions using `@map()`, and the table names are mapped to the lower case versions using `@@map()`.  With this approach, we can access the same tables from either pg or Prisma.
+
 ---
 
-## 6. Database Introspection and Schema Generation
+## 4. Database Introspection and Schema Generation
 
 ### What is Introspection?
 Introspection is the process of reading your existing database structure and automatically generating a Prisma schema that matches it.
 
 ### Using Prisma Introspection
 ```bash
-npx prisma db pull
+npx prisma db pull 
 ```
 
 **What This Does:**
@@ -888,224 +618,28 @@ npx prisma db pull
 - **Time Saving**: No need to manually write the schema
 - **Error Prevention**: Eliminates manual mapping mistakes
 
-### After Introspection
-Once introspection is complete, you can:
-1. **Review the generated schema** to understand the mapping
-2. **Customize the schema** if needed (add validations, change field names)
-3. **Generate the Prisma Client** for use in your application
+**Downsides of Introspection:**
+- **Schema Management is in SQL**
+- **Schema Evolution is difficult for a team project**
+- **Schema Management is difficult in production**
 
----
+### The alternative: Manage Schema with the ORM.  Use Migration.
 
-## 7. Generating and Using the Prisma Client
+In this case, you write and update model definitions directly.
 
-### Client Generation
+A migrate step updates the actual table definitions in the database.
+
+Whenever you create or modify the Prisma schema, you must also do a migration.  No tables are generated or updated until you do this:
+
 ```bash
-npx prisma generate
+npx prisma migrate dev --name firstVersion
 ```
 
-**What Happens:**
-- Prisma reads your `schema.prisma` file
-- Generates TypeScript types and JavaScript methods
-- Creates a client in `node_modules/.prisma/client`
-- Provides type-safe database operations
-
-**Important:** You must run `npx prisma generate` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.
-
-### Using the Generated Client
-
-**1. Create Client Instance**
-```javascript
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-```
-
-**2. Basic Operations**
-```javascript
-// Create a user
-const user = await prisma.user.create({
-  data: {
-    email: 'john@example.com',
-    name: 'John Doe',
-    password: 'hashedPassword' // This would be the scrypt hash in practice
-  }
-});
-
-// Find a user
-const user = await prisma.user.findUnique({
-  where: { email: 'john@example.com' }
-});
-
-// Update a user
-const updatedUser = await prisma.user.update({
-  where: { id: 1 },
-  data: { name: 'John Smith' }
-});
-
-// Delete a user
-await prisma.user.delete({
-  where: { id: 1 }
-});
-```
-
-### Understanding Prisma Query Structure
-
-**Query Components:**
-- **`where`**: Conditions for finding records
-- **`data`**: Data for creating or updating records
-- **`select`**: Fields to return (optional)
-- **`include`**: Related data to fetch (optional)
-
-**Important Note on Where Clauses:**
-When using `update()` or `delete()` operations, the `where` clause must contain exactly one unique identifier (like `id` or `email`). If you need to update or delete multiple records based on multiple conditions, use `updateMany()` or `deleteMany()` instead. The error "Argument `where` of type TaskWhereUniqueInput needs exactly one argument..." occurs when you try to use multiple conditions in a `where` clause for single-record operations.
-
-**Example with All Components:**
-```javascript
-const userWithTasks = await prisma.user.findUnique({
-  where: { id: 1 },
-  select: {
-    id: true,
-    name: true,
-    email: true,
-    tasks: {
-      select: {
-        id: true,
-        title: true,
-        isCompleted: true
-      }
-    }
-  }
-});
-```
+This is the approach for dev environments, and you give each subsequent migration a different name.  The prisma migrate command is different in production -- we'll get to that later in the course.  Run the command above and verify that it completes correctly.  No table changes will occur, because you previously created the tables you need.
 
 ---
 
-## 8. Transforming Your Controllers
-
-### The Transformation Process
-You'll be replacing raw SQL queries with Prisma Client methods. This involves:
-
-1. **Replacing imports**: `pool` → `prisma`
-2. **Converting SQL queries**: Raw SQL → Prisma methods
-3. **Updating data handling**: `result.rows` → direct objects
-4. **Maintaining security**: User ownership validation
-
-### User Controller Transformation
-
-**Before (Raw SQL):**
-```javascript
-const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-if (existingUser.rows.length > 0) {
-  return res.status(400).json({ error: "User already exists" });
-}
-
-const result = await pool.query(
-  'INSERT INTO users (email, name, hashedPassword) VALUES ($1, $2, $3) RETURNING id, email, name',
-  [email, name, password]
-);
-const newUser = result.rows[0];
-```
-
-**After (Prisma):**
-```javascript
-const existingUser = await prisma.user.findUnique({
-  where: { email }
-});
-if (existingUser) {
-  return res.status(400).json({ error: "User already exists" });
-}
-
-// Hash the password before storing (using scrypt from lesson 4)
-const crypto = require('crypto');
-const hashedPassword = crypto.scryptSync(password, 'salt', 64).toString('hex');
-
-const newUser = await prisma.user.create({
-  data: { email, name, hashedPassword: hashedPassword },
-  select: { id: true, email: true, name: true }
-});
-
-// Store the user ID globally for session management (not secure for production)
-global.user_id = newUser.id;
-```
-
-**Key Changes:**
-- **`pool.query()`** → **`prisma.user.findUnique()`**
-- **SQL strings** → **JavaScript objects**
-- **`result.rows[0]`** → **direct object**
-- **`RETURNING` clause** → **`select` option**
-- **Password hashing** → **scrypt integration**
-- **Global user_id** → **stored after registration**
-
-### Prisma Login Controller Implementation
-
-**Login with Password Verification (Prisma):**
-```javascript
-// Login endpoint using Prisma
-app.post('/api/users/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    // Find user by email using Prisma
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
-    
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    // Compare hashed password
-    const crypto = require('crypto');
-    const hashedInputPassword = crypto.scryptSync(password, 'salt', 64).toString('hex');
-    const isValidPassword = hashedInputPassword === user.password;
-    
-    if (!isValidPassword) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    // Store user ID globally for session management (not secure for production)
-    global.user_id = user.id;
-    
-    res.json({ 
-      message: "Login successful", 
-      user: { id: user.id, email: user.email, name: user.name } 
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-```
-
-**Important Security Note:**
-The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.
-
-### Task Controller Transformation
-
-**Before (Raw SQL):**
-```javascript
-const result = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [user_id]);
-const tasks = result.rows;
-```
-
-**After (Prisma):**
-```javascript
-const tasks = await prisma.task.findMany({
-  where: { userId: global.user_id }
-});
-```
-
-**Note:** The user_id is retrieved from the global variable set during login, not from query parameters. This matches the behavior from lesson 4 where the user_id was stored globally after login.
-
-**Key Changes:**
-- **`pool.query()`** → **`prisma.task.findMany()`**
-- **SQL WHERE clause** → **`where` object**
-- **`global.user_id`** → **uses global variable instead of query parameters**
-- **No need for `result.rows`**: Prisma returns the data directly
-- **No `parseInt()` needed**: Prisma handles type conversion automatically
-
----
-
-## 9. Advanced Prisma Features
+## 4. Advanced Prisma Features
 
 ### Relationship Queries
 Prisma makes it easy to fetch related data:
@@ -1119,6 +653,8 @@ const userWithTasks = await prisma.user.findUnique({
   }
 });
 ```
+
+Of course, what is happening underneath is an SQL join.
 
 **Fetching Tasks with User Info:**
 ```javascript
@@ -1162,9 +698,17 @@ const tasks = await prisma.task.findMany({
 });
 ```
 
+Prisma has other features.
+
+- You can group multiple operations within a single transaction, with a commit or rollback at the end.
+- You can do queries with aggregation, as you would using GROUP BY, SUM, AVG, and so on in plain SQL.
+- You can do the equivalent of a HAVING clause.
+
+But, there are some things that Prisma doesn't enable, like subqueries.  When you find that Prisma won't do the SQL you want, you can send exactly the SQL you want using `prisma.$queryRaw()`.  Avoid this approach when you can, but sometimes it is necessary.
+
 ---
 
-## 10. Error Handling with Prisma
+## 5. Error Handling with Prisma
 
 ### Prisma Error Types
 Prisma provides specific error codes for different scenarios:
@@ -1176,6 +720,10 @@ Prisma provides specific error codes for different scenarios:
 - **`P2014`**: Invalid relation → Return 400 Bad Request
 
 ### Implementing Error Handling
+
+The code below is an example -- but frequently, you will only catch a small subset of the errors in your controller.  You'll let most errors fall through to your global error handler.
+
+
 ```javascript
 try {
   const user = await prisma.user.create({
@@ -1217,7 +765,7 @@ app.use((err, req, res, next) => {
   console.error('Error occurred:', err.message);
   
   // Handle database connection failures
-  if (err?.name === "PrismaClientInitializationError") {
+  if (err.name === "PrismaClientInitializationError") {
     console.log("Couldn't connect to the database. Is it running?");
     return res.status(500).json({ 
       error: "Database connection failed",
@@ -1326,7 +874,7 @@ const result = await prisma.$transaction(async (tx) => {
 
 ---
 
-## 12. Testing and Debugging
+## 5. Testing and Debugging
 
 ### Prisma Studio
 Prisma provides a visual database browser:
@@ -1379,7 +927,7 @@ In this lesson, you've learned:
 - **Relationships**: Simple handling of complex database relationships
 
 ### Next Steps
-1. **Complete the assignment** following this lesson
+1. **Complete Assignment 6b** following this lesson
 2. **Test your Prisma integration** thoroughly
 3. **Continue to Lesson 7** to learn advanced Prisma features
 4. **Explore Prisma documentation** for more advanced usage
