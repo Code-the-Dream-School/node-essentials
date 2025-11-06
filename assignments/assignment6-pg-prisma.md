@@ -19,7 +19,7 @@ Right now you are using `memoryStore.js` to store users and a list of tasks for 
 - Basic understanding of Node.js and Express
 - PostgreSQL installed and running on your system
 
-Be sure to create an assignment6a branch before you do any of the following.  You will create two branches for this assignment.
+Be sure to create an assignment6a branch before you do any of the following.  You will create two branches for the two parts of assignment.
 
 ---
 
@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   is_completed BOOLEAN NOT NULL DEFAULT FALSE,
   user_id INTEGER NOT NULL REFERENCES users(id),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)
 );
 ```
 
@@ -100,7 +101,9 @@ where `DATABASE_URL` is the value you saved in your `.env` file during assignmen
 ```
 The above assumes you have Postgres 17 -- adjust the number as needed.
 
-You should see messages that tables were created.
+#### d. Create Database Tables in the Test Database
+
+You should see messages that tables were created.  This creates the schema for the production database, but you also need a test database.  This is used for the assignment TDD, and also for your automated testing assignment in a later week.  The `psql` command is the same as the above, but you use the value of the `TEST_DATABASE_URL` from your `.env` file.
 
 ### 2. Database Connection Implementation
 
@@ -170,7 +173,7 @@ If the database service is not up, you want to know.  Your error handler will ha
 
 ### 3. Modify Controllers for Database Operations
 
-You need to eliminate all use of `util/memoryStore.js`.  In general, you are going to substitute database calls, except for the currently logged on user.  For that, you are going to use `global.user_id`.  Globals are accessible via every module.  Let's start with login in the user controller.  You will see that there aren't many try/catch stanzas.  That's because, for the most part, you can let the global error handler take care of error handling.
+You need to eliminate all use of `util/memoryStore.js`.  In general, you are going to substitute database calls, except the one for the currently logged on user.  For that, you are going to use `global.user_id`.  Globals are accessible via every module.  Let's start with login in the user controller.  You will see that there aren't many try/catch stanzas.  That's because, for the most part, you can let the global error handler take care of error handling.
 
 #### a. Changing Login:
 
@@ -186,25 +189,30 @@ So: make those changes to the login function now.
 
 #### b: Changing Registration
 
-Right now, you do a find() on the array in the memory store to see if the user is already registered.  If not, you add the user entry to the memory store.  When you switch to the database, ou can do that in one step.
+Right now, you do a find() on the array in the memory store to see if the user is already registered.  If not, you add the user entry to the memory store.  When you switch to the database, you can do that in one step.  For this operation and all that follow, you still need to do Joi validation of your objects before writing them to the database.
 
 ```javascript
-const hashed_password = await hashPassword(password);
-let newUser = null;
-try {
-  newUser = await pool.query(`INSERT INTO users (email, name, hashed_password) 
+  const { error, value } = userSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+  }
+  let user = null;
+  value.hashed_password = await hashPassword(value.password);
+  // the code to here is like the memoryStore version
+  try {
+    user = await pool.query(`INSERT INTO users (email, name, hashed_password) 
     VALUES ($1, $2, $3) RETURNING id, email, name`,
-    [email, name, hashed_password]
-  );
+    [value.email, value.name, value.hashed_password]
+  ); // note that you use a parameterized query
 } catch (e) { // the email might already be registered
-  if (e?.code === "23505") { // this means the unique constraint for email was violated
+  if (e.code === "23505") { // this means the unique constraint for email was violated
     // here you return the 400 and the error message.  Use a return statement, so that 
     // you don't keep going in this function
   }
   next(e); // all other errors get passed to the error handler
 }
 // othewise newUser now contains the new user.  You can return a 201 and the appropriate
-// object.  Be sure to also set global.user_id with the id you just created. 
+// object.  Be sure to also set global.user_id with the id of the user record you just created. 
 ```
 
 #### c. Changing Logoff.
@@ -217,18 +225,19 @@ Pretty easy.  You use global.user_id instead of the memory store.
 
 #### e. Changing Task Management: POST /tasks (create)
 
-You have a controller method for that, but it uses the memory store.  Here is the equivalent for pg:
+You have a controller method for that, but it uses the memory store.  Here is the equivalent for `pg`.  This only shows the part you have to change.  Joi validation and the res.json() part are the same:
 
 ```javascript
 // you do your Joi validation, and you have a validated task object. Then:
-const newTask = await pool.query(`INSERT INTO tasks (title, is_completed, user_id) 
+const task  = await pool.query(`INSERT INTO tasks (title, is_completed, user_id) 
   VALUES ( $1, $2, $3 ) RETURNING id, title, is_completed`,
-  [task.title, task.is_completed, global.user_id]);
+  [value.title, value.is_completed, global.user_id]);
+  // You don't need a try/catch because the global error handler will handle the errors
 ```
 
 #### f. Changing Task Management: GET /tasks (index)
 
-Here you will need:
+In each of these task operations, the WHERE cause must include the `user_id`, so that a given user can't access a different user's task entries.  For `index()` you need:
 
 ```javascript
 const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
@@ -293,6 +302,8 @@ Test all endpoints with Postman or curl:
 5. **Error Handling**: Test invalid inputs and database errors
 6. **Security**: Verify user ownership validation and password hashing
 
+For the security testing, you should try Postman tests where you GET, UPDATE, or DELETE an entry that belongs to another user.  You would log on as user 1, do a GET for `/tasks`, and record the id of an entry belonging to that user.  You would then log on as user 2, and try to get, update, and delete the task with that ID.  All should fail with a message that the entry was not found.  This is how you can be sure that access control is enforced.
+
 ---
 
 ## Submission Requirements
@@ -319,9 +330,7 @@ Test all endpoints with Postman or curl:
 
 ---
 
-You will next convert the project to use Prisma, which is the Node Object Relational Mapper.  That will overwrite what you have done.  But, you want to save what you have done, and your reviewer will want to see it, so at this time, add and commit all your changes.  Make the commit message "pg conversion completed".  Then make a pull request.  As of this writing, the assignment submission tool only allows you to submit one pull request, so you'll submit the one for assignment 6b, after the Prisma conversion, but your reviewer will review both of your pull requests.
-
-
+You will next convert the project to use Prisma, which is the Node Object Relational Mapper.  That will overwrite what you have done.  But, you want to save what you have done, and your reviewer will want to see it, so at this time, add and commit all your changes.  Make the commit message "pg conversion completed".  Then make a pull request.  Do not submit your homework yet! you have more to do.
 
 ## Submission Instructions
 
@@ -415,6 +424,7 @@ datasource db {
 
 This will build your client in the wrong place.  You want it to be in the default location, which is within `node_modules`.  So change the file as follows:
 
+```
 generator client {
   provider = "prisma-client-js"
 }
@@ -424,6 +434,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 ```
+
 **Important** You must also erase the `prisma.config.ts` file.  That is an artifact of the latests Prisma release, something that I think they screwed up.
 
 Now you can generate the client, using this command:
@@ -503,9 +514,19 @@ From this point on, you can make your schema changes with Prisma.  The sequence 
 
 There is plenty one can learn about this -- but you have enough information for now.
 
+As you may make schema changes in the future, you also want Prisma to manage the schema of the test database.  So do the following:
+
+```bash
+DATABASE_URL=<TEST_DATABASE_URL> prisma migrate deploy
+```
+
+Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable from your `.env` file.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
+
 ---
 
-**Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  
+**Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
+
+From this point on, if you make a schema change, you change the model, do a `prisma migrate dev`, and then, for the test database, do the corresponding `migrate deploy`.  You do not change the schema with ordinary SQL.
 
 ### 2. Create Prisma Database Connection
 
@@ -524,13 +545,21 @@ const prisma = new PrismaClient(opts);
 module.exports = prisma;
 ```
 
-It can be a little opaque to figure out what an ORM like Prisma is doing.  The code above turns on logging of the queries it issues.  You'll actually see the SQL logged.  Obviously this should only happen in development mode.
+It can be a little opaque to figure out what an ORM like Prisma is doing.  The code above turns on logging of the queries it issues.  You'll actually see the SQL statements appear in the log as they are executed.  Obviously this should only happen in development mode.
 
-You'll see each of the table names prefixed with "public".  This is the default database schema, which is only important if your database is multi-tenant -- which it isn't.
+In the log, you'll see each of the table names prefixed with "public".  This is the default database schema, which is only important if your database is multi-tenant -- which it isn't.
 
 #### b. Fix Shutdown, Health Check, and Error Handling
 
-You now need to remove all references to the pool and replace them with references to the `prisma` client instance.  Start with the `require()` statement in `app.js`.  Then, change the shutdown so that instead of ending the pool, it does the following:
+You now need to replace references to the `pg` pool them with references to the `prisma` client instance. You can do them incrementally, so that all operations work as you substitute prisma code one part at a time.
+
+First, in app.js, add this statement:
+
+```js
+const prisma = require("./db/prisma");
+```
+
+Then, change the shutdown so that as well as ending the pool, it also does the following:
 
 ```javascript
   try {
@@ -542,7 +571,7 @@ You now need to remove all references to the pool and replace them with referenc
   }
 ```
 
-You need to change your health check so that it uses Prisma:
+Change your health check so that it uses Prisma:
 
 ```js
 app.get('/health', async (req, res) => {
@@ -563,14 +592,18 @@ if (err.name === "PrismaClientInitializationError") {
 }
 ```
 
+Once you've done this much, test the new health check to make sure it works.
+
 ### 3. Transform Your Controllers
+
+In the steps that follow, you can fix one controller method at a time and test that method.  Other methods will use `pg` until you have fixed them all.
 
 #### a. Fix Login
 
-You need to have a `require()` statement for Prisma in the user controller, in place of the one for the pool.  For login, you need to find the user:
+You need to have a `require()` statement for prisma in the user controller, in addition the one for the pool.  For login, you need to find the user:
 
 ```js
-const user = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" }}});
+const user = await prisma.user.findUnique({ where: { email: { equals: email, mode: "insensitive" }}});
 ```
 That may return null, in which case authentication fails.  If not, you still have to do a comparePassword(), which may or may not return true.
 
@@ -579,9 +612,12 @@ That may return null, in which case authentication fails.  If not, you still hav
 You need to catch the error that might occur if the email is already registered.  Like so:
 
 ```js
-let newUser = null
+// Do the Joi validation, so that value contains the user entry you want.
+// hash the password, and put it in value.hashedPassword
+// delete value.password as that doesn't get stored
+let user = null;
 try {
-  newUser = await prisma.user.create({
+  user = await prisma.user.create({
     data: { name, email, hashedPassword },
   });
 } catch (err) {
@@ -591,7 +627,8 @@ try {
       return next(err); // the error handler takes care of other erors
     }
 }
-// otherwise register succeeded, so send the error back etc.
+// otherwise register succeeded, so set global.user_id with user.id, and do the
+// appropriate res.status().json().
 ```
 
 #### c. Fix Task Index
@@ -603,7 +640,7 @@ const options = {
   },
   omit: { userId: true },
 };
-const tasks = prisma.task.findMany();
+const tasks = await prisma.task.findMany();
 ```
 
 #### d. Fix Task Create
@@ -612,30 +649,44 @@ This one's kind of like register.  You want to create the task with a userId of 
 
 #### e. Fix Task Update
 
-There's an oddity in Prisma for this one. We need to update the task with id equal to `req.params.id`, but only if it belongs to the currently logged on user.  So we have to filter on both the id and the userId.  The `prisma.task.update()` function won't do that.  Instead, you have to use:
-
 ```js
 // assuming that value contains the validated change coming back from Joi
-const updateCount = await prisma.task.updateMany( data: value,
+const task = await prisma.task.update( data: value,
     where: {
       id: parseInt(req.params.id),
       userId: global.user_id,
     });
 ```
-Unfortunately, you only get the count back (which will either be 1 or 0), not the modified record.
+
+This is where that special unique index for [id, user_id] is important!  Prisma does not
+let you do update() or delete() or findUnique() with two attributes in the where clause **unless** a uniqueness index is present for that combination of attributes.
 
 #### f. Update Show
 
-You need to use `prisma.task.findFirst()`, but you filter both on the id and the userId, so that there is good access control.
+You need to use `prisma.task.findUnique()`, but you filter both on the id and the userId, so that there is good access control.
 
 #### g. Update DeleteTask
 
-This works similar to update().  You need to use the deleteMany() method.
+This works similar to update().  You need to use the delete() method.
 
-### 4. Test
+#### h. Remove All Pool References
 
+You no longer need the pool, as all operations now use Prisma.
+
+### 4. Testing Your Prisma Integration
 - Test using Postman.  Everything should still work -- but remember that the migrate step delected all the data, so you have to create each entry again.
 - Run `npm tdd assignment6b
+
+#### a. Database Testing
+
+**Requirements:**
+- Verify Prisma Client is generated correctly
+- Test all CRUD operations with Prisma
+- Verify relationships work as expected
+- Test error scenarios and edge cases
+
+#### b. API Testing
+Test your endpoints using Postman or curl:
 
 **Required Tests:**
 - All user operations (register, login) with password hashing
@@ -643,6 +694,14 @@ This works similar to update().  You need to use the deleteMany() method.
 - All task operations (create, read, update, delete) using global user_id
 - Relationship queries (user with tasks, tasks with user)
 - Error handling scenarios
+
+**Required Tests:**
+- All user operations (register, login) with password hashing
+- Global user_id storage after login/registration
+- All task operations (create, read, update, delete) using global user_id
+- Relationship queries (user with tasks, tasks with user)
+- Error handling scenarios
+- Advanced filtering and sorting
 
 ---
 
@@ -722,7 +781,7 @@ git push origin assignment6b
 4. Create a pull request with a descriptive title like "Assignment 6b: Prisma ORM Integration"
 
 ### 3️⃣ Submit Your GitHub Link
-Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.
+Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  Include also a link to the pull request for assignment 6a.
 
 **Important:** Make sure your pull request includes:
 - All the modified files with Prisma integration

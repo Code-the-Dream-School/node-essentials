@@ -150,8 +150,9 @@ CREATE TABLE tasks (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   is_completed BOOLEAN NOT NULL DEFAULT FALSE,
-  user_id INTEGER REFERENCES users(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)
 );
 ```
 
@@ -162,6 +163,9 @@ CREATE TABLE tasks (
 - **`UNIQUE`**: No two users can have the same email
 - **`REFERENCES users(id)`**: Creates a foreign key relationship
 - **`DEFAULT CURRENT_TIMESTAMP`**: Automatically sets the current time
+- **CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)** Creates an additional index.  
+
+The additional index is needed for Prisma (the second part of the lesson and assignment.)  For some operations (`show()`, `update()`, `delete()`) you must specify both the id of the task and the user_id in your WHERE clause.  This is to make sure that one user can't access a different user's task record.  When doing this in Prisma, the additional index is required.
 
 Note that all table names and column names are lower case.  You can use mixed case names, but it adds complexity.  That is why snake-case is used, as in `created_at`.
 
@@ -213,9 +217,9 @@ const newUser = await pool.query(`INSERT INTO users (email, name, hashed_passwor
   );
 ```
 
-What happens is this.  When you issue the pool.query, you get a connection from the pool.  It may not be connected to an actual socket yet, in which case it is connected as you issue the query.  
+What happens is this: When you issue the `pool.query()`, you get a connection from the pool.  It may not be connected to an actual socket yet, in which case it is connected as you issue the query.  
 
-The query itself is just SQL, except notice the `($1, $2, $3)`.  These are parameters you pass to the query, which are substituted.  Of course, you could use string interpolation to put the values in ... **but you better not!**  That would make your code vulnerable to an SQL injection attack, where the attacker adds hostile SQL in the middle of your statement.  With parameterized queries, SQL parameters are sanitized before they are substituted, and dangerous stuff is escaped.
+The query itself is just an SQL statement, except notice the `($1, $2, $3)`.  These are parameters you pass to the query, which are substituted.  Of course, you could use string interpolation to put the values in ... **but you better not!**  That would make your code vulnerable to an SQL injection attack, where the attacker adds hostile SQL in the middle of your statement.  With parameterized queries, SQL parameters are sanitized before they are substituted, and dangerous stuff is escaped.
 
 After a client connection is retrieved from the pool, the query is run, and once it is complete and the results have been returned, the client connection is returned to the pool.  If the server gets busy, the `pool.query()` operation may have to wait for an available connection.
 
@@ -306,7 +310,7 @@ if (result.rows.length === 0) {
 ```
 
 **Important Security Note:**
-YOu are goint to use a globally stored user_id.  This is a temporary makeshift.  The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
+YOu are going to use a globally stored user_id.  This is a temporary makeshift.  The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
 
 ---
 
@@ -700,6 +704,7 @@ const tasks = await prisma.task.findMany({
 
 Prisma has other features.
 
+- You can do "eager" load, which is basically a join of multiple tables.
 - You can group multiple operations within a single transaction, with a commit or rollback at the end.
 - You can do queries with aggregation, as you would using GROUP BY, SUM, AVG, and so on in plain SQL.
 - You can do the equivalent of a HAVING clause.
