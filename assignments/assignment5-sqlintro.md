@@ -7,7 +7,7 @@ First, create a new branch for this week's homework and name it `assignment5`.
 Then, start `sqlcommand` as you did for the lesson. For each of the following tasks, you should get your SQL statements running in `sqlcommand` first, and then add them to your homework file. It may be helpful to have two terminal sessions open in VSCode - one for `sqlcommand`, and another to run your homework.
 Next, create a file named `assignment5-sql.txt` within the `assignment5` directory. Each line in this file should be an SQL command, as described in the tasks.
 Lines beginning with `#` are treated as comments.
-As you add SQL commands to this file, you can test them with the following command:
+As you add SQL statements to this file, you can test them using the following command:
 
 ```bash
 npm run tdd assignment5
@@ -15,17 +15,17 @@ npm run tdd assignment5
 
 This test should be run from the `node-homework` root folder.
 
-The [SQL section of w3schools](https://www.w3schools.com/sql/default.asp) is a good reference to assist you with this assignment.
+The [SQL section of W3Schools](https://www.w3schools.com/sql/default.asp) is a good reference to assist you with this assignment.
 
 ### **Preparation and Practice**
 
-Within sqlcommand, practice doing various SQL statements: SELECT, INSERT, UPDATE, DELETE, BEGIN, COMMIT, ROLLBACK. Your practice SQL statements should also include statements that use JOIN, GROUP BY, ORDER BY, HAVING, SUM, COUNT, etc. Continue practicing until you feel confident in your SQL skills. Remember that you can reload the database as needed. Also, practice writing subqueries as well. Then proceed to the following tasks.
+Within `sqlcommand`, practice running various SQL statements: SELECT, INSERT, UPDATE, DELETE, BEGIN, COMMIT, ROLLBACK. Your practice SQL statements should also include statements that use JOIN, GROUP BY, ORDER BY, HAVING, SUM, COUNT, etc. Continue practicing until you feel confident in your SQL skills. Remember that you can reload the database as needed. Also, practice writing subqueries as well. Then proceed to the following tasks.
 
-**Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until everything works. If you run into problems, ask for assistance from a mentor or via the slack channel. If SQL is new to you, there is plenty to learn!
+**Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until the full query works correctly. If you run into problems, ask for assistance from a mentor or via the Slack channel. If SQL is new to you, there is plenty to learn!
 
 ### **Task 1: Find the total price of each of the first 5 orders, ordered by order_id.**
 
-There are several steps. You'll need to use the `price` from the `products` table and the `quantity` from the `line_items` table, so you'll need to join these with the `orders` table. You need to `GROUP BY` the `order_id`. You are grouping `line_items`. Also, `ORDER BY` the `order_id`. You need to select the `order_id` and the sum of the products price times the `line_items` quantity. The columns returned should be `order_id` and `total_price`. You use aliasing to specify total_price for the sum of price times quantity.
+There are several steps. You'll need to use the `price` from the `products` table and the `quantity` from the `line_items` table, so you'll need to join these with the `orders` table. You need to `GROUP BY` the `order_id`. You are grouping `line_items`. Also, `ORDER BY` the `order_id`. You need to select the `order_id` and the sum of each product's price multiplied by the `line_items` quantity. The columns returned should be `order_id` and `total_price`. You should use aliasing to label the sum of `price` times `quantity` as `total_price`.
 
 When you have this running in `sqlcommand`, add the SQL statement to `assignment5-sql.txt`.
 
@@ -47,9 +47,9 @@ So, part of your statement will be:
 ... FROM customers c JOIN (subquery) AS t ON ...
 ```
 
-After the ON clause, you `GROUP BY c.customer_id, customer_name` and `ORDER BY` the customer_name. Note that you have two customer_id columns after the join, one being `c.customer_id` and the other being `t.customer_id`, so you have to fully qualify your references to customer_id. Return the following columns: the customer name and the AVG of the total_price as `average_order_price`.
+After the ON clause, you `GROUP BY c.customer_id, customer_name` and `ORDER BY` the customer_name. Note that you have two `customer_id` columns after the join, one being `c.customer_id` and the other being `t.customer_id`, so you have to fully qualify your references to `customer_id`. Return the following columns: the customer name and the AVG of the `total_price`, aliased as `average_order_price`.
 
-It doesn't seem necessary to group by both customer_id and customer_name.  As the customer_id values are unique, the customer_name field will be the same for each row when you group by customer_id.  But some SQL implementations don't figure this out up front, so they don't know which value to return.  You don't know that customer_name is unique, so you can't rely on that grouping.
+It doesn't seem necessary to group by both `customer_id` and `customer_name`.  Since the `customer_id` values are unique, the `customer_name` field will be the same for each row when you group by `customer_id`.  But some SQL implementations don't figure this out up front, so they don't know which value to return.  You don't know that customer_name is unique, so you can't rely on that grouping.
 
 Once you have this running in `sqlcommand`, add the statement to `assignment5-sql.txt`. Run the `tdd` test until the second test completes.
 
@@ -63,7 +63,7 @@ Follow these steps:
 - Next, create a statement to find the `employee_id` for Miranda Harris. When that works, add it to `assignment5-sql.txt.`
 - Next, write a query to find the `product_id` for the 5 least expensive products. Add that to the assignment file too.
 - Then, start a transaction with `BEGIN`, followed by an `INSERT` for the orders record with a `RETURNING` for the `order_id`, followed by an `INSERT` for the 5 line_items corresponding to the 5 least expensive products. Finally, commit the transaction with `COMMIT`.
-  Once you have this sequence working in `sqlcommand`, add all 4 statements to the assignment file.
+  Once this sequence works in `sqlcommand`, add all 4 statements to the assignment file.
 - Finally, write a `SELECT` statement to find all `line_items` corresponding to the new `order_id`, and return all the columns for these records. When this works, add that statement to the assignment file.
 
 Hint 1: When you are trying this out in `sqlcommand`, if you do `BEGIN` followed by the `INSERT` of the orders record, followed by the `INSERT` of the line_items records, followed by the `COMMIT`, then, because you are typing this all in manually, the transaction may time out before you get to the `COMMIT`. So, as you are trying things out in `sqlcommand`, do it without the `BEGIN` and the `COMMIT`. But be sure to include the `BEGIN` and `COMMIT` in your homework file.
