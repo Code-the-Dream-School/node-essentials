@@ -515,7 +515,8 @@ Under the covers, Prisma is making SQL calls, which are issued via socket connec
 ### Core Concepts
 
 **Models**
-Models represent your database tables as JavaScript classes:
+Models represent your database tables as JavaScript classes (example only, do not use):
+
 ```prisma
 model UserExample {
   id    Int     @id @default(autoincrement())
@@ -543,23 +544,9 @@ Relations define how models connect to each other:
 - **Many-to-One**: Many tasks can belong to one user
 - **One-to-One**: One user has one profile
 
-By default, every attribute listed must be non-null.  You can override this behavior.
+By default, every attribute listed must be non-null.  You can override this behavior by putting a `?` at the end of the data type: `String?`.
 
 ---
-
-**3. Models**
-```prisma
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  hashedPassword  String @map("hashed_password")
-  tasks     Task[]
-  createdAt DateTime @default(now()) @map("created_at")
-  
-  @@map("users")
-}
-```
 
 ### Schema Mapping Concepts
 
@@ -606,6 +593,9 @@ With this schema, we have the same table names and column names as were created 
 Introspection is the process of reading your existing database structure and automatically generating a Prisma schema that matches it.
 
 ### Using Prisma Introspection
+
+The following command (don't run it yet!) introspects the schema of the database.
+
 ```bash
 npx prisma db pull 
 ```
@@ -613,7 +603,7 @@ npx prisma db pull
 **What This Does:**
 - Connects to your existing PostgreSQL database
 - Reads all tables, columns, and relationships
-- Generates a `schema.prisma` file that matches your current database
+- Generates models in your `schema.prisma` file that matches your current database
 - Preserves all existing data
 
 **Benefits of Introspection:**
@@ -639,81 +629,11 @@ Whenever you create or modify the Prisma schema, you must also do a migration.  
 npx prisma migrate dev --name firstVersion
 ```
 
-This is the approach for dev environments, and you give each subsequent migration a different name.  The prisma migrate command is different in production -- we'll get to that later in the course.  Run the command above and verify that it completes correctly.  No table changes will occur, because you previously created the tables you need.
+You give each subsequent migration a different name. Run the command above and verify that it completes correctly.  No table changes will occur, because you previously created the tables you need.
 
 ---
 
-## 4. Advanced Prisma Features
-
-### Relationship Queries
-Prisma makes it easy to fetch related data:
-
-**Fetching User with Tasks:**
-```javascript
-const userWithTasks = await prisma.user.findUnique({
-  where: { id: userId },
-  include: {
-    tasks: true
-  }
-});
-```
-
-Of course, what is happening underneath is an SQL join.
-
-**Fetching Tasks with User Info:**
-```javascript
-const tasksWithUser = await prisma.task.findMany({
-  where: { userId: global.user_id },
-  include: {
-    user: {
-      select: {
-        id: true,
-        name: true,
-        email: true
-      }
-    }
-  }
-});
-```
-
-### Filtering and Sorting
-```javascript
-// Filter by multiple conditions
-const completedTasks = await prisma.task.findMany({
-  where: {
-    userId: global.user_id,
-    isCompleted: true
-  },
-  orderBy: {
-    createdAt: 'desc'
-  }
-});
-```
-
-### Pagination
-```javascript
-const tasks = await prisma.task.findMany({
-  where: { userId: global.user_id },
-  take: 10,        // Limit to 10 results
-  skip: 20,        // Skip first 20 results
-  orderBy: {
-    createdAt: 'desc'
-  }
-});
-```
-
-Prisma has other features.
-
-- You can do "eager" load, which is basically a join of multiple tables.
-- You can group multiple operations within a single transaction, with a commit or rollback at the end.
-- You can do queries with aggregation, as you would using GROUP BY, SUM, AVG, and so on in plain SQL.
-- You can do the equivalent of a HAVING clause.
-
-But, there are some things that Prisma doesn't enable, like subqueries.  When you find that Prisma won't do the SQL you want, you can send exactly the SQL you want using `prisma.$queryRaw()`.  Avoid this approach when you can, but sometimes it is necessary.
-
----
-
-## 5. Error Handling with Prisma
+## 4. Error Handling with Prisma
 
 ### Prisma Error Types
 Prisma provides specific error codes for different scenarios:
@@ -723,6 +643,8 @@ Prisma provides specific error codes for different scenarios:
 - **`P2025`**: Record not found → Return 404 Not Found
 - **`P2003`**: Foreign key constraint violation → Return 400 Bad Request
 - **`P2014`**: Invalid relation → Return 400 Bad Request
+
+The `P2025` only occurs for the following operations: `update()`, `delete()`, `findUniqueOrThrow()`, `findFirstOrThrow()`.  For a `findMany()` an empty array is returned if no entry is found.  For a `findUnique()`, a null value is returned if no entry is found.
 
 ### Implementing Error Handling
 
@@ -742,13 +664,14 @@ try {
     });
   }
   
-  if (error.code === 'P2025') {
+  if (error.code === 'P2025') { // won't happen here!
     return res.status(404).json({ 
       error: "Record not found" 
     });
   }
   
-  if (error.code === 'P2003') {
+  if (error.code === 'P2003') { // might happen if you tried to create a task with
+  // no corresponding user
     return res.status(400).json({ 
       error: "Invalid reference - related record does not exist" 
     });
@@ -777,12 +700,9 @@ app.use((err, req, res, next) => {
       message: "Couldn't connect to the database. Is it running?"
     });
   }
-  
-  // Handle other Prisma errors
-  if (err.code === 'P2002') {
-    return res.status(400).json({ error: "Duplicate entry" });
-  }
-  
+  console.error(err.constructor.name, err.message);
+  console.error(err.stack); // these two lines can identify problems in your code
+
   // Default error response
   res.status(500).json({ error: "Internal server error" });
 });
@@ -793,22 +713,23 @@ app.use((err, req, res, next) => {
 - Improves debugging and user experience
 - Catches connection issues early
 
-### Validation and Error Prevention
+### Error Handling in Context
+
 ```javascript
-// Check if user exists before updating
-const existingUser = await prisma.user.findUnique({
-  where: { id: parseInt(userId) }
-});
-
-if (!existingUser) {
-  return res.status(404).json({ error: "User not found" });
+let updatedUser = null;
+try {
+  updatedUser = await prisma.user.update({
+    where: { id: parseInt(userId) },
+    data: { name: newName }
+  });
+} catch (err) {
+  if (err.code === "P2025") {
+    return res.status(404).json(message: "The entry was not found.");
+  } else {
+    return next(err); // if inside of a controller
+  }
 }
-
-// Safe to update
-const updatedUser = await prisma.user.update({
-  where: { id: parseInt(userId) },
-  data: { name: newName }
-});
+else ... // it succeeded!
 ```
 
 ---
@@ -841,7 +762,7 @@ const user = await prisma.user.findUnique({
     id: true,
     name: true,
     email: true
-    // password is excluded
+    // password is excluded.  You could also do omit: { hashed_password : true}
   }
 });
 ```
@@ -849,7 +770,8 @@ const user = await prisma.user.findUnique({
 **Use Appropriate Methods:**
 ```javascript
 // For single records
-const user = await prisma.user.findUnique({ where: { email } });
+const user = await prisma.user.findUnique({ where: { email } }); 
+// email must be unique in this case!
 
 // For multiple records
 const users = await prisma.user.findMany({ where: { active: true } });

@@ -470,10 +470,11 @@ model tasks {
   user_id      Int
   created_at   DateTime @default(now()) @db.Timestamp(6)
   users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@unique([id, user_id])
 }
 ```
 
-Do you see how the model stanzas map to the SQL you used in part 1?  Pay particular attention to the way the relation between tasks and users is specified.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
+Do you see how the model stanzas map to the SQL you used in part 1?  Pay particular attention to the way the relation between tasks and users is specified.  Also, notice the `@@unique`, which describes the additional index we need.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
 
 ```
 model User {
@@ -493,6 +494,7 @@ model Task {
   userId      Int       @map("user_id")
   createdAt   DateTime @default(now()) @db.Timestamp(6) @map("created_at")
   users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@unique([id, userId])
   @@map("tasks")
 }
 ```
@@ -658,16 +660,18 @@ const task = await prisma.task.update( data: value,
     });
 ```
 
+This statement should be in a try/catch.  You need to look for the `P2025` error code, and return a 404 if it is received.  Other errors get passed to the error handler with `next(err)`.
+
 This is where that special unique index for [id, user_id] is important!  Prisma does not
 let you do update() or delete() or findUnique() with two attributes in the where clause **unless** a uniqueness index is present for that combination of attributes.
 
 #### f. Update Show
 
-You need to use `prisma.task.findUnique()`, but you filter both on the id and the userId, so that there is good access control.
+You need to use `prisma.task.findUnique()`, but you filter both on the id and the userId, so that there is good access control.  You need to catch `P2025` errors in this case also.
 
 #### g. Update DeleteTask
 
-This works similar to update().  You need to use the delete() method.
+This works similar to update().  You need to use the delete() method, and catch `P2025` errors.
 
 #### h. Remove All Pool References
 
@@ -720,7 +724,8 @@ project/
 ├── prisma/
 │   └── schema.prisma (NEW - Prisma schema)
 ├── db/
-│   └── prisma.js
+│   ├── prisma.js
+│   └── pg-pool.js (no longer used)
 ├── middleware (No changes needed for Prisma)
 ├── app.js 
 ├── .env 
