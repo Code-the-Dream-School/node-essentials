@@ -240,7 +240,7 @@ Otherwise your Node process may hang on exit.  You want it to release all databa
 
 #### b. Modify app.js: Health Check
 
-Add a health check endpoint to verify database connectivity:
+Modify the health check endpoint to verify database connectivity:
 
 ```js
 app.get('/health', async (req, res) => {
@@ -279,7 +279,7 @@ In userController.js, you need to have a require statement to give access to the
 const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 ```
 
-The returned array might have 0 length, in which case authentication fails: you send back the 401 and the appropriate message.  Otherwise, you use your existing `comparePassword()` function to see if the password in the body of the request matches `user[0].hashed_password`.  If it doesn't, you send the 401 and the authentication failed message.  But, if it does, you send a 200 and the appropriate message -- and you also put `user[0].id` in global.user_id.
+The `user.rows` array might have 0 length, in which case authentication fails: you send back the 401 and the appropriate message.  Otherwise, you use your existing `comparePassword()` function to see if the password in the body of the request matches `user[0].hashed_password`.  If it doesn't, you send the 401 and the authentication failed message.  But, if it does, you send a 200 and the appropriate message -- and you also put `user[0].id` in global.user_id.
 
 So: make those changes to the login function now.
 

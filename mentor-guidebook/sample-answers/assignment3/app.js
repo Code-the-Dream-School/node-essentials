@@ -99,3 +99,21 @@ module.exports = { app };
 if (require.main === module) {
 	app.listen(3000, () => console.log("Server listening on port 3000"));
 }
+let isShuttingDown = false;
+async function shutdown() {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log('Shutting down gracefully...');
+  // Here add code as needed to disconnect gracefully from the database
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  shutdown();
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+  shutdown();
+});
