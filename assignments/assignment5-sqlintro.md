@@ -84,7 +84,11 @@ Hint 2: You can't use `order_count` in your `HAVING` clause. You have to use `CO
 
 Get this running in `sqlcommand`, and then add the line to your homework file.
 
-Then run the `tdd` test until the fourth test completes.
+Then run the `tdd` test until the fourth test completes:
+
+```bash
+npm run tdd assignment5a
+```
 
 **This completes Assignment 5a.  Return to the lesson, and once you have finished it, do Assignment 5b.**
 
@@ -373,7 +377,7 @@ Make sure all operations work as before.
 
 ### 5. Run the TDD 
 
-Run `npm run tdd assignment6a`.  Make sure all tests complete correctly.
+Run `npm run tdd assignment5b`.  Make sure all tests complete correctly.
 
 **Important Security Note:**
 The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix the problem in assignment 8.
