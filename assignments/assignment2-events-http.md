@@ -64,9 +64,10 @@ app.get("/", (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
+let server;
 if (require.main === module) {
   try {
-    app.listen(port, () =>
+    server = app.listen(port, () =>
       console.log(`Server is listening on port ${port}...`),
     );
   } catch (error) {
@@ -74,7 +75,7 @@ if (require.main === module) {
   }
 }
 
-module.exports = app;
+module.exports = { app, server} ;
 ```
 Start this app from your VSCode terminal with:
 
@@ -97,6 +98,8 @@ The `listen()` statement might throw an error, typically because there is anothe
 Route handlers for an operation on a route are passed two or three parameters.  
 The `req` parameter gives the properties of the request. The `res` parameter is used to respond to the request.  
 The other parameter that might be passed is `next`. When `next` is passed, it contains another route handler function. If the route handler function for the route doesn't take care of the request, it can pass it on to `next()`.
+
+The `module.exports` statement looks a little odd.  Why export these values?  These are needed for your TDD test!  The TDD test uses a tool called Supertest which requires these values.  Also, `app.listen()` is asynchronous, with a callback, but it does return the value of `server` synchronously, before the listen operation has completed. That suffices for Supertest.
 
 **Be Careful of the Following**
 
@@ -246,7 +249,7 @@ Your Express program opens a port.
 You need to be sure that port is closed when the program exits. If there are other open connections, such as database connections, they must also be cleaned up. If not, you may find that your program becomes a zombie process, and that the port you had been listening on is still tied up.  
 This is especially important when you are running a debugger or an automated test.
 
-Here is some code to put at the bottom of `app.js`. Please make sure it is placed before this line of code `module.exports = app;`:
+Here is some code to put at the bottom of `app.js`. Please make sure it is placed before this line of code `module.exports = { app, server} ;`:
 
 ```js
 let isShuttingDown = false;
