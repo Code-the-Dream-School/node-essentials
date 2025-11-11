@@ -16,7 +16,9 @@ exports.index = async (req, res) => {
       return res.status(404).json({ error: "No tasks found for user" });
     }
 
-    res.status(200).json(userTasks);
+    // Return tasks without userId property (tests expect no userId)
+    const sanitized = userTasks.map(({ userId, ...rest }) => rest);
+    res.status(200).json(sanitized);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -37,7 +39,9 @@ exports.show = async (req, res) => {
       return res.status(404).json({ error: "Task not found" });
     }
 
-    res.status(200).json(task);
+  // Return task without userId
+  const { userId, ...rest } = task;
+  res.status(200).json(rest);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -70,9 +74,11 @@ exports.create = async (req, res) => {
       userId: loggedOnUser.email
     };
     
-    storedTasks.push(newTask);
-    
-    res.status(201).json(newTask);
+  storedTasks.push(newTask);
+
+  // Return new task without userId
+  const { userId: _uid, ...returnTask } = newTask;
+  res.status(201).json(returnTask);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -103,9 +109,10 @@ exports.update = async (req, res) => {
     }
 
     // Update task
-    storedTasks[taskIndex] = { ...storedTasks[taskIndex], ...value };
-    
-    res.status(200).json(storedTasks[taskIndex]);
+  storedTasks[taskIndex] = { ...storedTasks[taskIndex], ...value };
+
+  const { userId: _u, ...updated } = storedTasks[taskIndex];
+  res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
