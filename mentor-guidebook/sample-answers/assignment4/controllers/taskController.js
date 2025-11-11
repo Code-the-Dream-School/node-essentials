@@ -3,20 +3,13 @@ const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 exports.index = async (req, res) => {
   const loggedOnUser = getLoggedOnUser();
-
-  if (!loggedOnUser) {
-    return res.status(401).json({ error: "User not logged in" });
-  }
-
   // Get tasks for the logged on user
   const userTasks = storedTasks.filter(
     (task) => task.userId === loggedOnUser.email,
   );
-
   if (userTasks.length === 0) {
     return res.status(404).json({ error: "No tasks found for user" });
   }
-
   // Return tasks without userId property (tests expect no userId)
   const sanitized = userTasks.map(({ userId, ...rest }) => rest);
   res.status(200).json(sanitized);
@@ -24,11 +17,6 @@ exports.index = async (req, res) => {
 
 exports.show = async (req, res) => {
   const loggedOnUser = getLoggedOnUser();
-
-  if (!loggedOnUser) {
-    return res.status(401).json({ error: "User not logged in" });
-  }
-
   const { id } = req.params;
   const task = storedTasks.find(
     (t) => t.id === parseInt(id) && t.userId === loggedOnUser.email,
@@ -45,11 +33,6 @@ exports.show = async (req, res) => {
 
 exports.create = async (req, res) => {
   const loggedOnUser = getLoggedOnUser();
-
-  if (!loggedOnUser) {
-    return res.status(401).json({ error: "User not logged in" });
-  }
-
   const { error, value } = taskSchema.validate(req.body);
 
   if (error) {
@@ -78,22 +61,14 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   const loggedOnUser = getLoggedOnUser();
-
-  if (!loggedOnUser) {
-    return res.status(401).json({ error: "User not logged in" });
-  }
-
   const { id } = req.params;
   const taskIndex = storedTasks.findIndex(
     (t) => t.id === parseInt(id) && t.userId === loggedOnUser.email,
   );
-
   if (taskIndex === -1) {
     return res.status(404).json({ error: "Task not found" });
   }
-
   const { error, value } = patchTaskSchema.validate(req.body);
-
   if (error) {
     return res.status(400).json({
       error: "Validation failed",
@@ -110,11 +85,6 @@ exports.update = async (req, res) => {
 
 exports.deleteTask = async (req, res) => {
   const loggedOnUser = getLoggedOnUser();
-
-  if (!loggedOnUser) {
-    return res.status(401).json({ error: "User not logged in" });
-  }
-
   const { id } = req.params;
   const taskIndex = storedTasks.findIndex(
     (t) => t.id === parseInt(id) && t.userId === loggedOnUser.email,

@@ -1,8 +1,4 @@
-const {
-  storedUsers,
-  setLoggedOnUser,
-  getLoggedOnUser,
-} = require("../util/memoryStore.js");
+const { storedUsers, setLoggedOnUser } = require("../util/memoryStore.js");
 const userSchema = require("../validation/userSchema").userSchema;
 
 const crypto = require("crypto");
@@ -39,7 +35,7 @@ exports.register = async (req, res) => {
   if (existingUser) {
     return res.status(409).json({ error: "User already exists" });
   }
-  const hashedPassword = hashPassword(password);
+  const hashedPassword = await hashPassword(password);
 
   // Create new user
   const newUser = { email, name, hashedPassword };
@@ -62,7 +58,7 @@ exports.login = async (req, res) => {
   const user = storedUsers.find((u) => u.email === email);
   let goodCredentials = false;
   if (user) {
-    goodCredentials = comparePassword(password, u.hashedPassword);
+    goodCredentials = await comparePassword(password, user.hashedPassword);
   }
 
   if (!goodCredentials) {

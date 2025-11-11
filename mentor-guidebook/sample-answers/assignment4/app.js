@@ -5,6 +5,7 @@ const taskRoutes = require("./routes/taskRoutes");
 const app = express();
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
+const auth = require("./middleware/auth");
 
 app.use((req, res, next) => {
   console.log("Method:", req.method);
@@ -18,7 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/users", userRoutes);
-app.use("/api/tasks", taskRoutes);
+app.use("/api/tasks", auth, taskRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -38,22 +39,34 @@ try {
 }
 
 let isShuttingDown = false;
-async function shutdown() {
+async function shutdown(code = 0) {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  console.log("Shutting down gracefully...");
-  // Here add code as needed to disconnect gracefully from the database
+  console.log('Shutting down gracefully...');
+  try {
+    await new Promise(resolve => server.close(resolve));
+    console.log('HTTP server closed.');
+    // If you have DB connections, close them here:
+  } catch (err) {
+    console.error('Error during shutdown:', err);
+    code = 1;
+  } finally {
+    console.log('Exiting process...');
+    process.exit(code);
+  }
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught exception:", err);
-  shutdown();
+process.on('SIGINT', () => shutdown(0));  // ctrl+c
+process.on('SIGTERM', () => shutdown(0)); // e.g. `docker stop`
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  shutdown(1);
 });
-process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled rejection:", reason);
-  shutdown();
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+  shutdown(1);
 });
 
 module.exports = { server, app };
