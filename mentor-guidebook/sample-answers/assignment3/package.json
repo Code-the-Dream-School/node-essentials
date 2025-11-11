@@ -1,0 +1,23 @@
+{
+  "name": "week4-assignment",
+  "version": "1.0.0",
+  "description": "Week 4 assignment with user authentication and task management",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "joi": "^17.11.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "node-mocks-http": "^1.13.0",
+    "nodemon": "^3.0.2"
+  },
+  "keywords": ["express", "authentication", "tasks", "validation"],
+  "author": "",
+  "license": "ISC"
+} 
