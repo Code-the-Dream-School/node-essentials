@@ -23,6 +23,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use(notFound);
+app.use(errorHandler);
+
 let server = null;
 try {
   server = app.listen(port, () =>
