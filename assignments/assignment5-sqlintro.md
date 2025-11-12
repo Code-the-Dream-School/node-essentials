@@ -10,7 +10,7 @@ First, create a new branch for this week's homework and name it `assignment5`.
 Start `sqlcommand` as you did for the lesson. For each of the following tasks, you should get your SQL statements running in `sqlcommand` first, and then add them to your homework file. It may be helpful to have two terminal sessions open in VSCode - one for `sqlcommand`, and another to run your homework.  Next, create a file named `assignment5-sql.txt` within the `assignment5` directory. Each line in this file should be an SQL command, as described in the tasks.  Lines beginning with `#` are treated as comments.  As you add SQL statements to this file, you can test them using the following command:
 
 ```bash
-npm run tdd assignment5
+npm run tdd assignment5a
 ```
 
 This test should be run from the `node-homework` root folder.
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   title VARCHAR(255) NOT NULL,
   is_completed BOOLEAN NOT NULL DEFAULT FALSE,
   user_id INTEGER NOT NULL REFERENCES users(id),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)
 );
 ```
@@ -305,7 +305,7 @@ Right now, you do a find() on the array in the memory store to see if the user i
     // here you return the 400 and the error message.  Use a return statement, so that 
     // you don't keep going in this function
   }
-  next(e); // all other errors get passed to the error handler
+  return next(e); // all other errors get passed to the error handler
 }
 // othewise newUser now contains the new user.  You can return a 201 and the appropriate
 // object.  Be sure to also set global.user_id with the id of the user record you just created. 
@@ -330,6 +330,8 @@ const task  = await pool.query(`INSERT INTO tasks (title, is_completed, user_id)
   [value.title, value.is_completed, global.user_id]);
   // You don't need a try/catch because the global error handler will handle the errors
 ```
+
+Note: You should not return the user_id.  That is a foreign key, and should only be known internally.
 
 #### f. Changing Task Management: GET /tasks (index)
 

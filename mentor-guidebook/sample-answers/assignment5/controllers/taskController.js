@@ -1,4 +1,4 @@
-const pool = require("../db");
+const pool = require("../db/pg-pool");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 exports.index = async (req, res) => {
