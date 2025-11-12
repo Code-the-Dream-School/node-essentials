@@ -20,6 +20,7 @@
    - Make all your changes and commits on this branch.
 4. **Before you test:**
    - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](../TDD-TESTING-GUIDE.md)
+   - Watch this video that goes over Test Driven Development: [How to Read Tests](https://www.youtube.com/watch?v=fxe1yNSC6H4)
 3. **Run the tests:**
    - After completing the tasks, run the tests using:
      ```bash
