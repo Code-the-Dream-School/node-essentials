@@ -1,8 +1,10 @@
-const express = require('express');
-const pool = require('./db/pg-pool');
-const userRoutes = require('./routes/userRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const authMiddleware = require('./middleware/auth');
+const express = require("express");
+const pool = require("./db/pg-pool");
+const userRoutes = require("./routes/userRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+const authMiddleware = require("./middleware/auth");
+const errorHandler = require("./middleware/error-handler");
+const notFound = require("./middleware/not-found");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -10,41 +12,64 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/tasks', authMiddleware, taskRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/tasks", authMiddleware, taskRoutes);
 
 // Health check endpoint
-app.get('/health', async (req, res) => {
+app.get("/health", async (req, res) => {
   try {
-    await pool.query('SELECT 1');
-    res.json({ status: 'ok', db: 'connected' });
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", db: "connected" });
   } catch (err) {
-    res.status(500).json({ status: 'error', db: 'not connected', error: err.message });
+    res
+      .status(500)
+      .json({ status: "error", db: "not connected", error: err.message });
   }
 });
+app.use(notFound);
+app.use(errorHandler);
 
-if (require.main === module) {
-  app.listen(3000, () => console.log("Server listening on port 3000"));
-}
+const server = app.listen(port, () =>
+  console.log(`Server is listening on port ${port}...`),
+);
+
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`Port ${port} is already in use.`);
+  } else {
+    console.error("Server error:", err);
+  }
+  process.exit(1);
+});
 
 let isShuttingDown = false;
-async function shutdown() {
+async function shutdown(code = 0) {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  console.log('Shutting down gracefully...');
-  // Here add code as needed to disconnect gracefully from the database
-  await pool.end();
-};
+  console.log("Shutting down gracefully...");
+  try {
+    await new Promise((resolve) => server.close(resolve));
+    console.log("HTTP server closed.");
+    // If you have DB connections, close them here
+    await pool.end();
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    code = 1;
+  } finally {
+    console.log("Exiting process...");
+    process.exit(code);
+  }
+}
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception:', err);
-  shutdown();
+process.on("SIGINT", () => shutdown(0)); // ctrl+c
+process.on("SIGTERM", () => shutdown(0)); // e.g. `docker stop`
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  shutdown(1);
 });
-process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled rejection:', reason);
-  shutdown();
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+  shutdown(1);
 });
 
-module.exports = app; 
+module.exports = { server, app };
