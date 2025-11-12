@@ -33,7 +33,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+exports.logon = async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -52,7 +52,7 @@ exports.login = async (req, res) => {
     setLoggedOnUser(user);
     
     res.status(200).json({ 
-      message: "Login successful",
+      message: "Logon successful",
       user: { name: user.name, email: user.email }
     });
   } catch (err) {

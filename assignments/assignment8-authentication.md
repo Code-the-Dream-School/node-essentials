@@ -20,7 +20,7 @@ You can use `npm run tdd assignment8` to run tests for this assignment.
 
 ## ** Outline of the Steps:**
 
-1. Login will need to verify the email and password.  If this succeeds, it needs to (a) create the JWT and set it in a cookie; (b) return the result to the caller.  We have to protect against CSRF attacks, so the body of the response will contain a CSRF token.  It is convenient for the front end to know the user name, so we'll include that in the response too.
+1. Logon will need to verify the email and password.  If this succeeds, it needs to (a) create the JWT and set it in a cookie; (b) return the result to the caller.  We have to protect against CSRF attacks, so the body of the response will contain a CSRF token.  It is convenient for the front end to know the user name, so we'll include that in the response too.
 
 2. Registration, when successful, must also set the cookie and include appropriate information in the response, that being the CSRF token and user name.
 
@@ -75,7 +75,7 @@ const setJwtCookie = (req, res, user) => {
 
   // Set cookie.  Note that the cookie flags have to be different in production and in test.
   res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
-  return payload.csrfToken; // this is needed in the body returned by login() or register()
+  return payload.csrfToken; // this is needed in the body returned by logon() or register()
 };
 ```
 
@@ -83,7 +83,7 @@ You see that the JWT has the elements we said we needed, and that the cookie has
 
 An aside:  The `jwt.sign()` method can be invoked synchronously (as above), or you can pass an optional callback, in which case it occurs asynchronously.  All other things being equal, asynchronous calls are better, because they allow other requests to proceed while this one is being handled.  For your project, the synchronous call is good enough.
 
-You can now modify login() and register() so that they use this routine and to that each return an appropriate body with a name and csrfToken, and so that they no longer reference a global user ID.  You can also modify logoff to clear the cookie using `res.clearCookie("jwt", cookieFlags(req))`.  Be careful: You need to set the cookie flags when clearing the cookie to the same values used for setting it, or the cookie won't be cleared when you deploy to the Internet.  Of course, you don't want to set `maxAge` when clearing the cookie.
+You can now modify logon() and register() so that they use this routine and to that each return an appropriate body with a name and csrfToken, and so that they no longer reference a global user ID.  You can also modify logoff to clear the cookie using `res.clearCookie("jwt", cookieFlags(req))`.  Be careful: You need to set the cookie flags when clearing the cookie to the same values used for setting it, or the cookie won't be cleared when you deploy to the Internet.  Of course, you don't want to set `maxAge` when clearing the cookie.
 
 ## **The Middleware for the JWT**
 
