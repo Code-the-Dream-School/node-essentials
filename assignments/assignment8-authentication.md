@@ -21,17 +21,15 @@ You can use `npm run tdd assignment8` to run tests for this assignment.
 
 ## ** Outline of the Steps:**
 
-1. Login will need to verify the email and password.  If this succeeds, it needs to:  
+1. Logon will need to verify the email and password.  If this succeeds, it needs to:  
 (a) create the JWT and set it in a cookie;  
 (b) return the result to the caller.  
   
-We have to protect against CSRF attacks, so the body of the response will contain a CSRF token. It is convenient for the 
-front end to know the username, so we'll include that in the response too.
+We have to protect against CSRF attacks, so the body of the response will contain a CSRF token. It is convenient for the front end to know the username, so we'll include that in the response too.
 
 2. Registration, when successful, must also set the cookie and include appropriate information in the response — the CSRF token and username.
 
-3. A middleware routine must protect certain routes, including all the task routes and the logoff route.  We protect the
-logoff so that a logoff can't be triggered by cross site request forgery, which might lead to spoofing attacks.  
+3. A middleware routine must protect certain routes, including all the task routes and the logoff route.  We protect the logoff so that a logoff can't be triggered by cross site request forgery, which might lead to spoofing attacks.  
 The middleware has to check that the cookie is present, that the JWT within the cookie is valid, and (for operations other than GET), 
 that the CSRF token within the cookie matches the one in a header.  If all this succeeds, the middleware stores the ID of 
 the user in req.user, so that request handlers can perform appropriate access control, and then it calls next().
@@ -105,7 +103,7 @@ An aside:  The `jwt.sign()` method can be invoked synchronously (as above), or y
 in which case it occurs asynchronously.  All other things being equal, asynchronous calls are better, because they allow
 other requests to proceed while this one is being handled.  For your project, the synchronous call is good enough.
 
-You can now modify `logon()` and `register()` so that they use this routine and to that each return an appropriate body with 
+You can now modify `logon()` and `register()` so that they use this routine and so that each return an appropriate body with 
 a name and csrfToken, and so that they no longer reference a global user ID.  
 You can also modify logoff to clear the 
 cookie using `res.clearCookie("jwt", cookieFlags(req))`.  

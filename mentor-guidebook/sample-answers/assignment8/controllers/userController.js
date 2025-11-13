@@ -21,10 +21,10 @@ const setJwtCookie = (req, res, user) => {
 
   // Set cookie.  Note that the cookie flags have to be different in production and in test.
   res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
-  return payload.csrfToken; // this is needed in the body returned by login() or register()
+  return payload.csrfToken; // this is needed in the body returned by logon() or register()
 };
 
-const login = async (req, res) => {
+const logon = async (req, res) => {
   const { user, isValid } = await verifyUserPassword(
     req?.body?.email,
     req?.body?.password,
@@ -113,4 +113,4 @@ const getUser = async (req, res) => {
   }
 }; 
 
-module.exports = { login, register, logoff, getUser };
+module.exports = { logon, register, logoff, getUser };
