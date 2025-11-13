@@ -399,7 +399,7 @@ Run the tests, and make sure all of them pass.
 
 Because of the length of this assignment, the user.controller.test.js file is **optional**.  Be sure you do implement the network testing that follows this section.
 
-We want to test logon.  But, we have a problem.  The login method sets a cookie.  If that cookie is not set, things aren't working, so we have to test this.  The first problem is that a res object returned by `httpMocks.createResponse()` doesn't keep track of cookies. So, we create an enhanced version of the mock res object.  This one, created by MockRequestWithCookies, keeps track of 'Set-Cookie' operations.
+We want to test logon.  But, we have a problem.  The logon method sets a cookie.  If that cookie is not set, things aren't working, so we have to test this.  The first problem is that a res object returned by `httpMocks.createResponse()` doesn't keep track of cookies. So, we create an enhanced version of the mock res object.  This one, created by MockRequestWithCookies, keeps track of 'Set-Cookie' operations.
 
 Create another file in the test directory called `user.controller.test.js`.  This should start:
 
@@ -410,7 +410,7 @@ const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion")
 const prisma = require("../db/prisma");
 const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
-const { register, logoff, login } = require("../controllers/userController");
+const { register, logoff, logon } = require("../controllers/userController");
 const jwtMiddleware = require("../middleware/jwtMiddleware")
 
 // a few useful globals
@@ -460,7 +460,7 @@ describe("testing logon, register, and logoff", () => {
       body: { email: "bob@sample.com", password: "Pa$$word20" },
     });
     saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(login, req, saveRes);
+    await waitForRouteHandlerCompletion(logon, req, saveRes);
     expect(saveRes.statusCode).toBe(200); // success!
   });
 })

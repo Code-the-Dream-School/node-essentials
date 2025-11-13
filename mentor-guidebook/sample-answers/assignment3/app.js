@@ -1,101 +1,71 @@
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const dogsRouter = require('./routes/dogs');
-const { ValidationError, NotFoundError, UnauthorizedError } = require('./errors');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
+const errorHandler = require("./middleware/error-handler");
+const notFound = require("./middleware/not-found");
 
 app.use((req, res, next) => {
-  req.requestId = uuidv4();
-  res.set('X-Request-Id', req.requestId);
+  console.log("Method:", req.method);
+  console.log("Path:", req.path);
+  console.log("Query:", req.query);
   next();
+})
+const port = process.env.PORT || 3000;
+
+app.use(express.json());
+
+// Routes
+app.use('/api/users', userRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
-app.use((req, res, next) => {
-  req.startTime = Date.now();
-  next();
+app.use(notFound);
+app.use(errorHandler);
+
+const server = app.listen(port, () =>
+  console.log(`Server is listening on port ${port}...`),
+);
+
+server.on('error', (err) => { 
+  if (err.code === 'EADDRINUSE') { 
+    console.error(`Port ${port} is already in use.`); 
+  } else { 
+    console.error('Server error:', err); 
+  } 
+  process.exit(1); 
 });
 
-app.use((req, res, next) => {
-  const timestamp = new Date().toISOString();
-  const method = req.method;
-  const path = req.path;
-  const requestID = req.requestId;
-  
-  console.log(`[${timestamp}]: ${method} ${path} (${requestID})`);
-  
-  const originalEnd = res.end;
-  res.end = function(...args) {
-    const duration = Date.now() - req.startTime;
-    console.log(`[${timestamp}]: ${method} ${path} (${requestID}) - ${duration}ms`);
-    
-    if (duration > 1000) {
-      console.warn(`WARNING: Slow request detected - ${method} ${path} took ${duration}ms`);
-    }
-    
-    originalEnd.apply(this, args);
-  };
-  
-  next();
-});
-
-app.use((req, res, next) => {
-  res.set('X-Content-Type-Options', 'nosniff');
-  res.set('X-Frame-Options', 'DENY');
-  res.set('X-XSS-Protection', '1; mode=block');
-  next();
-});
-
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ limit: '1mb', extended: true }));
-
-// Static files should be served before content-type validation
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
-
-app.use((req, res, next) => {
-  if (req.method === 'POST' && !req.is('application/json')) {
-    const error = new ValidationError('Content-Type must be application/json for POST requests');
-    return next(error);
+let isShuttingDown = false;
+async function shutdown(code = 0) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log('Shutting down gracefully...');
+  try {
+    await new Promise(resolve => server.close(resolve));
+    console.log('HTTP server closed.');
+    // If you have DB connections, close them here
+  } catch (err) {
+    console.error('Error during shutdown:', err);
+    code = 1;
+  } finally {
+    console.log('Exiting process...');
+    process.exit(code);
   }
-  next();
-});
-
-app.use('/', dogsRouter);
-
-app.use((req, res) => {
-  const error = new NotFoundError('Route not found');
-  res.status(404).json({
-    error: error.message,
-    requestId: req.requestId
-  });
-});
-
-app.use((err, req, res, next) => {
-  // Determine log level based on error type
-  let logLevel = 'ERROR';
-  if (err.statusCode >= 400 && err.statusCode < 500) {
-    logLevel = 'WARN';
-  }
-  
-  console[logLevel.toLowerCase()](`${logLevel}: ${err.constructor.name} - ${err.message}`);
-  if (logLevel === 'ERROR') {
-    console.error(err.stack);
-  }
-  
-  // Return appropriate response
-  const statusCode = err.statusCode || 500;
-  const errorMessage = statusCode === 500 ? 'Internal Server Error' : err.message;
-  
-  res.status(statusCode).json({
-    error: errorMessage,
-    requestId: req.requestId
-  });
-});
-
-module.exports = { app };
-
-// Do not remove this line
-if (require.main === module) {
-	app.listen(3000, () => console.log("Server listening on port 3000"));
 }
+
+process.on('SIGINT', () => shutdown(0));  // ctrl+c
+process.on('SIGTERM', () => shutdown(0)); // e.g. `docker stop`
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  shutdown(1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+  shutdown(1);
+});
+
+module.exports = {server, app};
