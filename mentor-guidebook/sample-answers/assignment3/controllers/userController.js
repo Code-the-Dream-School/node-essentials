@@ -1,0 +1,58 @@
+const { storedUsers, setLoggedOnUser } = require("../util/memoryStore.js");
+
+exports.register = async (req, res) => {
+  // Check if user already exists
+  const existingUser = storedUsers.find(
+    (user) => user.email === req.body.email,
+  );
+  if (existingUser) {
+    return res.status(400).json({ error: "User already exists" });
+  }
+
+  // Create new user
+  const newUser = { ...req.body };
+  storedUsers.push(newUser);
+
+  res.status(201).json({
+    message: "User registered successfully",
+    user: { name: newUser.name, email: newUser.email },
+  });
+};
+
+exports.logon = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    // Find user
+    const user = storedUsers.find(
+      (u) => u.email === email && u.password === password,
+    );
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Set logged on user
+    setLoggedOnUser(user);
+
+    res.status(200).json({
+      message: "Login successful",
+      user: { name: user.name, email: user.email },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.logoff = async (req, res) => {
+  try {
+    setLoggedOnUser(null);
+    res.status(200).json({ message: "Logoff successful" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

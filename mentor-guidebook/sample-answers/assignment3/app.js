@@ -1,7 +1,9 @@
-const express = require("express");
+const express = require('express');
+const userRoutes = require('./routes/userRoutes');
+
+const app = express();
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
-const app = express();
 
 app.use((req, res, next) => {
   console.log("Method:", req.method);
@@ -9,31 +11,32 @@ app.use((req, res, next) => {
   console.log("Query:", req.query);
   next();
 })
+const port = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
+app.use(express.json());
+
+// Routes
+app.use('/api/users', userRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
-
-app.post("/testpost", (req, res) => {
-  res.json({message: "Everything Worked."});
-})
 
 app.use(notFound);
 app.use(errorHandler);
 
-
-const port = process.env.PORT || 3000;
 const server = app.listen(port, () =>
   console.log(`Server is listening on port ${port}...`),
 );
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${port} is already in use.`);
-  } else {
-    console.error('Server error:', err);
-  }
-  process.exit(1);
+server.on('error', (err) => { 
+  if (err.code === 'EADDRINUSE') { 
+    console.error(`Port ${port} is already in use.`); 
+  } else { 
+    console.error('Server error:', err); 
+  } 
+  process.exit(1); 
 });
 
 let isShuttingDown = false;
