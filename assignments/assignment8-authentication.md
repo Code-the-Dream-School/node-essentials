@@ -103,17 +103,13 @@ An aside:  The `jwt.sign()` method can be invoked synchronously (as above), or y
 in which case it occurs asynchronously.  All other things being equal, asynchronous calls are better, because they allow
 other requests to proceed while this one is being handled.  For your project, the synchronous call is good enough.
 
-<<<<<<< HEAD
-You can now modify logon() and register() so that they use this routine and to that each return an appropriate body with a name and csrfToken, and so that they no longer reference a global user ID.  You can also modify logoff to clear the cookie using `res.clearCookie("jwt", cookieFlags(req))`.  Be careful: You need to set the cookie flags when clearing the cookie to the same values used for setting it, or the cookie won't be cleared when you deploy to the Internet.  Of course, you don't want to set `maxAge` when clearing the cookie.
-=======
-You can now modify `logon()` and `register()` so that they use this routine and to that each return an appropriate body with 
+You can now modify `logon()` and `register()` so that they use this routine and so that each return an appropriate body with 
 a name and csrfToken, and so that they no longer reference a global user ID.  
 You can also modify logoff to clear the 
 cookie using `res.clearCookie("jwt", cookieFlags(req))`.  
 #### **Be careful:**
 You need to set the cookie flags when clearing the cookie to the same values used for setting it, or the 
 cookie won't be cleared when you deploy to the Internet.  Of course, you don't want to set `maxAge` when clearing the cookie.
->>>>>>> main
 
 ## **The Middleware for the JWT**
 
