@@ -267,7 +267,7 @@ If the database service is not up, you want to know.  Your error handler will ha
 
 ### 3. Modify Controllers for Database Operations
 
-You need to eliminate all use of `util/memoryStore.js`.  In general, you are going to substitute database calls, except the one for the currently logged on user.  For that, you are going to use `global.user_id`.  Globals are accessible via every module.  Let's start with login in the user controller.  You will see that there aren't many try/catch stanzas.  That's because, for the most part, you can let the global error handler take care of error handling.
+You need to eliminate all use of `util/memoryStore.js`.  In general, you are going to substitute database calls, except the one for the currently logged on user.  For that, you are going to use `global.user_id`.  Globals are accessible via every module.  Let's start with logon in the user controller.  You will see that there aren't many try/catch stanzas.  That's because, for the most part, you can let the global error handler take care of error handling.
 
 Your calls to the `pg` pool are asynchronous.  If some of your controller functions are not declared async you will need to change that.  You will need to call `next(err)` in some controller functions, in which case they must be declared with `req, res, next` as their parameters.
 
@@ -281,7 +281,7 @@ const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
 The `user.rows` array might have 0 length, in which case authentication fails: you send back the 401 and the appropriate message.  Otherwise, you use your existing `comparePassword()` function to see if the password in the body of the request matches `user[0].hashed_password`.  If it doesn't, you send the 401 and the authentication failed message.  But, if it does, you send a 200 and the appropriate message -- and you also put `user[0].id` in global.user_id.
 
-So: make those changes to the login function now.
+So: make those changes to the logon function now.
 
 #### b: Changing Registration
 
@@ -394,8 +394,8 @@ The global user_id storage approach used here is **NOT secure** for production a
 ### Testing Requirements
 Test all endpoints with Postman or curl:
 1. **Database Setup**: Verify tables are created
-2. **User Operations**: Test registration and login with password hashing
-3. **Global User ID**: Verify user_id is stored globally after login/registration
+2. **User Operations**: Test registration and logon with password hashing
+3. **Global User ID**: Verify user_id is stored globally after logon/registration
 4. **Task Operations**: Test all CRUD operations using global user_id (no query parameters)
 5. **Error Handling**: Test invalid inputs and database errors
 6. **Security**: Verify user ownership validation and password hashing
