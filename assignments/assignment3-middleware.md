@@ -94,7 +94,7 @@ You are going to have to create a couple more post routes.  Also, you are going 
 In the general case, you can name modules and functions as you choose.  However, we are providing tests for what you develop, and so you need to use the names specified below, so that the tests work:
 
 ```
-/controllers/userController.js with functions login, register, and logoff
+/controllers/userController.js with functions logon, register, and logoff
 /controllers/taskController.js with functions index, create, show, update, and deleteTask.
 ```  
 
