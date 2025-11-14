@@ -1,3 +1,133 @@
+# **Lesson 6: Using an Object Relational Mapping**
+
+## **Lesson Overview**
+
+You have learned to use SQL for CRUD operations in your app.  Often, though, that's not how apps are built.  This lesson will explain an alternative.  You use the SQL databae, but you access the database with an Object-Relational Mapper -- an ORM.  The lesson explains why this approach can speed development, but also its limitations.  The lessons also explain the steps needed to convert your app to the use of the Prisma ORM.  You'll do that conversion in the assignment.
+
+## **Learning Objectives**
+
+You will learn:
+- What object-relational mappings (ORMs) are
+- Why ORMs are used.
+- Characterisics of the Prisma ORM
+- How to set up Prisma in your project
+- How to use Prisma to manage the schema
+- Prisma for CRUD operations: How to replace your SQL with Prisma calls
+
+**Topics:**
+
+1. What is an ORM, and why are they used?
+2. Characteristics of the Prisma ORM
+3. Workflow for adding Prisma support to your app
+4. Managing the database schema with Prisma
+5. Database Opeerations with Prisma Studio
+
+## **1. What is an ORM, and why are they used?**
+
+SQL is a powerful language, but it isn't pretty.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programminga assistance.
+
+In addition, ORMs have certain inherent advantages:
+
+1. You have learned the `pg` package, but it only talks to PostgreSQL.  Suppose you are converting to MySQL, or for that matter, to MongoDB? You'd have to learn an entirely different package, with different syntax.  An ORM can handle the differences more or less transparently, so that it is not necessary to make big changes to the code.
+
+2. Database schema management is complicated, especially with team projects.  As you add and modify tables, how do you keep track of what has been done to the production database and to the various test and development database instances?  You more or less have to write a special program for the SQL operations involved, and then you have to keep track of the steps in a separate table.
+
+3. The Prisma ORM brings special advantages to a TypeScript environment.  We don't do TypeScript in this class, but with Prisma, one gets strong typing and type safety.
+
+4. Most of the power of SQL is carried forward into the ORM.  You can do most of the same things, without a performance cost.
+
+On the other hand:
+
+1. The ORM can mask what you are really doing in the database.  Under the covers, it is doing SQL.  But what SQL?  Sometimes it's hard to guess.
+
+2. Sometimes the ORM won't do the SQL you want.  There's an escape route: You can tell it to emit raw SQL, as if you were using the `pg` package.  Sometimes you'll need to do that -- so you still need to know SQL.
+
+
+## **2. Characteristics of the Prisma ORM**
+
+The Prisma ORM:
+- has an elegant way of managing schema
+- has good support for most SQL operations: SELECT, INSERT, UPDATE, DELETE, transactions, GROUP BY, aggregation, HAVING
+- supports relationships (associations) between tables
+- doesn't like to do joins.  This is a side effect of the type safety focus
+- has significant limitations for GROUP BY and HAVING support
+- won't do subqueries
+
+We could have used Sequelize, another ORM for Node, but it's harder to learn, and schema management with Sequelize requires an additional package.  As you'll see, the transition from `pg` to Prisma is pretty easy.
+
+### **How it Works**
+
+
+Instead of writing:
+```sql
+SELECT * FROM users WHERE email = 'john@example.com';
+```
+
+You write:
+```javascript
+const user = await prisma.user.findUnique({
+  where: { email: 'john@example.com' }
+});
+```
+
+Under the covers, Prisma makes the SQL call.  In fact, if you are using PostgreSQL, it uses the pg package and a pg pool.
+
+## **3. Workflow for adding Prisma support to your app**
+
+```
+1. Define Schema → 2. Generate Client → 3. Use in Code → 4. Database Operations
+```
+
+**Step 1: Schema Definition**
+- Define your database structure in `schema.prisma`
+- Specify models, fields, relationships, and database connection
+
+**Step 2: Client Generation**
+- Prisma reads your schema and generates a TypeScript client
+- Provides type-safe methods for all database operations
+
+**Step 3: Code Integration**
+- Import and use the generated client in your application
+- Enjoy autocomplete and type checking
+
+**Step 4: Database Operations**
+- Prisma translates your method calls to optimized SQL
+- Handles connections, transactions, and error handling
+
+## **4. Managing the database schema with Prisma**
+
+### **Elements of the Prisma Schema
+
+**Models**
+Models represent your database tables as JavaScript classes (example only, do not use):
+
+```prisma
+model UserExample {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String
+  tasks Task[]
+}
+```
+
+**Fields**
+Fields represent columns in your database:
+- **Scalar Fields**: `String`, `Int`, `Boolean`, `DateTime`
+- **Relation Fields**: `User[]`, `Task` (for relationships)
+
+**Attributes**
+Attributes provide metadata about fields:
+- **`@id`**: Marks a field as the primary key
+- **`@unique`**: Ensures field values are unique
+- **`@default`**: Sets default values
+- **`@map`**: Maps Prisma field names to database column names
+
+
+
+## **5. Database Opeerations with Prisma Studio**
+
+how to use the Prisma Object Relational Mapping
+
 # Lesson 6a: PostgreSQL and Node.js Integration
 
 ## Learning Objectives
@@ -492,25 +622,7 @@ Under the covers, Prisma is making SQL calls, which are issued via socket connec
 ## 3. Prisma Architecture and Concepts
 
 ### The Prisma Workflow
-```
-1. Define Schema → 2. Generate Client → 3. Use in Code → 4. Database Operations
-```
 
-**Step 1: Schema Definition**
-- Define your database structure in `schema.prisma`
-- Specify models, fields, relationships, and database connection
-
-**Step 2: Client Generation**
-- Prisma reads your schema and generates a TypeScript client
-- Provides type-safe methods for all database operations
-
-**Step 3: Code Integration**
-- Import and use the generated client in your application
-- Enjoy autocomplete and type checking
-
-**Step 4: Database Operations**
-- Prisma translates your method calls to optimized SQL
-- Handles connections, transactions, and error handling
 
 ### Core Concepts
 
