@@ -113,8 +113,6 @@ Right now you are using `memoryStore.js` to store users and a list of tasks for 
 - Basic understanding of Node.js and Express
 - PostgreSQL installed and running on your system
 
-Be sure to create an assignment6a branch before you do any of the following.  You will create two branches for the two parts of assignment.
-
 ---
 
 ## Assignment Tasks
@@ -195,9 +193,11 @@ where `DATABASE_URL` is the value you saved in your `.env` file during assignmen
 ```
 The above assumes you have Postgres 17 -- adjust the number as needed.
 
+You should see messages that tables were created.  This creates the schema for the production database.
+
 #### d. Create Database Tables in the Test Database
 
-You should see messages that tables were created.  This creates the schema for the production database, but you also need a test database.  This is used for the assignment TDD, and also for your automated testing assignment in a later week.  The `psql` command is the same as the above, but you use the value of the `TEST_DATABASE_URL` from your `.env` file.
+You also need to create the schema for your test database.  This is used for the assignment TDD and also for your automated testing assignment in a later week.  The `psql` command is the same as the above, but you use the value of the `TEST_DATABASE_URL` from your `.env` file.
 
 ### 2. Database Connection Implementation
 
@@ -226,11 +226,11 @@ This code was explained in the lesson.
 
 When your Node process ends, it might hang if database connections are not cleaned up.  Somewhere in the file, add this line:
 
-```
+```js
 const pool = require("./db/pg-pool");
 ```
 
-Then, in your shutdown function, after the "gracefully" message, add this line:
+Then, in your shutdown function add this line (there is a comment in the code to show where it goes):
 
 ```javascript
 await pool.end();
@@ -313,7 +313,7 @@ Right now, you do a find() on the array in the memory store to see if the user i
 
 #### c. Changing Logoff.
 
-Pretty easy.  This is one for you.
+You only need to set `global.user_id` to null, instead of using the memoryStore.
 
 #### d. Changing the auth Middleware.
 
@@ -331,7 +331,9 @@ const task  = await pool.query(`INSERT INTO tasks (title, is_completed, user_id)
   // You don't need a try/catch because the global error handler will handle the errors
 ```
 
-Note: You should not return the user_id.  That is a foreign key, and should only be known internally.
+Note: You should not return the user_id.  That is a foreign key, and should only be known internally.  
+
+Of course, this operation could throw an error, for example if the database is down.  You do not need a try/catch in your controller for this, as your global error handler will take care of it.
 
 #### f. Changing Task Management: GET /tasks (index)
 
@@ -342,6 +344,8 @@ const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE 
   [global.user_id]
 )
 ```
+
+Again, you do not want to return the user_id.
 
 #### g. Changing Task Management: PATCH /tasks/:id (update)
 
@@ -361,6 +365,8 @@ const updatedTask = await pool.query(`UPDATE tasks ${setClauses}
   [...taskChange.values(), req.params.id, global.user_id]);
 ```
 
+This looks a little complicated, and there are other ways to do it if you only have two fields that might change, but if you have many, you'd need to do something like this.  
+
 #### h. Changing DELETE /tasks/:id (deleteTask)
 
 Another one for you to do.  Remember to filter on user_id as well as the task id.
@@ -374,8 +380,19 @@ Keep going until all dependency on the memoryStore is gone.
 
 ### 4. Test Using Postman
 
-Make sure all operations work as before.
+Make sure all operations work as before.  They are:
 
+- register
+- logon
+- create task
+- show task
+- list tasks
+- update task
+- delete task
+- logoff
+- health check
+
+Further, test to make sure that a user can't show, update, or delete a task that belongs to a different user.
 
 ### 5. Run the TDD 
 

@@ -2,8 +2,6 @@
 
 ## **Lesson Overview**
 
-**Learning Objectives**: Students will gain foundational knowledge of SQL databases using Postgres. They will understand the basic purpose and attributes of SQL databases. They will learn the SQL language, including SELECT, INSERT, UPDATE, and other standard SQL verbs. They will understand JOINs and transactions, primary and foreign keys, associations, and table constraints. They will learn how to create tables with schemas. This is a generalized introduction to SQL, so no Object Relational Mapper (ORM) will be used. In this lesson, the focus is on SQL itself, so there will be no JavaScript code developed.
-
 **Topics**:
 
 1. Introduction to SQL: What SQL is, why relational databases matter, and how constraints, associations, and transactions work.
@@ -23,6 +21,9 @@
 By the end of this lesson, you will be able to:
 - Understand why databases are essential for web applications
 - Explain the key concepts of PostgreSQL and relational databases
+- Create tables with schemas
+- Use the SQL language, including SELECT, INSERT, UPDATE, and other standard SQL verbs.
+- Understand JOINs and transactions, primary and foreign keys, associations, and table constraints.
 - Connect a Node.js application to PostgreSQL using the `pg` library
 - Implement database operations (CRUD) in your Express controllers
 - Understand database security concepts like parameterized queries
@@ -59,7 +60,7 @@ Databases store data on disk (or in the cloud), so your data persists even when 
 
 ## **5.1 What SQL is, and Why it is Used**
 
-SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used - but MongoDB is pretty easy to learn. SQL is a deeper topic.
+SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL, Microsoft SQL Server, Oracle Database, and others. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used - but MongoDB is pretty easy to learn. SQL is a deeper topic.
 
 Read the following introduction: <https://www.theodinproject.com/lessons/databases-databases-and-sql>. Or, if you know this stuff, jump to the bottom of that page and do the Knowledge Check. Be sure that you understand the concepts of Primary Key and Foreign Key.
 
@@ -100,7 +101,11 @@ When a table is defined in the schema, one or several **constraints** on the val
 
 If you try to create a record that doesn't comply with constraints, or update one in violation of constraints, you get an error.
 
-**PostgreSQL**
+### **DIfferent Relational Databases
+
+There are a variety of different implementations of relational databases.  All support SQL, but each is optimized for a particular use case.  For very large data volumes and transaction rates, you might use Amazon Aurora, BigQuery, or various others.  Be aware that SQL implementations vary.  SQL statments that work for one implementation may not work unchanged in a different one.  In this class, you use PostgreSQL, in part because it is freely available and runs both on your local laptop and in the cloud.
+
+### **PostgreSQL**
 
 PostgreSQL (often called "Postgres") is a powerful, open-source relational database management system. It's one of the most popular databases for web applications.  As part of your workspace setup, you installed PostgreSQL on your laptop, but database access can also be remote.  Later in the course, you will use a cloud resident implementation of PostgreSQL.
 
@@ -445,11 +450,18 @@ Now that you understand what SQL does, it's time to program with it.  You'll do 
 
 Database connections require a connection string -- a URL.  You created several during Assignment 0, and they are stored in your `.env` file.  This includes the host, the database name, the SSL mode, and your user id and password.  Obviously, the latter must be kept secret, so you only store it in the `.env` file, never in code, and you must take care that the `.env` file is listed in the `.gitignore`.  You don't use SSL for the local connection, but you will for the cloud resident database.
 
+In your app, you want to centralize the management of the database connection.  You do this for two reasons:
+
+- When you stop the server, you need to bring all database connections to a graceful end.
+- You want to have a pool of reused connections for efficiency.
+
+You'll have a dedicated module in a db folder for the purpose.
+
 ## **5.8 Understanding Schema**
 
 The schema of a relational database is the list of tables and their properties.  Each table has a name and a list of columns.  Each column has a name and a datatype: String, Int, Boolean, Timestamp, etc.. One column is typically the primary key.  The schema also describes database constraints: columns where the values can't be null, or columns where all values must be unique.  Relations between tables may be defined.  This implement the associations previously described, and for relations, there may be one or several foreign keys, i.e. pointers to the corresponding entries in a different table.
 
-
+The following SQL statements create the tables with various schema elements.
 
 **Users Table:**
 ```sql
@@ -469,7 +481,7 @@ CREATE TABLE tasks (
   title VARCHAR(255) NOT NULL,
   is_completed BOOLEAN NOT NULL DEFAULT FALSE,
   user_id INTEGER NOT NULL REFERENCES users(id),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)
 );
 ```
@@ -483,11 +495,11 @@ CREATE TABLE tasks (
 - **`DEFAULT CURRENT_TIMESTAMP`**: Automatically sets the current time
 - **CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)** Creates an additional index.  
 
-The additional index is needed for Prisma (the second part of the lesson and assignment.)  For some operations (`show()`, `update()`, `delete()`) you must specify both the id of the task and the user_id in your WHERE clause.  This is to make sure that one user can't access a different user's task record.  When doing this in Prisma, the additional index is required.
+The additional index is needed for assignment 6. 
 
 ## **5.9 Using the pg Package in Your Node App.**
 
-You will use the `pg` package, which you'll install as part of the assignment.  In an Express application, you can have many concurrent requests.  You don't want to create a database connection for each of them.  So, you'll use a pool:
+You will use the `pg` package, which you'll install as part of the assignment.  In an Express application, you can have many concurrent requests.  You don't want to create a database connection for each of them.  So, you'll use a pool.  In your assignment, you will put the following code in a `pg-pool` module in the `db` folder
 
 ```javascript
 const { Pool } = require('pg');
@@ -537,37 +549,51 @@ The query itself is just an SQL statement, except notice the `($1, $2, $3)`.  Th
 
 After a client connection is retrieved from the pool, the query is run, and once it is complete and the results have been returned, the client connection is returned to the pool.  If the server gets busy, the `pool.query()` operation may have to wait for an available connection.
 
-All well and good, but what about transactions?  The `pool.query()` operation performs a single query in an automatically performed transaction. Suppose you need to do a series of queries in a single transaction?  In that case, the process is a little more complicated.
+All well and good, but what about transactions?  The `pool.query()` operation performs a single query in an automatically performed transaction. Suppose you need to do a series of queries in a single transaction?  In that case, the process is a little more complicated.  The following sequence might occur in a banking application:
 
 ```js
 async function runTransactionalWork() {
   const client = await pool.connect(); // Checkout a client from the pool
-
+  let success = true;
+  let reasonMessage;
   try {
     await client.query("BEGIN"); // Start transaction
 
     // Example operation #1
     const userResult = await client.query(
-      `INSERT INTO users (email) VALUES ($1) RETURNING id`,
-      ["test@example.com"]
+      `SELECT FROM users WHERE email = $1`,
+      ["testuser@example.com"]
     );
-    const userId = userResult.rows[0].id;
+    if (userResult.rows.length) { // if the user was found
+      const userId = userResult.rows[0].id;
 
-    // Example operation #2
-    await client.query(
-      `INSERT INTO profiles (user_id, display_name) VALUES ($1, $2)`,
-      [userId, "Test User"]
-    );
+      // Example operation #2
+      const balanceResult = await client.query(
+        `SELECT balance FROM accounts WHERE user_id = $1`, [user_id]
+      );
 
-    // Example operation #3
-    const balanceResult = await client.query(
-      `UPDATE accounts SET balance = balance - 100 WHERE user_id = $1 RETURNING balance`,
-      [userId]
-    );
-    console.log("New balance:", balanceResult.rows[0].balance);
+      if (balanceResult.rows.length && balanceResult.rows[0].balance >= 100) {
 
-    await client.query("COMMIT"); // Success → commit the transaction
-    return { success: true, userId };
+        // Example operation #3
+        const balanceAfter = await client.query(
+          `UPDATE accounts SET balance = balance - 100 WHERE user_id = $1 RETURNING balance`,
+          [userId]
+        );
+        console.log("New balance:", balanceAfter.rows[0].balance);
+        await client.query("COMMIT"); // Success → commit the transaction
+
+      } else { // not enough money
+        console.log("Not enough money for that withdrawal");
+        success = false;
+      }
+    } else { // the user for that email wasn't found
+      console.log("User not found.");
+      success = false;
+    }
+    if (!success) {
+      await client.query("ROLLBACK"); // can't do the withdrawal, so rollback
+    }
+    return { success, userId };
   } catch (err) {
     await client.query("ROLLBACK"); // Failure → rollback the transaction
     console.error("Transaction failed, rolled back.", err);
@@ -646,7 +672,7 @@ You may also get query errors.  For example, queries could time out.  A request 
 
 ### A Health Check API
 
-It is common to have a health check  API, so that you can see if the application is functioning.  The health check gives immediate notice if connection to the database is not successful.
+It is common to have a health check  API, so that you can see if the application is functioning.  You have an existing health check, but it should report a problem if connection to the database is not successful.
 
 ---
 
