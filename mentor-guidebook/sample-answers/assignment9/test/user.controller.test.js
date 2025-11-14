@@ -49,7 +49,7 @@ afterAll(() => {
 
 let jwtCookie;
 
-describe("testing login, register, and logoff", () => {
+describe("testing logon, register, and logoff", () => {
   it("33. The user can be logged on", async () => {
     const req = httpMocks.createRequest({
       method: "POST",

@@ -64,16 +64,9 @@ app.get("/", (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-let server;
-if (require.main === module) {
-  try {
-    server = app.listen(port, () =>
+const server = app.listen(port, () =>
       console.log(`Server is listening on port ${port}...`),
     );
-  } catch (error) {
-    console.log(error);
-  }
-}
 
 module.exports = { app, server} ;
 ```
@@ -246,29 +239,47 @@ In this case, the error handler is called, and the error is passed to it.
 **Exiting Cleanly**
 
 Your Express program opens a port.  
-You need to be sure that port is closed when the program exits. If there are other open connections, such as database connections, they must also be cleaned up. If not, you may find that your program becomes a zombie process, and that the port you had been listening on is still tied up.  
-This is especially important when you are running a debugger or an automated test.
+You need to be sure that port is closed when the program exits. If there are other open connections, such as database connections, they must also be cleaned up. If not, you may find that your program becomes a zombie process, and that the port you had been listening on is still tied up. This is especially important when you are running a debugger or an automated test.  You also need to catch errors the server reports with a `server.on()` statement.
 
 Here is some code to put at the bottom of `app.js`. Please make sure it is placed before this line of code `module.exports = { app, server} ;`:
 
 ```js
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${port} is already in use.`);
+  } else {
+    console.error('Server error:', err);
+  }
+  process.exit(1);
+});
+
 let isShuttingDown = false;
-async function shutdown() {
+async function shutdown(code = 0) {
   if (isShuttingDown) return;
   isShuttingDown = true;
   console.log('Shutting down gracefully...');
-  // Here add code as needed to disconnect gracefully from the database
-};
+  try {
+    await new Promise(resolve => server.close(resolve));
+    console.log('HTTP server closed.');
+    // If you have DB connections, close them here
+  } catch (err) {
+    console.error('Error during shutdown:', err);
+    code = 1;
+  } finally {
+    console.log('Exiting process...');
+    process.exit(code);
+  }
+}
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on('SIGINT', () => shutdown(0));  // ctrl+c
+process.on('SIGTERM', () => shutdown(0)); // e.g. `docker stop`
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);
-  shutdown();
+  shutdown(1);
 });
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled rejection:', reason);
-  shutdown();
+  shutdown(1);
 });
 ```
 
