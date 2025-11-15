@@ -2,7 +2,7 @@
 
 ## **Lesson Overview**
 
-You have learned to use SQL for CRUD operations in your app.  Often, though, that's not how apps are built.  This lesson will explain an alternative.  You use the SQL databae, but you access the database with an Object-Relational Mapper -- an ORM.  The lesson explains why this approach can speed development, but also its limitations.  The lessons also explain the steps needed to convert your app to the use of the Prisma ORM.  You'll do that conversion in the assignment.
+You have learned to use SQL for CRUD operations in your app.  Often, though, that's not how apps are built.  This lesson will describe an alternative. You use an SQL database, but you access the database with an Object-Relational Mapper -- an ORM.  The lesson explains why this approach can speed development, but also its limitations.  The lessons also explain the steps needed to convert your app to the use of the Prisma ORM.  You'll do that conversion in the assignment.
 
 ## **Learning Objectives**
 
@@ -13,6 +13,7 @@ You will learn:
 - How to set up Prisma in your project
 - How to use Prisma to manage the schema
 - Prisma for CRUD operations: How to replace your SQL with Prisma calls
+- Compare ORM vs. raw SQL approaches for database operations
 
 **Topics:**
 
@@ -20,17 +21,19 @@ You will learn:
 2. Characteristics of the Prisma ORM
 3. Workflow for adding Prisma support to your app
 4. Managing the database schema with Prisma
-5. Database Opeerations with Prisma Studio
+5. Error handling with Prisma
+6. Prisma methods for database operations
+7. Testing and debugging
 
 ## **1. What is an ORM, and why are they used?**
 
-SQL is a powerful language, but it isn't pretty.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programminga assistance.
+SQL is a powerful language, but it isn't pretty.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With an ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programminga assistance.
 
 In addition, ORMs have certain inherent advantages:
 
-1. You have learned the `pg` package, but it only talks to PostgreSQL.  Suppose you are converting to MySQL, or for that matter, to MongoDB? You'd have to learn an entirely different package, with different syntax.  An ORM can handle the differences more or less transparently, so that it is not necessary to make big changes to the code.
+1. You have learned the `pg` package, but it only talks to PostgreSQL.  Suppose you are converting to MySQL, or for that matter, to MongoDB? You'd have to learn an entirely different package, with different syntax.  An ORM can handle the differences more or less transparently, so that it is not necessary to make big changes to the code.  (Converting from SQL to MongoDB is not transparent, but the ORM you will use supports both.)
 
-2. Database schema management is complicated, especially with team projects.  As you add and modify tables, how do you keep track of what has been done to the production database and to the various test and development database instances?  You more or less have to write a special program for the SQL operations involved, and then you have to keep track of the steps in a separate table.
+2. Database schema management is complicated, especially with team projects.  As you add and modify tables, how do you keep track of what has been done to the production database and to the various test and development database instances?  You more or less have to write a special program for the SQL operations involved, and then you have to keep track of the steps in a separate table.  The ORM can do this for you.
 
 3. The Prisma ORM brings special advantages to a TypeScript environment.  We don't do TypeScript in this class, but with Prisma, one gets strong typing and type safety.
 
@@ -42,25 +45,23 @@ On the other hand:
 
 2. Sometimes the ORM won't do the SQL you want.  There's an escape route: You can tell it to emit raw SQL, as if you were using the `pg` package.  Sometimes you'll need to do that -- so you still need to know SQL.
 
-
 ## **2. Characteristics of the Prisma ORM**
 
 The Prisma ORM:
-- has an elegant way of managing schema
-- has good support for most SQL operations: SELECT, INSERT, UPDATE, DELETE, transactions, GROUP BY, aggregation, HAVING
-- supports relationships (associations) between tables
-- doesn't like to do joins.  This is a side effect of the type safety focus
-- has significant limitations for GROUP BY and HAVING support
-- won't do subqueries
+- has an elegant way of managing schema.
+- has good support for most SQL operations: SELECT, INSERT, UPDATE, DELETE, transactions, GROUP BY, aggregation, HAVING.
+- supports relationships (associations) between tables.
+- doesn't like to do joins.  This is a side effect of the type safety focus.
+- has significant limitations for GROUP BY and HAVING support.
+- won't do subqueries.
 
 We could have used Sequelize, another ORM for Node, but it's harder to learn, and schema management with Sequelize requires an additional package.  As you'll see, the transition from `pg` to Prisma is pretty easy.
 
 ### **How it Works**
 
-
 Instead of writing:
-```sql
-SELECT * FROM users WHERE email = 'john@example.com';
+```js
+const results = await pool.query(`SELECT * FROM users WHERE email = 'john@example.com'`);
 ```
 
 You write:
@@ -71,6 +72,12 @@ const user = await prisma.user.findUnique({
 ```
 
 Under the covers, Prisma makes the SQL call.  In fact, if you are using PostgreSQL, it uses the pg package and a pg pool.
+
+Prisma consists of three main tools:
+
+1. **Prisma Schema**: A declarative way to define your database structure
+2. **Prisma Client**: An auto-generated, type-safe database client
+3. **Prisma Migrate**: Database migration and schema management
 
 ## **3. Workflow for adding Prisma support to your app**
 
@@ -96,627 +103,59 @@ Under the covers, Prisma makes the SQL call.  In fact, if you are using PostgreS
 
 ## **4. Managing the database schema with Prisma**
 
-### **Elements of the Prisma Schema
+### **Elements of the Prisma Schema**
 
 **Models**
-Models represent your database tables as JavaScript classes (example only, do not use):
 
-```prisma
-model UserExample {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String
-  tasks Task[]
-}
-```
+Models represent your database tables as JavaScript classes.
 
-**Fields**
-Fields represent columns in your database:
-- **Scalar Fields**: `String`, `Int`, `Boolean`, `DateTime`
-- **Relation Fields**: `User[]`, `Task` (for relationships)
-
-**Attributes**
-Attributes provide metadata about fields:
-- **`@id`**: Marks a field as the primary key
-- **`@unique`**: Ensures field values are unique
-- **`@default`**: Sets default values
-- **`@map`**: Maps Prisma field names to database column names
-
-
-
-## **5. Database Opeerations with Prisma Studio**
-
-how to use the Prisma Object Relational Mapping
-
-# Lesson 6a: PostgreSQL and Node.js Integration
-
-## Learning Objectives
-By the end of this lesson, you will be able to:
-- Understand why databases are essential for web applications
-- Explain the key concepts of PostgreSQL and relational databases
-- Connect a Node.js application to PostgreSQL using the `pg` library
-- Implement database operations (CRUD) in your Express controllers
-- Understand database security concepts like parameterized queries
-- Handle database connections and errors properly
-
-## Overview
-In this lesson, you will learn how to integrate PostgreSQL with your Node.js Express application. You'll move from storing data in memory (which gets lost when the server restarts) to using a persistent database that keeps your data safe and accessible.
-
-**Prologue:**
-Right now you are using `memoryStore.js` to store users and a list of tasks for each. For this lesson, you want to eliminate all use of `memoryStore.js`, and to read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
-
-**Prerequisites:** This lesson builds on the work you completed in **Week 4**, where you built a working Express application with in-memory storage. Make sure you have a functional Express app with user and task management before proceeding.
-
-**Why This Matters:**
-- **Data Persistence**: Your data survives server restarts and crashes
-- **Scalability**: Can handle multiple users and larger datasets
-- **Security**: Better data isolation and user ownership
-- **Professional Development**: Real-world applications use databases, not memory storage
-
----
-
-## 1. Understanding Databases vs. In-Memory Storage
-
-### The Problem with In-Memory Storage
-When you store data in JavaScript arrays or objects, that data exists only while your server is running. When you restart your server, all the data disappears.  Also, your server only has so much memory, much less than a production application would typically need to store.
-
-**Example of the Problem:**
-```javascript
-// This data gets lost every time you restart your server
-let users = [
-  { id: 1, name: "John", email: "john@example.com" },
-  { id: 2, name: "Jane", email: "jane@example.com" }
-];
-
-// If your server crashes or restarts, this array becomes empty again
-```
-
-### Why Databases Solve This Problem
-Databases store data on disk (or in the cloud), so your data persists even when your application stops running.
-
-**Benefits of Database Storage:**
-- **Persistence**: Data survives server restarts
-- **Concurrent Access**: Multiple users can access data simultaneously
-- **Data Integrity**: Built-in rules ensure data consistency
-- **Backup & Recovery**: Easy to backup and restore data
-- **Scalability**: Can handle millions of records efficiently
-
----
-
-## 2. Introduction to PostgreSQL
-
-### What is PostgreSQL?
-PostgreSQL (often called "Postgres") is a powerful, open-source relational database management system. It's one of the most popular databases for web applications.
-
-**Key Features:**
-- **Open Source**: Free to use and modify
-- **ACID Compliant**: Ensures data reliability and consistency
-- **Extensible**: Can add custom functions and data types
-- **Cross-Platform**: Works on Windows, macOS, and Linux
-- **Production Ready**: Used by companies like Instagram, Reddit, and Netflix
-
-### Relational Database Concepts
-PostgreSQL is a **relational database**, which means data is organized in tables with relationships between them.
-
-**Basic Concepts:**
-- **Table**: A collection of related data (like a spreadsheet)
-- **Row**: A single record in a table
-- **Column**: A specific piece of information (like name, email, age)
-- **Primary Key**: A unique identifier for each row
-- **Foreign Key**: A reference to another table's primary key
-
-**Example Table Structure:**
-```
-users table:
-| id | name  | email           | created_at |
-|----|-------|-----------------|------------|
-| 1  | John  | john@email.com  | 2024-01-15 |
-| 2  | Jane  | jane@email.com  | 2024-01-15 |
-
-tasks table:
-| id | title        | user_id | is_completed | created_at |
-|----|--------------|---------|--------------|------------|
-| 1  | Buy milk     | 1       | false        | 2024-01-15 |
-| 2  | Walk dog     | 1       | true         | 2024-01-15 |
-| 3  | Read book    | 2       | false        | 2024-01-15 |
-```
-
-**The Relationship:**
-- Each task belongs to a user (via `user_id`)
-- `user_id` in tasks table references `id` in users table
-- This creates a **one-to-many relationship**: one user can have many tasks
-
----
-
-## 3. Database Connection String
-
-### Understanding Connection Strings
-
-A connection string tells your application how to connect to your database. It includes all the necessary information: username, password, host, port, and database name.  You set up several databases in Assignment 0, and you saved the connection strings in your `.env` file.
-
-**Format:**
-```
-postgresql://username:password@host:port/database_name
-```
-
-**Components Explained:**
-- **username**: Your PostgreSQL username (usually `postgres`)
-- **password**: Your PostgreSQL password
-- **host**: Where the database is running (`localhost` for local development)
-- **port**: Database port number (default is `5432`)
-- **database_name**: The specific database you want to connect to
-
-The database connection string is slightly different depending on your OS platform.  You configured connection strings in your `.env` file as part of Assignment 0.  Remember that these typically contain a password, so you do not want these in your code!
-
-Your connection string may contain an "sslmode" parameter.  SSL is necessary when you connect to a cloud database, but not when you connect to a local machine.
-
-**Security Note:** Never commit your `.env` file to version control. It contains sensitive information like passwords. Make sure to add `.env` to your `.gitignore` file to prevent accidentally committing it to GitHub.
-
----
-
-## 4. Database Schema Design
-
-### What is a Schema?
-
-A database schema defines the structure of your database: what tables exist, what columns they have, and how they relate to each other.  The schema describes the datatype for the column (String, Int, etc.).  It describes whether a column is a primary key, or perhaps a foreign key.  It describes schema constraints: which attributes may not be null, which must be unique, etc..  The schema may also identify columns that are to be indexed for performance.
-
-### Designing Your Tables
-Based on your existing Express app, you'll need two main tables.  These are the SQL commands to create the tables:
-
-**Users Table:**
-```sql
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  name VARCHAR(30) NOT NULL,
-  hashed_password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP 
-);
-```
-
-**Tasks Table:**
-```sql
-CREATE TABLE tasks (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  is_completed BOOLEAN NOT NULL DEFAULT FALSE,
-  user_id INTEGER NOT NULL REFERENCES users(id),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-  CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)
-);
-```
-
-### Understanding the Schema
-- **`SERIAL PRIMARY KEY`**: Creates an auto-incrementing unique identifier
-- **`VARCHAR(255)`**: Variable-length string with maximum 255 characters
-- **`NOT NULL`**: Field cannot be empty
-- **`UNIQUE`**: No two users can have the same email
-- **`REFERENCES users(id)`**: Creates a foreign key relationship
-- **`DEFAULT CURRENT_TIMESTAMP`**: Automatically sets the current time
-- **CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)** Creates an additional index.  
-
-The additional index is needed for Prisma (the second part of the lesson and assignment.)  For some operations (`show()`, `update()`, `delete()`) you must specify both the id of the task and the user_id in your WHERE clause.  This is to make sure that one user can't access a different user's task record.  When doing this in Prisma, the additional index is required.
-
-Note that all table names and column names are lower case.  You can use mixed case names, but it adds complexity.  That is why snake-case is used, as in `created_at`.
-
----
-
-## 5. Node.js Database Integration
-
-You will use the `pg` package, which you'll install as part of the assignment.  In an Express application, you can have many concurrent requests.  You don't want to create a database connection for each of them.  So, you'll use a pool:
-
-```javascript
-const { Pool } = require('pg');
-require('dotenv').config();
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err);
-});
-
-module.exports = pool;
-```
-
-**Understanding the Code:**
-- **`Pool`**: Manages multiple database connections efficiently
-- **`connectionString`**: Uses your DATABASE_URL from environment variables
-- **`sslmode`**: Postgres hosting platforms (like the Neon one you will use) require SSL, and will have a connection string that specifies the sslmode. For local development, your socket is local so you don't need SSL.
-- **`module.exports`**: Makes the pool available to other files
-
-You also need the `pool.on('error' ...` event handling in case an idle pool connection throws an error.  Otherwise this can disrupt your node process.
-
-### Why Use Connection Pooling?
-Instead of creating a new connection for each database operation, a pool maintains several connections and reuses them. This is more efficient and faster than creating connections on demand.
-
-**Important:** When stopping your application, use `await pool.end()` to close all connections cleanly and prevent connection leaks.  In your assignment, you'll add this logic to the shutdown handling for your app.
-
----
-
-## 6. Queries
-
-You'll do database queries in your controllers.  Here are some sample queries:
-
-```js
-const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-const newUser = await pool.query(`INSERT INTO users (email, name, hashed_password) 
-    VALUES ($1, $2, $3) RETURNING id, email, name`,
-    [email, name, hashed_password]
-  );
-```
-
-What happens is this: When you issue the `pool.query()`, you get a connection from the pool.  It may not be connected to an actual socket yet, in which case it is connected as you issue the query.  
-
-The query itself is just an SQL statement, except notice the `($1, $2, $3)`.  These are parameters you pass to the query, which are substituted.  Of course, you could use string interpolation to put the values in ... **but you better not!**  That would make your code vulnerable to an SQL injection attack, where the attacker adds hostile SQL in the middle of your statement.  With parameterized queries, SQL parameters are sanitized before they are substituted, and dangerous stuff is escaped.
-
-After a client connection is retrieved from the pool, the query is run, and once it is complete and the results have been returned, the client connection is returned to the pool.  If the server gets busy, the `pool.query()` operation may have to wait for an available connection.
-
-All well and good, but what about transactions?  The `pool.query()` operation performs a single query in an automatically performed transaction. Suppose you need to do a series of queries in a single transaction?  In that case, the process is a little more complicated.
-
-```js
-async function runTransactionalWork() {
-  const client = await pool.connect(); // Checkout a client from the pool
-
-  try {
-    await client.query("BEGIN"); // Start transaction
-
-    // Example operation #1
-    const userResult = await client.query(
-      `INSERT INTO users (email) VALUES ($1) RETURNING id`,
-      ["test@example.com"]
-    );
-    const userId = userResult.rows[0].id;
-
-    // Example operation #2
-    await client.query(
-      `INSERT INTO profiles (user_id, display_name) VALUES ($1, $2)`,
-      [userId, "Test User"]
-    );
-
-    // Example operation #3
-    const balanceResult = await client.query(
-      `UPDATE accounts SET balance = balance - 100 WHERE user_id = $1 RETURNING balance`,
-      [userId]
-    );
-    console.log("New balance:", balanceResult.rows[0].balance);
-
-    await client.query("COMMIT"); // Success → commit the transaction
-    return { success: true, userId };
-  } catch (err) {
-    await client.query("ROLLBACK"); // Failure → rollback the transaction
-    console.error("Transaction failed, rolled back.", err);
-    throw err; // propagate error to caller
-  } finally {
-    client.release(); // Always release the client back to the pool
-  }
-}
-```
-In sum:
-
-- checkout client
-- begin transaction
-- query
-- more queries
-- commit transaction
-- or, in case of errors, rollback the transaction
-- return the client to the pool.
-
-**What is SQL Injection?**
-SQL injection is a security vulnerability where malicious users can execute unauthorized SQL commands through your application.
-
-**Example of Vulnerable Code:**
-```javascript
-// DANGEROUS - vulnerable to SQL injection
-const query = `SELECT * FROM users WHERE email = '${email}'`;
-```
-
-**Example of Safe Code:**
-```javascript
-// SAFE - uses parameterized queries
-const query = 'SELECT * FROM users WHERE email = $1';
-const result = await pool.query(query, [email]);
-```
-
-**Why Parameterized Queries are Safe:**
-- Values are treated as data, not as SQL code
-- Special characters are automatically escaped
-- Prevents malicious SQL from being executed
-
-### User Ownership Validation
-Always verify that users can only access their own data:
-
-```javascript
-// Ensure user can only access their own tasks
-const result = await pool.query(
-  'SELECT * FROM tasks WHERE id = $1 AND user_id = $2',
-  [taskId, userId]
-);
-
-if (result.rows.length === 0) {
-  return res.status(404).json({ error: "Task not found or access denied" });
-}
-```
-
-**Important Security Note:**
-YOu are going to use a globally stored user_id.  This is a temporary makeshift.  The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
-
----
-
-## 8. Error Handling
-
-### Database Error Types
-
-Different types of errors can occur when working with databases.  Typically you let these fall through to the global error handler middleware.  
-
-There are times when you will need to catch specific errors within your controller logic.  For example, if a user attempts to register with an email address that is already registered, you want to catch the error in the controller so that you can return an appropriate explanation to the user.
-
-**Connection Errors:**
-
-You want a special log message in your error handler for connection errors, in case you forget to start your Postgres service.
-
-You may also get query errors.  For example, queries could time out.  A request to the pool could fail because all connections are tied up. There could be an attempt to write something to the database that doesn't comply with the schema.  In general, you'd just log these to the console in your global error handler, and return the 500 return code and corresponding JSON internal server error message.
-
-### A Health Check API
-
-It is common to have a health check  API, so that you can see if the application is functioning.  The health check gives immediate notice if connection to the database is not successful.
-
----
-
-## 9. Common Challenges and Solutions
-
-### Challenge: Database Connection Fails
-**Symptoms:** `ECONNREFUSED` error
-**Solutions:**
-- Check if PostgreSQL is running
-- Verify connection string in `.env`
-- Check firewall settings
-- Ensure correct port number
-
-### Challenge: Tables Don't Exist
-**Symptoms:** `42P01` error (undefined table)
-**Solutions:**
-- Run your schema SQL file
-- Check table names in your queries
-- Verify database name in connection string
-
-### Challenge: Permission Denied
-**Symptoms:** `42501` error (insufficient privilege)
-**Solutions:**
-- Check database user permissions
-- Verify username and password
-- Ensure user has access to the database
-
----
-
-## Summary
-
-In this lesson, you've learned:
-- **Why databases are essential** for web applications
-- **How PostgreSQL works** as a relational database
-- **How to connect Node.js** to PostgreSQL using the `pg` library
-- **How to implement database operations** in your controllers
-- **Security best practices** like parameterized queries
-- **Proper error handling** for database operations
-
-### Next Steps
-1. **Complete Assignment 6a** following this lesson
-2. **Test your database connection** and API endpoints
-3. **Continue to Lesson 6b** to learn about Prisma ORM
-
----
-
-## Resources
-
-- [PostgreSQL Official Documentation](https://www.postgresql.org/docs/)
-- [Node.js pg Package](https://node-postgres.com/)
-- [Express.js Documentation](https://expressjs.com/)
-- [SQL Tutorial](https://www.w3schools.com/sql/)
-- [Database Design Basics](https://www.postgresql.org/docs/current/tutorial.html)
-
----
-
-## Getting Help
-
-- Review the lesson materials thoroughly
-- Check your database connection and credentials
-- Use `console.log` statements for debugging
-- Test each endpoint individually
-- Ask for help if you get stuck on specific concepts
-
-**Remember:** This lesson builds on your Node.js fundamentals. Make sure you have a solid understanding of Express and basic database concepts before proceeding!
-
-### **Proceed to Assignment 6a**
-
-At this point, you should do the first half of your assignment (Assignment 6a).  Then, return to the lesson to learn about Object Relational Mappers (ORMs), before proceeding on to Assignment 6b.
-
-# Lesson 6b: Introduction to Prisma ORM
-
-## Learning Objectives
-By the end of this lesson, you will be able to:
-- Understand what an ORM is and why it's beneficial for development
-- Explain the key concepts and benefits of Prisma ORM
-- Set up Prisma in an existing PostgreSQL project
-- Transform raw SQL queries to Prisma Client methods
-- Understand the relationship between Prisma schema and database structure
-- Compare ORM vs. raw SQL approaches for database operations
-
-## Overview
-In this lesson, you'll learn about **Prisma ORM** - a modern, type-safe way to interact with databases in Node.js. You'll transform your existing PostgreSQL application from using raw SQL queries to using Prisma's intuitive API, gaining better type safety, autocomplete, and maintainability.
-
-**Why This Matters:**
-- **Developer Experience**: Better autocomplete and error detection
-- **Type Safety**: Catch errors at compile time, not runtime
-- **Maintainability**: Easier to refactor and modify database operations
-- **Modern Development**: Industry standard for Node.js applications
-
----
-
-## 1. Understanding ORMs (Object-Relational Mapping)
-
-### What is an ORM?
-An **ORM (Object-Relational Mapping)** is a programming technique that lets you interact with your database using your programming language's syntax instead of writing raw SQL.
-
-**The Problem ORMs Solve:**
-- **Language Mismatch**: SQL is a different language than JavaScript
-- **Type Safety**: Raw SQL doesn't provide compile-time error checking
-- **Maintenance**: SQL strings scattered throughout code are hard to maintain
-- **Security**: Manual SQL construction can lead to vulnerabilities
-
-### How ORMs Work
-Instead of writing:
-```sql
-SELECT * FROM users WHERE email = 'john@example.com'
-```
-
-You write:
-```javascript
-const user = await prisma.user.findUnique({
-  where: { email: 'john@example.com' }
-});
-```
-
-**Benefits:**
-- **Type Safety**: Prisma knows the structure of your data
-- **Autocomplete**: Your editor suggests available fields and methods
-- **Error Prevention**: Invalid queries are caught before runtime
-- **Consistency**: Same API pattern for all database operations
-
----
-
-## 2. Introduction to Prisma
-
-### What is Prisma?
-
-Prisma is a modern, open-source ORM for Node.js and TypeScript (except we won't use its TypeScript features). It consists of three main tools:
-
-1. **Prisma Schema**: A declarative way to define your database structure
-2. **Prisma Client**: An auto-generated, type-safe database client
-3. **Prisma Migrate**: Database migration and schema management
-
-### Key Features of Prisma
-- **Type Safety**: Full TypeScript support with auto-generated types
-- **Auto-completion**: Intelligent suggestions in your editor
-- **Database Agnostic**: Works with PostgreSQL, MySQL, SQLite, and more
-- **Schema Introspection**: Can read existing databases and generate schemas
-- **Relationships**: Easy handling of database relationships
-- **Performance**: Optimized queries and connection pooling
-
-### Prisma vs. Raw SQL
-| Aspect | Raw SQL | Prisma ORM |
-|--------|---------|------------|
-| **Type Safety** | None | Full TypeScript support |
-| **Autocomplete** | No | Yes, with Prisma extension |
-| **Error Detection** | Runtime only | Compile time + runtime |
-| **Maintainability** | Harder | Easier |
-| **Learning Curve** | Lower for SQL users | Slightly higher |
-| **Performance** | Can be optimized | Good, with optimizations |
-
-### How it Works
-
-Under the covers, Prisma is making SQL calls, which are issued via socket connections to a database.  There is a connection pool.  Actually ... Prisma relies on the `pg` package to make this work.
-
----
-
-## 3. Prisma Architecture and Concepts
-
-### The Prisma Workflow
-
-
-### Core Concepts
-
-**Models**
-Models represent your database tables as JavaScript classes (example only, do not use):
-
-```prisma
-model UserExample {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String
-  tasks Task[]
-}
-```
-
-**Fields**
-Fields represent columns in your database:
-- **Scalar Fields**: `String`, `Int`, `Boolean`, `DateTime`
-- **Relation Fields**: `User[]`, `Task` (for relationships)
-
-**Attributes**
-Attributes provide metadata about fields:
-- **`@id`**: Marks a field as the primary key
-- **`@unique`**: Ensures field values are unique
-- **`@default`**: Sets default values
-- **`@map`**: Maps Prisma field names to database column names
-
-**Relations**
-Relations define how models connect to each other:
-- **One-to-Many**: One user can have many tasks
-- **Many-to-One**: Many tasks can belong to one user
-- **One-to-One**: One user has one profile
-
-By default, every attribute listed must be non-null.  You can override this behavior by putting a `?` at the end of the data type: `String?`.
-
----
-
-### Schema Mapping Concepts
-
-**Field Mapping**
-```prisma
-createdAt DateTime @default(now()) @map("created_at")
-```
-- **Prisma Field**: `createdAt` (camelCase, JavaScript convention)
-- **Database Column**: `created_at` (snake_case, SQL convention)
-
-**Table Mapping**
-```prisma
-model User {
-  ...
-@@map("users")
-}
-```
-- **Prisma Model**: `User` (PascalCase, JavaScript convention)
-- **Database Table**: `users` (lowercase, SQL convention)
-
-**Relationship Mapping**
 ```prisma
 model Task {
   id           Int      @id @default(autoincrement())
-  title        String
-  createdAt DateTime @default(now()) @map("created_at)
-  user   User     @relation(fields: [userId], references: [id], onDelete: Restrict)
-  userId       Int @map("user_id")
-  isCompleted  Boolean  @default(false) @map("is_completed")
+  title        String   @db.VarChar(255)
+  isCompleted Boolean  @default(false) @map("is_completed")
+  userId      Int @map("user_id")
+  createdAt   DateTime @default(now()) @db.Timestamp(6) @map("created_at")
+  users        users    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id, userId], map: "task_id_user_id_unique")
   @@map("tasks")
 }
-```
-- **Prisma Field**: `userId` (camelCase)
-- **Database Column**: `user_id` (snake_case)
-- **Relation**: Links to the `User` model via the `id` field
 
-With this schema, we have the same table names and column names as were created using the `CREATE TABLE` SQL statements at the start of this lesson.  In Prisma we use camel case column names and capitalized model names, but the column names are mapped to the lower case versions using `@map()`, and the table names are mapped to the lower case versions using `@@map()`.  With this approach, we can access the same tables from either pg or Prisma.
+model User {
+  id              Int      @id @default(autoincrement())
+  email           String   @unique @db.VarChar(255)
+  name            String   @db.VarChar(30)
+  hashedPassword String   @db.VarChar(255) @map("hashed_password")
+  createdAt      DateTime @default(now()) @db.Timestamp(6) @map("created_at")
+  tasks           tasks[]
 
----
-
-## 4. Database Introspection and Schema Generation
-
-### What is Introspection?
-Introspection is the process of reading your existing database structure and automatically generating a Prisma schema that matches it.
-
-### Using Prisma Introspection
-
-The following command (don't run it yet!) introspects the schema of the database.
-
-```bash
-npx prisma db pull 
+  @@map("users")
+}
 ```
 
-**What This Does:**
-- Connects to your existing PostgreSQL database
-- Reads all tables, columns, and relationships
-- Generates models in your `schema.prisma` file that matches your current database
-- Preserves all existing data
+Each model has a name, a collection of fields, perhaps one or several indexes, and perhaps a `@@map` clause.  By convention, the model is given a capitalized singular name.  As we typically use lowercase table names, the `@@map` clause mapes the model name to the table name.
+
+The `@@unique` line declares an index.  It is saying that the id and the userId comprise a unique composite key.
+
+**Fields**
+
+Fields represent columns in your database:
+- **Scalar Fields**: `String`, `Int`, `Boolean`, `DateTime`
+- **Relation Fields**: `User[]`, `Task` (for relationships)
+
+**Attributes**
+Attributes provide metadata about fields:
+- **`@id`**: Marks a field as the primary key
+- **`@unique`**: Ensures field values are unique
+- **`@default`**: Sets default values
+- **`@map`**: Maps Prisma field names to database column names
+
+### **The Prisma Schema and the Database Schema**
+
+The Prisma schema describes the database schema.  There are two cases to consider:
+
+1. **Introspection** There is an existing database schema.  For the Prisma client to be able to operate on the database, a Prisma schema must be created to match.  Prisma provides a means to read the database schema and to create a Prisma schema from it. All of the existing data is preserved.
 
 **Benefits of Introspection:**
 - **No Data Loss**: Your existing data remains intact
@@ -729,25 +168,16 @@ npx prisma db pull
 - **Schema Evolution is difficult for a team project**
 - **Schema Management is difficult in production**
 
-### The alternative: Manage Schema with the ORM.  Use Migration.
+2. **Migration** If there is no existing databae schema, Prisma schema definitions can be created by hand, like those above.  Then, those schema definitions are used to create tables with corresponding columns, constraints, and indexes.  This process is called **migration**.  If there is existing data, it can be preserved.
 
-In this case, you write and update model definitions directly.
+In the assignment, you will do each of these.
 
-A migrate step updates the actual table definitions in the database.
+Once the Prisma and database schemas have been created by one of the processes above, it may be necessary to modify the schema, perhaps to add tables or to add or remove columns from tables.  In this case, the Prisma schema is changed, and the migration step is performed again.  Every change to the Prisma schema requires that you run migration again.  As the Prisma schema is just a file, it can be shared within a development team via Github, and it can be propagated from Github to the production deployment.
 
-Whenever you create or modify the Prisma schema, you must also do a migration.  No tables are generated or updated until you do this:
+## **5. Error Handling with Prisma**
 
-```bash
-npx prisma migrate dev --name firstVersion
-```
+### **Prisma Error Types**
 
-You give each subsequent migration a different name. Run the command above and verify that it completes correctly.  No table changes will occur, because you previously created the tables you need.
-
----
-
-## 4. Error Handling with Prisma
-
-### Prisma Error Types
 Prisma provides specific error codes for different scenarios:
 
 **Common Error Codes:**
@@ -760,7 +190,7 @@ The `P2025` only occurs for the following operations: `update()`, `delete()`, `f
 
 ### Implementing Error Handling
 
-The code below is an example -- but frequently, you will only catch a small subset of the errors in your controller.  You'll let most errors fall through to your global error handler.
+The code below is an example.  More frequently, you will only catch a small subset of the errors in your controller.  You'll let most errors fall through to your global error handler.
 
 
 ```javascript
@@ -776,7 +206,7 @@ try {
     });
   }
   
-  if (error.code === 'P2025') { // won't happen here!
+  if (error.code === 'P2025') { 
     return res.status(404).json({ 
       error: "Record not found" 
     });
@@ -807,10 +237,6 @@ app.use((err, req, res, next) => {
   // Handle database connection failures
   if (err.name === "PrismaClientInitializationError") {
     console.log("Couldn't connect to the database. Is it running?");
-    return res.status(500).json({ 
-      error: "Database connection failed",
-      message: "Couldn't connect to the database. Is it running?"
-    });
   }
   console.error(err.constructor.name, err.message);
   console.error(err.stack); // these two lines can identify problems in your code
@@ -821,8 +247,8 @@ app.use((err, req, res, next) => {
 ```
 
 **Benefits:**
-- Provides clear feedback when the database is unavailable
-- Improves debugging and user experience
+- Provides clear operational feedback when the database is unavailable
+- Improves debugging
 - Catches connection issues early
 
 ### Error Handling in Context
@@ -844,24 +270,47 @@ try {
 else ... // it succeeded!
 ```
 
+As previously mentioned, not all errors should be handled in the context of the controllers.  That would be redundant.  Some the errors should be handled in context, though.  For example, if a user is registering, and the `P2002` error occurs, that is best handled in context, so that good feedback can be returned to the caller.
+
 ---
 
-## 11. Performance and Best Practices
+## 6. Performance and Best Practices
 
 ### Connection Management
-```javascript
-// Create a single Prisma instance
-const prisma = new PrismaClient();
 
-// Handle graceful shutdown
-process.on('beforeExit', async () => {
-  await prisma.$disconnect();
-});
+All connection management within your app should be centralized, just as it was with the pg package.  You create a shared module within your `db` folder to establish the client, and the resulting client is imported by other modules in your app.  This ensures that all connections can be ended at server shutdown, and also optimizes connection sharing.
+
+```javascript
+const prisma = new PrismaClient();
 ```
+
+You also add a statement to your shutdown procedure:
+
+```js
+// Handle graceful shutdown
+  await prisma.$disconnect();
+```
+Specific instructions on the location of these lines will be given during your assignment.
 
 **Important:** Always call `await prisma.$disconnect()` when shutting down your application or in tests to close database connections cleanly and prevent connection leaks.
 
-### Query Optimization
+## **7. Prisma Methods for Database Operations**
+
+In your assignment, you will substitute Prisma methods for methods from the pg package.  The following link shows the syntax of the Prisma methods for [CRUD operations](https://www.prisma.io/docs/orm/prisma-client/queries/crud).  You see the following correspondence with SQL statements:
+
+- INSERT: `prisma.model.create()`
+- SELECT: `prisma.model.findMany()`, `prisma.model.findFirst()`, `prisma.model.findUnique()`, `prisma.model.groupBy`
+- UPDATE: `prisma.model.update()`, `prisma.model.updateMany()`
+- DELETE: `prisma.model.delete()`, `prisma.model.deleteMany()`
+
+This is not an exhaustive list.  If the model is User, which is mapped to a users table, you can do `prisma.user.create({data: {name: "Jack"}})` to create an entry.  Of course, this example wouldn't be schema compliant.  Many of these methods have a `where` attribute to specify which entries in teh database are to be read or modified or deleted.  Methods for creating and modifying records have a `data` attribute to specify the attribute names and values.  When retrieving data, you can specify the columns you want with a `select` attribute.  There are various other choices such as `orderBy` and `groupBy`, which correspond to SQL features you have seen before.
+
+In your assignment, you are given specific guidance and examples to complete the conversion from pg to Prisma.  Refer to the link above as needed.
+
+All of these methods are asynchronous, returning a promise.  You must do an `await` to get the return value.
+
+### **Query Optimization**
+
 **Select Only Needed Fields:**
 ```javascript
 // Instead of fetching all fields
@@ -883,7 +332,7 @@ const user = await prisma.user.findUnique({
 ```javascript
 // For single records
 const user = await prisma.user.findUnique({ where: { email } }); 
-// email must be unique in this case!
+// This only works if the schema specifies that emails are unique.
 
 // For multiple records
 const users = await prisma.user.findMany({ where: { active: true } });
@@ -913,7 +362,7 @@ const result = await prisma.$transaction(async (tx) => {
 
 ---
 
-## 5. Testing and Debugging
+## 7. Testing and Debugging
 
 ### Prisma Studio
 Prisma provides a visual database browser:
@@ -953,8 +402,6 @@ prisma:query SELECT "public"."users"."id", "public"."users"."email", "public"."u
 In this lesson, you've learned:
 - **What ORMs are** and why they're beneficial for development
 - **How Prisma works** as a modern ORM for Node.js
-- **How to set up Prisma** in an existing PostgreSQL project
-- **How to transform raw SQL** to Prisma Client methods
 - **Advanced Prisma features** like relationships and transactions
 - **Best practices** for performance and error handling
 
@@ -991,4 +438,4 @@ In this lesson, you've learned:
 - Test each endpoint individually
 - Ask for help if you get stuck on specific concepts
 
-**Remember:** This lesson builds on Lesson 6a. Make sure you have a working PostgreSQL application before adding Prisma ORM!
+**Remember:** This lesson builds on Lesson 5. Make sure you have a working PostgreSQL application before adding Prisma ORM!
