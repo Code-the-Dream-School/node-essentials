@@ -2,8 +2,6 @@
 
 ## **Lesson Overview**
 
-**Learning Objectives**: Students will gain foundational knowledge of SQL databases using Postgres. They will understand the basic purpose and attributes of SQL databases. They will learn the SQL language, including SELECT, INSERT, UPDATE, and other standard SQL verbs. They will understand JOINs and transactions, primary and foreign keys, associations, and table constraints. They will learn how to create tables with schemas. This is a generalized introduction to SQL, so no Object Relational Mapper (ORM) will be used. In this lesson, the focus is on SQL itself, so there will be no JavaScript code developed.
-
 **Topics**:
 
 1. Introduction to SQL: What SQL is, why relational databases matter, and how constraints, associations, and transactions work.
@@ -12,10 +10,57 @@
 4. More on JOINs.
 5. BEGIN, COMMIT, and RETURNING.
 6. SQL from a Node program.
+7. Converting Your Tasks App From the Memory Store to PostgreSQL
+8. Understanding Schema
+9. Using the pg Package in Your Node App
+10. Queries
+11. Error Handling
+12. Common Challenges and Solutions
+
+## Learning Objectives
+By the end of this lesson, you will be able to:
+- Understand why databases are essential for web applications
+- Explain the key concepts of PostgreSQL and relational databases
+- Create tables with schemas
+- Use the SQL language, including SELECT, INSERT, UPDATE, and other standard SQL verbs.
+- Understand JOINs and transactions, primary and foreign keys, associations, and table constraints.
+- Connect a Node.js application to PostgreSQL using the `pg` library
+- Implement database operations (CRUD) in your Express controllers
+- Understand database security concepts like parameterized queries
+- Handle database connections and errors properly
+
+## Overview
+In this lesson, you will learn how to integrate PostgreSQL with your Node.js Express application. You'll move from storing data in memory (which gets lost when the server restarts) to using a persistent database that keeps your data safe and accessible.
+
+**Prologue:**
+Right now you are using `memoryStore.js` to store users and a list of tasks for each. For this lesson, you want to eliminate all use of `memoryStore.js`, and to read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+
+**Prerequisites:** This lesson builds on the work you completed in **Week 4**, where you built a working Express application with in-memory storage. Make sure you have a functional Express app with user and task management before proceeding.
+
+**Why This Matters:**
+- **Data Persistence**: Your data survives server restarts and crashes
+- **Scalability**: Can handle multiple users and larger datasets
+- **Security**: Better data isolation and user ownership
+- **Professional Development**: Real-world applications use databases, not memory storage
+
+**The Problem with In-Memory Storage**
+
+When you store data in JavaScript arrays or objects, that data exists only while your server is running. When you restart your server, all the data disappears.  Also, your server only has so much memory, much less than a production application would typically need to store.
+
+**Databases Solve This Problem**
+
+Databases store data on disk (or in the cloud), so your data persists even when your application stops running.
+
+**Benefits of Database Storage:**
+- **Persistence**: Data survives server restarts
+- **Concurrent Access**: Multiple users can access data simultaneously
+- **Data Integrity**: Built-in rules ensure data consistency
+- **Backup & Recovery**: Easy to backup and restore data
+- **Scalability**: Can handle millions of records efficiently
 
 ## **5.1 What SQL is, and Why it is Used**
 
-SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used - but MongoDB is pretty easy to learn. SQL is a deeper topic.
+SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL, Microsoft SQL Server, Oracle Database, and others. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used - but MongoDB is pretty easy to learn. SQL is a deeper topic.
 
 Read the following introduction: <https://www.theodinproject.com/lessons/databases-databases-and-sql>. Or, if you know this stuff, jump to the bottom of that page and do the Knowledge Check. Be sure that you understand the concepts of Primary Key and Foreign Key.
 
@@ -55,6 +100,23 @@ When a table is defined in the schema, one or several **constraints** on the val
 - FOREIGN KEY constraint. In the blog example above, each post must belong to a blog, meaning that the post record has the blog's primary key as a foreign key. Otherwise you'd have a post that belonged to no blog, a worthless situation.
 
 If you try to create a record that doesn't comply with constraints, or update one in violation of constraints, you get an error.
+
+### **DIfferent Relational Databases
+
+There are a variety of different implementations of relational databases.  All support SQL, but each is optimized for a particular use case.  For very large data volumes and transaction rates, you might use Amazon Aurora, BigQuery, or various others.  Be aware that SQL implementations vary.  SQL statments that work for one implementation may not work unchanged in a different one.  In this class, you use PostgreSQL, in part because it is freely available and runs both on your local laptop and in the cloud.
+
+### **PostgreSQL**
+
+PostgreSQL (often called "Postgres") is a powerful, open-source relational database management system. It's one of the most popular databases for web applications.  As part of your workspace setup, you installed PostgreSQL on your laptop, but database access can also be remote.  Later in the course, you will use a cloud resident implementation of PostgreSQL.
+
+**Key Features:**
+- **Open Source**: Free to use and modify
+- **ACID Compliant**: Ensures data reliability and consistency
+- **Extensible**: Can add custom functions and data types
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Production Ready**: Used by companies like Instagram, Reddit, and Netflix
+
+(The acronym ACID, by the way, stands for Atomicity, Consistency, Isolation, and Durability, all critical functions for storing critical data.)
 
 ## **5.2 Learning and Practicing the SQL Language**
 
@@ -369,9 +431,307 @@ The default isolation level for the Postgres database you are using is READ COMM
 
 ## **5.6 SQL in a Node Application**
 
-There are several ways to do SQL in Node. You can use the node-postgres package. That one basically issues the SQL statements you specify. You have two examples of pg programs in your node-homework folder:
+There are several ways to do SQL in Node. You can use the `node-postgres` (pg) package. That one basically issues the SQL statements you specify. You have two examples of pg programs in your node-homework folder:
 
 - load-db.js. This connects to the database, creates the tables with the appropriate column names, data types, and schema constraints, and populates each table with values from CSV files, which are in the csv folder of your node-homework directory.
 - sqlcommand.js.
 
-Have a look at each of these programs, so that you can see how the node-postgres package (pg) works to perform SQL operations. Spend a little time with this. It's a good idea to learn how to use the pg package. However, it is much more common for Node application development to use an Object-Relational Mapper (ORM). The ORM makes the schema management and data manipulation a lot easier. So, for reasons of brevity, your homework won't include any JavaScript. You will do the programming next week, using an ORM. The downside of using an ORM is that it hides many of the details of SQL from you, so if you were to start with the ORM, you wouldn't learn SQL as well as a backend developer needs to.
+Have a look at each of these programs, so that you can see how the node-postgres package (pg) works to perform SQL operations.
+
+ Spend a little time with this. It's a good idea to learn how to use the pg package. It is also common for Node application development to use an Object-Relational Mapper (ORM). The ORM makes the schema management and data manipulation a lot easier.  You don't need to write SQL statements for much of the ORM access.  ON the other hand, you can't learn SQL if you only use the ORM.
+
+**At this point, please proceed to your assignment.  Do the exercises in Assignment 5a.  When those are complete, resume reading this lesson.
+
+## **5.7 Converting Your Tasks App From the Memory Store to PostgreSQL**
+
+Now that you understand what SQL does, it's time to program with it.  You'll do this initially using the `pg` package.
+
+### **Configuring the Connection**
+
+Database connections require a connection string -- a URL.  You created several during Assignment 0, and they are stored in your `.env` file.  This includes the host, the database name, the SSL mode, and your user id and password.  Obviously, the latter must be kept secret, so you only store it in the `.env` file, never in code, and you must take care that the `.env` file is listed in the `.gitignore`.  You don't use SSL for the local connection, but you will for the cloud resident database.
+
+In your app, you want to centralize the management of the database connection.  You do this for two reasons:
+
+- When you stop the server, you need to bring all database connections to a graceful end.
+- You want to have a pool of reused connections for efficiency.
+
+You'll have a dedicated module in a db folder for the purpose.
+
+## **5.8 Understanding Schema**
+
+The schema of a relational database is the list of tables and their properties.  Each table has a name and a list of columns.  Each column has a name and a datatype: String, Int, Boolean, Timestamp, etc.. One column is typically the primary key.  The schema also describes database constraints: columns where the values can't be null, or columns where all values must be unique.  Relations between tables may be defined.  This implement the associations previously described, and for relations, there may be one or several foreign keys, i.e. pointers to the corresponding entries in a different table.
+
+The following SQL statements create the tables with various schema elements.
+
+**Users Table:**
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  name VARCHAR(30) NOT NULL,
+  hashed_password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP 
+);
+```
+
+**Tasks Table:**
+```sql
+CREATE TABLE tasks (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)
+);
+```
+
+### Understanding the Schema
+- **`SERIAL PRIMARY KEY`**: Creates an auto-incrementing unique identifier
+- **`VARCHAR(255)`**: Variable-length string with maximum 255 characters
+- **`NOT NULL`**: Field cannot be empty
+- **`UNIQUE`**: No two users can have the same email
+- **`REFERENCES users(id)`**: Creates a foreign key relationship
+- **`DEFAULT CURRENT_TIMESTAMP`**: Automatically sets the current time
+- **CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)** Creates an additional index.  
+
+The additional index is needed for assignment 6. 
+
+## **5.9 Using the pg Package in Your Node App.**
+
+You will use the `pg` package, which you'll install as part of the assignment.  In an Express application, you can have many concurrent requests.  You don't want to create a database connection for each of them.  So, you'll use a pool.  In your assignment, you will put the following code in a `pg-pool` module in the `db` folder
+
+```javascript
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+});
+
+module.exports = pool;
+```
+
+**Understanding the Code:**
+- **`Pool`**: Manages multiple database connections efficiently
+- **`connectionString`**: Uses your DATABASE_URL from environment variables
+- **`sslmode`**: Postgres hosting platforms (like the Neon one you will use) require SSL, and will have a connection string that specifies the sslmode. For local development, your socket is local so you don't need SSL.
+- **`module.exports`**: Makes the pool available to other files
+
+You also need the `pool.on('error' ...` event handling in case an idle pool connection throws an error.  Otherwise this can disrupt your node process.
+
+### Why Use Connection Pooling?
+Instead of creating a new connection for each database operation, a pool maintains several connections and reuses them. This is more efficient and faster than creating connections on demand.
+
+**Important:** When stopping your application, use `await pool.end()` to close all connections cleanly and prevent connection leaks.  In your assignment, you'll add this logic to the shutdown handling for your app.
+
+---
+
+## **5.10 Queries**
+
+You'll do database queries in your controllers.  Here are some sample queries:
+
+```js
+const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+const newUser = await pool.query(`INSERT INTO users (email, name, hashed_password) 
+    VALUES ($1, $2, $3) RETURNING id, email, name`,
+    [email, name, hashed_password]
+  );
+```
+
+What happens is this: When you issue the `pool.query()`, you get a connection from the pool.  It may not be connected to an actual socket yet, in which case it is connected as you issue the query.  
+
+The query itself is just an SQL statement, except notice the `($1, $2, $3)`.  These are parameters you pass to the query, which are substituted.  Of course, you could use string interpolation to put the values in ... **but you better not!**  That would make your code vulnerable to an SQL injection attack, where the attacker adds hostile SQL in the middle of your statement.  With parameterized queries, SQL parameters are sanitized before they are substituted, and dangerous stuff is escaped.
+
+After a client connection is retrieved from the pool, the query is run, and once it is complete and the results have been returned, the client connection is returned to the pool.  If the server gets busy, the `pool.query()` operation may have to wait for an available connection.
+
+All well and good, but what about transactions?  The `pool.query()` operation performs a single query in an automatically performed transaction. Suppose you need to do a series of queries in a single transaction?  In that case, the process is a little more complicated.  The following sequence might occur in a banking application:
+
+```js
+async function runTransactionalWork() {
+  const client = await pool.connect(); // Checkout a client from the pool
+  let success = true;
+  let reasonMessage;
+  try {
+    await client.query("BEGIN"); // Start transaction
+
+    // Example operation #1
+    const userResult = await client.query(
+      `SELECT FROM users WHERE email = $1`,
+      ["testuser@example.com"]
+    );
+    if (userResult.rows.length) { // if the user was found
+      const userId = userResult.rows[0].id;
+
+      // Example operation #2
+      const balanceResult = await client.query(
+        `SELECT balance FROM accounts WHERE user_id = $1`, [user_id]
+      );
+
+      if (balanceResult.rows.length && balanceResult.rows[0].balance >= 100) {
+
+        // Example operation #3
+        const balanceAfter = await client.query(
+          `UPDATE accounts SET balance = balance - 100 WHERE user_id = $1 RETURNING balance`,
+          [userId]
+        );
+        console.log("New balance:", balanceAfter.rows[0].balance);
+        await client.query("COMMIT"); // Success → commit the transaction
+
+      } else { // not enough money
+        console.log("Not enough money for that withdrawal");
+        success = false;
+      }
+    } else { // the user for that email wasn't found
+      console.log("User not found.");
+      success = false;
+    }
+    if (!success) {
+      await client.query("ROLLBACK"); // can't do the withdrawal, so rollback
+    }
+    return { success, userId };
+  } catch (err) {
+    await client.query("ROLLBACK"); // Failure → rollback the transaction
+    console.error("Transaction failed, rolled back.", err);
+    throw err; // propagate error to caller
+  } finally {
+    client.release(); // Always release the client back to the pool
+  }
+}
+```
+In sum, for transactions, you do:
+
+- checkout client
+- begin transaction
+- query
+- more queries
+- commit transaction
+- or, in case of errors, rollback the transaction
+- return the client to the pool.
+
+We won't do transactions with `pg`.
+
+### **What is SQL Injection?**
+SQL injection is a security vulnerability where malicious users can execute unauthorized SQL commands through your application.
+
+**Example of Vulnerable Code:**
+```javascript
+// DANGEROUS - vulnerable to SQL injection
+const query = `SELECT * FROM users WHERE email = '${email}'`;
+```
+
+**Example of Safe Code:**
+```javascript
+// SAFE - uses parameterized queries
+const query = 'SELECT * FROM users WHERE email = $1';
+const result = await pool.query(query, [email]);
+```
+
+**Why Parameterized Queries are Safe:**
+- Values are treated as data, not as SQL code
+- Special characters are automatically escaped
+- Prevents malicious SQL from being executed
+
+### User Ownership Validation
+Always verify that users can only access their own data:
+
+```javascript
+// Ensure user can only access their own tasks
+const result = await pool.query(
+  'SELECT * FROM tasks WHERE id = $1 AND user_id = $2',
+  [taskId, userId]
+);
+
+if (result.rows.length === 0) {
+  return res.status(404).json({ error: "Task not found or access denied" });
+}
+```
+
+**Important Security Note:**
+YOu are going to use a globally stored user_id.  This is a temporary makeshift.  The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
+
+---
+
+## **5.11. Error Handling**
+
+### Database Error Types
+
+Different types of errors can occur when working with databases.  Typically you let these fall through to the global error handler middleware.  
+
+There are times when you will need to catch specific errors within your controller logic.  For example, if a user attempts to register with an email address that is already registered, you want to catch the error in the controller so that you can return an appropriate explanation to the user.
+
+**Connection Errors:**
+
+You want a special log message in your error handler for connection errors, in case you forget to start your Postgres service.
+
+You may also get query errors.  For example, queries could time out.  A request to the pool could fail because all connections are tied up. There could be an attempt to write something to the database that doesn't comply with the schema.  In general, you'd just log these to the console in your global error handler, and return the 500 return code and corresponding JSON internal server error message.
+
+### A Health Check API
+
+It is common to have a health check  API, so that you can see if the application is functioning.  You have an existing health check, but it should report a problem if connection to the database is not successful.
+
+---
+
+## **5.12. Common Challenges and Solutions**
+
+### Challenge: Database Connection Fails
+**Symptoms:** `ECONNREFUSED` error
+**Solutions:**
+- Check if PostgreSQL is running
+- Verify connection string in `.env`
+- Check firewall settings
+- Ensure correct port number
+
+### Challenge: Tables Don't Exist
+**Symptoms:** `42P01` error (undefined table)
+**Solutions:**
+- Run your schema SQL file
+- Check table names in your queries
+- Verify database name in connection string
+
+### Challenge: Permission Denied
+**Symptoms:** `42501` error (insufficient privilege)
+**Solutions:**
+- Check database user permissions
+- Verify username and password
+- Ensure user has access to the database
+
+---
+
+## **Summary**
+
+In this lesson, you've learned:
+- **Why databases are essential** for web applications
+- **How PostgreSQL works** as a relational database
+- **How to connect Node.js** to PostgreSQL using the `pg` library
+- **How to implement database operations** in your controllers
+- **Security best practices** like parameterized queries
+- **Proper error handling** for database operations
+
+### Next Steps
+1. **Complete Assignment 5** following this lesson.  You have done 5a, so complete 5b.
+2. **Test your database connection** and API endpoints
+
+---
+
+### Resources
+
+- [PostgreSQL Official Documentation](https://www.postgresql.org/docs/)
+- [Node.js pg Package](https://node-postgres.com/)
+- [Express.js Documentation](https://expressjs.com/)
+- [SQL Tutorial](https://www.w3schools.com/sql/)
+- [Database Design Basics](https://www.postgresql.org/docs/current/tutorial.html)
+
+---
+
+### Getting Help
+
+- Review the lesson materials thoroughly
+- Check your database connection and credentials
+- Use `console.log` statements for debugging
+- Test each endpoint individually
+- Ask for help if you get stuck on specific concepts
