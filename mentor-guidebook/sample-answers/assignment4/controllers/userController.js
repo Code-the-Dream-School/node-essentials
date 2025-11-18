@@ -38,7 +38,7 @@ exports.register = async (req, res) => {
 
   // Create new user
   const newUser = { email, name, hashedPassword };
-  storedUsers.push(newUser);
+  global.users.push(newUser);
 
   res.status(201).json({
     email,

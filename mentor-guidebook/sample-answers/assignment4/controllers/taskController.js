@@ -10,7 +10,7 @@ const taskCounter = (() => {
 exports.index = async (req, res) => {
   // Get tasks for the logged on user
 
-  const userTasks = storedTasks.filter(
+  const userTasks = global.tasks.filter(
     (task) => task.userId === global.user_id.email,
   );
   if (userTasks.length === 0) {
@@ -50,7 +50,7 @@ exports.create = async (req, res) => {
   }
 
   // Create new task
-  const newTask = { id: taskCounter, userId: global.user_id.email, ...value };
+  const newTask = { id: taskCounter(), userId: global.user_id.email, ...value };
   global.tasks.push(newTask);
   const { userId, ...sanitizedTask } = newTask;
   res.status(201).json(sanitizedTask);
@@ -68,13 +68,13 @@ exports.update = async (req, res) => {
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
-  const task = globals.task.find(
+  const task = global.tasks.find(
     (t) => t.id === id && t.userId === global.user_id.email,
   );
   if (!task) {
     return res.status(404).json({ message: "Task not found" });
   }
-  Object.assign(task, ...value);
+  Object.assign(task, value);
   const { userId, ...sanitizedTask } = task;
   res.status(200).json(sanitizedTask);
 };

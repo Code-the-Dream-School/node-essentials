@@ -128,7 +128,7 @@ In the above, you are copying everything except the userId to the new sanitizedT
 **Hint 2** When you do the update, you **DO** want to mutate the task object in place.  You are doing a patch.  You don't want a complete replacement of the task object.  You use all the values from the body, but you leave any attributes of the task that aren't in the new body unchanged.  There is a spiffy way to do this (after you find the right task object to mutate).
 
 ```js
-Object.assign(currentTask, ...req.body)
+Object.assign(currentTask, req.body)
 ```
 
 This is a good trick to remember.  But the database will handle this automatically for you when you call an update.  After you mutate the task as above, you **still** have to make a copy that doesn't include the userId, and send that back.
