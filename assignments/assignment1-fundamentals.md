@@ -19,7 +19,7 @@
    - Create a new branch for your work on assignment 1 (e.g., `assignment1`).
    - Make all your changes and commits on this branch.
 4. **Before you test:**
-   - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](https://raw.githubusercontent.com/Code-the-Dream-School/node-essentials/refs/heads/main/TDD-TESTING-GUIDE.html)
+   - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](?page=test-driven-development-(tdd)-testing-guide)
    - Watch this video that goes over Test Driven Development: [How to Read Tests](https://www.youtube.com/watch?v=fxe1yNSC6H4)
 3. **Run the tests:**
    - After completing the tasks, run the tests using:
