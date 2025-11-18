@@ -17,7 +17,12 @@
     "node-mocks-http": "^1.13.0",
     "nodemon": "^3.0.2"
   },
-  "keywords": ["express", "authentication", "tasks", "validation"],
+  "keywords": [
+    "express",
+    "authentication",
+    "tasks",
+    "validation"
+  ],
   "author": "",
   "license": "ISC"
-} 
+}

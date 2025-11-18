@@ -228,13 +228,13 @@ app.use('/admin', adminRoutes);
 
 // 5. 404 handler (after all routes)
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ message: 'Route not found' });
 });
 
 // 6. Error handler (last - catches all errors)
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ message: 'Internal server error' });
 });
 ```
 
@@ -282,7 +282,7 @@ The res object has the following methods:
 
 ## **3.8 Built-in vs. Custom Middleware**
 
-Understanding the difference between built-in and custom middleware is crucial for building effective Express applications.
+Understanding the difference between built-in and custom middleware is crucial for building effective Express applications.  The following sections give several examples for illustration, but you don't need to put them in your code at this time.
 
 ### **Built-in Middleware**
 
@@ -300,6 +300,7 @@ app.use(express.urlencoded({ extended: true }));
 ```
 
 #### **Static File Serving**
+
 ```js
 // Serve static files from 'public' directory
 app.use(express.static('public'));
@@ -309,7 +310,7 @@ app.use('/static', express.static('public'));
 ```
 
 #### **Third-party middleware**
-Created and maintained as separate npm packages.
+These are created and maintained as separate npm packages.  The following are examples -- not something you need to use as this time.
 
 ```js
 const cookieParser = require('cookie-parser');
@@ -325,6 +326,8 @@ app.use(compression());
 Custom middleware functions are functions you write to handle specific application logic:
 
 #### **Request Modification Middleware**
+
+
 ```js
 // Add custom properties to request object
 app.use((req, res, next) => {

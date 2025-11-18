@@ -106,7 +106,7 @@ npm run tdd assignment5a
 In this assignment, you will modify your existing Express application to use PostgreSQL instead of in-memory storage. You'll transform your working Express app that stores data in memory to one that persists data in a real database.
 
 **Prologue:**
-Right now you are using `memoryStore.js` to store users and a list of tasks for each. For this assignment, you want to eliminate all use of `memoryStore.js`, and read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+Right now you are using globals to store users and a list of tasks for each. For this assignment, you want to eliminate all use of `global.users` and `global.tasks`, and read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
 
 ## Prerequisites
 - Completed previous lessons with a working Express application
@@ -248,7 +248,7 @@ app.get('/health', async (req, res) => {
     await pool.query('SELECT 1');
     res.json({ status: 'ok', db: 'connected' });
   } catch (err) {
-    res.status(500).json({ status: 'error', db: 'not connected', error: err.message });
+    res.status(500).json({ message: `db not connected, error: ${ err.message }` });
   }
 });
 ```
@@ -267,7 +267,7 @@ If the database service is not up, you want to know.  Your error handler will ha
 
 ### 3. Modify Controllers for Database Operations
 
-You need to eliminate all use of `util/memoryStore.js`.  In general, you are going to substitute database calls, except the one for the currently logged on user.  For that, you are going to use `global.user_id`.  Globals are accessible via every module.  Let's start with logon in the user controller.  You will see that there aren't many try/catch stanzas.  That's because, for the most part, you can let the global error handler take care of error handling.
+You are going to substitute database calls for globals, except for `global.user_id`.  Let's start with logon in the user controller.  You will see that there aren't many try/catch stanzas.  That's because, for the most part, you can let the global error handler take care of error handling.
 
 Your calls to the `pg` pool are asynchronous.  If some of your controller functions are not declared async you will need to change that.  You will need to call `next(err)` in some controller functions, in which case they must be declared with `req, res, next` as their parameters.
 
@@ -276,10 +276,10 @@ Your calls to the `pg` pool are asynchronous.  If some of your controller functi
 In userController.js, you need to have a require statement to give access to the pool, so put that near the top.  You currently do a find() on the storedUser array.  Well, you have to eliminate that.  This is the equivalent, assuming you have extracted email and password from the req.body:
 
 ```javascript
-const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 ```
 
-The `user.rows` array might have 0 length, in which case authentication fails: you send back the 401 and the appropriate message.  Otherwise, you use your existing `comparePassword()` function to see if the password in the body of the request matches `user[0].hashed_password`.  If it doesn't, you send the 401 and the authentication failed message.  But, if it does, you send a 200 and the appropriate message -- and you also put `user[0].id` in global.user_id.
+The `result.rows` array might have 0 length, in which case authentication fails: you send back the 401 and the appropriate message.  Otherwise, you use your existing `comparePassword()` function to see if the password in the body of the request matches `result.rows[0].hashed_password`.  If it doesn't, you send the 401 and the authentication failed message.  But, if it does, you send a 200 and the appropriate message -- and you also put `result.rows[0].id` in global.user_id.
 
 So: make those changes to the logon function now.
 
@@ -290,17 +290,20 @@ Right now, you do a find() on the array in the memory store to see if the user i
 ```javascript
   const { error, value } = userSchema.validate(req.body, { abortEarly: false });
   if (error) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    return res.status(400).json({
+      message: "Validation failed",
+      details: error.details,
+    });
   }
   let user = null;
   value.hashed_password = await hashPassword(value.password);
   // the code to here is like the memoryStore version
   try {
     user = await pool.query(`INSERT INTO users (email, name, hashed_password) 
-    VALUES ($1, $2, $3) RETURNING id, email, name`,
-    [value.email, value.name, value.hashed_password]
-  ); // note that you use a parameterized query
-} catch (e) { // the email might already be registered
+      VALUES ($1, $2, $3) RETURNING id, email, name`,
+      [value.email, value.name, value.hashed_password]
+    ); // note that you use a parameterized query
+  } catch (e) { // the email might already be registered
   if (e.code === "23505") { // this means the unique constraint for email was violated
     // here you return the 400 and the error message.  Use a return statement, so that 
     // you don't keep going in this function
@@ -311,17 +314,21 @@ Right now, you do a find() on the array in the memory store to see if the user i
 // object.  Be sure to also set global.user_id with the id of the user record you just created. 
 ```
 
+Do not return the hashed_password or user_id of the user just created.  These should be removed before you send the response.  You should return a body with only the name and email.
+
 #### c. Changing Logoff.
 
-You only need to set `global.user_id` to null, instead of using the memoryStore.
+No change needed!
 
 #### d. Changing the auth Middleware.
 
-Pretty easy.  You use global.user_id instead of the memory store.
+No change needed!
 
 #### e. Changing Task Management: POST /tasks (create)
 
-You have a controller method for that, but it uses the memory store.  Here is the equivalent for `pg`.  This only shows the part you have to change.  Joi validation and the res.json() part are the same:
+You will see that the attribute names change a little bit.  That is because lowercase column names are used in the database.
+
+Here is how it's done with `pg`. The code below only shows the part you have to change.  Joi validation and the res.json() part are the same:
 
 ```javascript
 // you do your Joi validation, and you have a validated task object. Then:
@@ -331,21 +338,23 @@ const task  = await pool.query(`INSERT INTO tasks (title, is_completed, user_id)
   // You don't need a try/catch because the global error handler will handle the errors
 ```
 
-Note: You should not return the user_id.  That is a foreign key, and should only be known internally.  
+The attribute names change a little bit here. `isCompleted` becomes `is_completed`, because we use lower case column names in the database.
+
+Note: You should not return the user_id.  That is a foreign key, and should only be known internally.  When using `global.tasks` you had to take out the userId value, but with the database, you can specify which columns to return, so you don't need that additional step.  
 
 Of course, this operation could throw an error, for example if the database is down.  You do not need a try/catch in your controller for this, as your global error handler will take care of it.
 
 #### f. Changing Task Management: GET /tasks (index)
 
-In each of these task operations, the WHERE cause must include the `user_id`, so that a given user can't access a different user's task entries.  For `index()` you need:
+In each of these task operations, the WHERE cause must filter on th `user_id`, so that a given user can't access a different user's task entries.  For `index()` you need:
 
 ```javascript
-const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
+const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1 RETURNING id, title, is_completed",
   [global.user_id]
 )
 ```
 
-Again, you do not want to return the user_id.
+Again, in case of success, you should not return the user_id.
 
 #### g. Changing Task Management: PATCH /tasks/:id (update)
 
@@ -361,11 +370,11 @@ const setClauses = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
 const idParm = `$${keys.length + 1}`;
 const userParm = `$${keys.length + 2}`;
 const updatedTask = await pool.query(`UPDATE tasks ${setClauses} 
-  WHERE id = ${idParm} AND user_id = ${userParm}`, 
+  WHERE id = ${idParm} AND user_id = ${userParm} RETURNING id, title, is_completed`, 
   [...taskChange.values(), req.params.id, global.user_id]);
 ```
 
-This looks a little complicated, and there are other ways to do it if you only have two fields that might change, but if you have many, you'd need to do something like this.  
+This looks a little complicated, and there are other ways to do it if you only have two fields that might change, but if you have many fields, you'd need to do something like this. In the case of success, you want to return the updated object -- but not including the user_id.
 
 #### h. Changing DELETE /tasks/:id (deleteTask)
 
@@ -375,7 +384,7 @@ Another one for you to do.  Remember to filter on user_id as well as the task id
 
 Same deal. Remember to filter on user_id as well as the task id.
 
-Keep going until all dependency on the memoryStore is gone.
+Keep going until all dependency on the global arrays are gone.
 
 
 ### 4. Test Using Postman
