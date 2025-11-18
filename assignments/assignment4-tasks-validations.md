@@ -10,15 +10,15 @@ You have created route handlers that allow users to register, log in, and log of
 
 Create a task controller and a task router.  You need to support the following routes:
 
-1. POST "/tasks".  This creates a new entry in the list of tasks for the currently logged on user.
+1. POST "/tasks" (the `create` function)  This creates a new entry in the list of tasks for the currently logged on user.
 
-2. GET "/tasks".  This returns the list of tasks for the currently logged on user.
+2. GET "/tasks" (`index`).  This returns the list of tasks for the currently logged on user.
 
-3. GET "/tasks/:id".  This returns the task with a particular ID for the currently logged on user.
+3. GET "/tasks/:id" (`show`).  This returns the task with a particular ID for the currently logged on user.
 
-4. PATCH "/tasks/:id".  This updates the task with a particular ID for the currently logged on user.
+4. PATCH "/tasks/:id" (`update`).  This updates the task with a particular ID for the currently logged on user.
 
-5. DELETE "/tasks/:id".  This deletes the task with a particular ID for the currently logged on user.
+5. DELETE "/tasks/:id (`deleteTask`)".  This deletes the task with a particular ID for the currently logged on user.
 
 So, that's five functions you need in the task controller, and five routes that you need in the task router.  But, we have a few problems:
 
@@ -26,7 +26,7 @@ So, that's five functions you need in the task controller, and five routes that 
 - How do you assign an ID for each task?
 - To get, patch, or delete a task, -- how do you figure out which one you are going to work on?
 
-Let's solve each of these.  First, for every task route, we need to check whether there is a currently logged on user, and to return a 401 if there isn't.  If there is a logged on user, the job should pass to the task controller, and the task controller should handle the request.  So -- that's middleware.  Create a `/middleware/auth.js` file.  In it, you need a single function.  The function doesn't have to have a name, because it's going to be the only export.  It checks: is there a logged on user?  If not, it returns an UNAUTHORIZED status code and a JSON message that says "unauthorized".  If there is a logged on user, it calls next().  That sends the request on to the tasks controller.  Be careful that you don't do both of these: res.json() combined with next() would mess things up.
+Let's solve each of these.  First, for every task route, we need to check whether there is a currently logged on user, and to return a 401 if there isn't.  If there is a logged on user, the job should pass to the task controller, and the task controller should handle the request.  So -- that's middleware.  Create a `/middleware/auth.js` file.  In it, you need a single function.  The function doesn't have to have a name, because it's going to be the only export.  It checks: is there a logged on user, that is, is `global.user_id` null?  If it is null, it returns an UNAUTHORIZED status code and a JSON message that says "unauthorized".  If there is a logged on user, it calls next().  That sends the request on to the tasks controller.  Be careful that you don't do both of these: res.json() combined with next() would mess things up.
 
 In app.js, you can then do:
 
@@ -37,7 +37,7 @@ const authMiddleware = require("./middleware/auth");
 But, `app.use(authMiddleware)` would protect any route.  Then no one could register or log on.  You want it only in front of the tasks routes.  So, you do the following:
 
 ```js
-const taskRouter = require("./routers/task");
+const taskRouter = require("./routers/task"); 
 app.use("/tasks", authMiddleware, taskRouter);
 ```
 
@@ -45,7 +45,17 @@ That solves the first problem.  The authMiddleware gets called before any of the
 
 Protected routes act as a security barrier - they check if a user has a valid session before allowing access to sensitive operations like creating, reading, updating, or deleting tasks. Without this protection, anyone could potentially access or modify other users' data, which would be a serious security vulnerability in a real application.
 
-Let's go on to problem 2.  Within your tasks controller, `loggedOnUser` is a reference to an object, and you want to have a list of tasks within that object.  Each task should have a unique ID, but you didn't create that list when you initially stored the user object. First, create a little counter function in taskController.js, as follows:
+Let's go on to problem 2.
+
+Create a file called `controllers/taskController.js`.  You need the following request handler functions within it:
+
+- create
+- index
+- show
+- update
+- deleteTask
+
+Each task should have a unique ID. So, create a little counter function in taskController.js, as follows:
 
 ```js
 const taskCounter = (() => {
@@ -59,48 +69,79 @@ const taskCounter = (() => {
 
 This is a closure.  You are sometimes asked to write a closure in job interviews.  We can use this to generate a unique ID for each task -- but of course, restart the server and you start over.
 
+Each of the task objects needs a userId attribute, which records who owns that task.  For the time being, you'll put the user's email in that attribute.
+
 In taskController.js, you need a function called `create(req, res)`. And inside that, you do:
 
 ```js
-const loggedOnUser = getLoggedOnUser();
-if (loggedOnUser.tasklist === undefined) {
-    loggedOnUser.tasklist = [];
-};
-req.body.id = taskCounter();
-const newTask = {...req.body}; // make a copy
-loggedOnUser.tasklist.push(newTask);
-res.json(newTask);  // send it back, with an id attached
+const newTask = {...req.body, id: taskCounter(), userId: global.user_id.email};
+global.tasks.push(newTask);
+const (userId, ...sanitizedTask) = newTask; 
+// we don't send back the userId! This statement removes it.
+res.json(sanitizedTask);  
 ```
 
-Be a little careful about `loggedOnUser`.  You know that the logged-on user can change.  So, you need to get the logged-on user each time you need to refer to it.  On the other hand, once you have `loggedOnUser`, you can mutate that object all you want.
+In this REST call, as in all subsquent ones, if the operation succeeds, you return the corresponding result code and the new or updated or deleted object.  The successful result code is typically 200, meaning OK, except for creates, when it is 201.
 
-Now for problem 3.  When you have a route defined with a colon `:`, that has a special meaning.  The string following the colon is the name of a variable, and when a request comes in for this route, Express parses the value of the variable and stores it in req.params.  For the routes above, you would have `req.params.id`.  Now, be careful: this is a string, not an integer, so you need to convert it to an integer before you go looking for the right task.  Here's how you could do it in a deleteTask(req,res) function in your task controller:
+Now for problem 3.  When you have a route defined with a colon `:`, that has a special meaning.  The string following the colon is the name of a variable, and when a request comes in for this route, Express parses the value of the variable and stores it in req.params.  For the routes above, you would have `req.params.id`.  Now, be careful: this is a string, not an integer, so you need to convert it to an integer before you go looking for the right task.  Also, the string that is passed might not be a valid id, which should be a number.  If not, you need to return an error.
+
+The other thing to be careful about is access control.  The only tasks that the currently logged on user should be able to delete are their own!  You have to check that the `task.userId` contains the right email.
+
+Here's how you could do it in a deleteTask(req,res) function in your task controller:
 
 ```js
-const taskToFind = parseInt(req.params.id);
-const loggedOnUser = getLoggedOnUser();
-if (loggedOnUser.tasklist) {  // if we have a list
-  const taskIndex = loggedOnUser.tasklist.indexOf((task)=> task.id === taskToFind);
-  if (taskIndex != -1) {
-    const task = loggedOnUser.tasklist[taskIndex];
-    loggedOnUser.tasklist.splice(taskIndex, 1); // do the delete
-    return res.json(task); // return the entry just deleted.  The default status code, OK, is returned.
-  }
-};
-res.sendStatus(StatusCodes.NOT_FOUND); // else it's a 404.
+const taskToFind = parseInt(req.params?.id); // if there are no params, the ? makes sure that you
+              // get a null
+if (!taskToFind) {
+  return res.status(400).json(message: "The task ID passed is not valid.")
+}
+const taskIndex = global.tasks.findIndex((task) => task.id === taskToFind && task.userId === global.user_id.email);
+// we get the index, not the task, so that we can splice it out
+if (taskIndex === -1) { // if no such task
+  return res.status(StatusCodes.NOT_FOUND).json({message: "That task was not found"}); 
+  // else it's a 404.
+}
+const task = { userId, ...global.tasks[taskIndex] }; // make a copy without userId
+global.tasks.splice(taskIndex, 1); // do the delete
+return res.json(task); // return the entry just deleted.  The default status code, OK, is returned
 ```
 
-So, write the remaining methods, set up the routes, and test everything with Postman.  To test the operations that use a task ID, you would retrieve all tasks for the currently logged-on user first, so you know what the IDs are.  Postman will show you what is sent back.  Then you can show or patch or delete one of them.
+Now, write the remaining methods.
 
-One hint about the update function in the task router.  You are doing a patch.  You don't want a complete replacement of the task object.  This means you use all the values from the body, but you leave any attributes of the task that aren't in the new body unchanged.  There are two (2) spiffy ways to do this:
+**Hint 1** The task objects you send back should not include a userId.  Consider the case for the index operation.  You can get a list of tasks as follows:
 
 ```js
-const newTask = { ...currentTask, ...req.body}
-// or
+  const userTasks = global.tasks.filter((task) => task.userId === global.user_id.email);
+```
+
+Ok, so far so good.  But you don't send the userId values back.  And you can't mutate the tasks in this list, because that would update them in place, and then those entries in `global.tasks` wouldn't have userId attributes.  So you need to make a copy of each, and take the userId out of that copy, as follows:
+
+```js
+const sanitizedTasks = userTasks.map((task) => {
+  const { userId, ...sanitizedTask} = task;
+  return sanitizedTask;
+});
+```
+
+In the above, you are copying everything except the userId to the new sanitizedTask, and then returning an array of those.
+
+**Hint 2** When you do the update, you **DO** want to mutate the task object in place.  You are doing a patch.  You don't want a complete replacement of the task object.  You use all the values from the body, but you leave any attributes of the task that aren't in the new body unchanged.  There is a spiffy way to do this (after you find the right task object to mutate).
+
+```js
 Object.assign(currentTask, req.body)
 ```
 
-The advantage of the second one is the current task is in a list, and you'd probably want to update it in place.  These are good tricks to remember.  But the database will handle this automatically for you when you call an update.
+This is a good trick to remember.  But the database will handle this automatically for you when you call an update.  After you mutate the task as above, you **still** have to make a copy that doesn't include the userId, and send that back.
+
+### **Postman Testing**
+
+You next create Postman tests for all fo the task operations above.  You want to check:
+
+- If no one is logged on, a 401 is returned for these operations.
+- If a user is logged on, all CRUD operations can be performed for tasks belonging to that user.
+- If user 1 owns a task, user 2 can't do any CRUD operations on that task.
+
+To do the last test, you logon as user 1, create some tasks, write down the id's of each, log on as user 2, and verify that every CRUD attempt returns a 404.
 
 ### **The Automated Tests**
 

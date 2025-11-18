@@ -1,8 +1,7 @@
-
 class ValidationError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'ValidationError';
+    this.name = "ValidationError";
     this.statusCode = 400;
   }
 }
@@ -10,7 +9,7 @@ class ValidationError extends Error {
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
     this.statusCode = 404;
   }
 }
@@ -18,7 +17,7 @@ class NotFoundError extends Error {
 class UnauthorizedError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'UnauthorizedError';
+    this.name = "UnauthorizedError";
     this.statusCode = 401;
   }
 }
@@ -26,5 +25,5 @@ class UnauthorizedError extends Error {
 module.exports = {
   ValidationError,
   NotFoundError,
-  UnauthorizedError
+  UnauthorizedError,
 };

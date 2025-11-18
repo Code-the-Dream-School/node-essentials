@@ -50,5 +50,5 @@ module.exports = [
     goodWithDogs: true,
     goodWithCats: false,
     status: "available",
-  }
+  },
 ];

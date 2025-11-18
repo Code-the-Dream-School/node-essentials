@@ -31,28 +31,22 @@ app.post("/user", (req, res)=>{
 });
 ```
 
-Then try the Postman request again.  You see the body in your server log, but you are still just sending back a message.  What you should do for this request is store the user record.  Eventually you'll store it in a database, but we haven't learned how to do that yet.  So, for the moment, you can just store it in memory.  Create a directory named util, and a file within it called memoryStore.js.  There's not much to this file:
+Then try the Postman request again.  You see the body in your server log, but you are still just sending back a message.
 
-```js
-const storedUsers = [];
+What you should do for this request is store the user record.  Eventually you'll store it in a database, but we haven't learned how to do that yet.  So, for the moment, you can just store it in memory.  Use the following globals:
 
-let loggedOnUser = null;
-
-const setLoggedOnUser = (user) => {
-  loggedOnUser = user;
-};
-
-const getLoggedOnUser = () => {
-  return loggedOnUser;
-};
-
-module.exports = { storedUsers, getLoggedOnUser, setLoggedOnUser };
+```js 
+global.user_id // The logged on user.  This will be undefined or null if no user is logged on.
+global.users // an array of user objects, initially empty.
+global.tasks   // an array of task object, initially empty.
 ```
 
-Now, in app.js, above your app.post(), add this statement:
+Near the start of `app.js`, add:
 
 ```js
-const { storedUsers, setLoggedOnUser } = require("./util/memoryStore");
+global.user_id = null;
+global.users = [];
+global.tasks = [];
 ```
 
 And then, change the app.post() as follows:
@@ -60,12 +54,15 @@ And then, change the app.post() as follows:
 ```js
 app.post("/user", (req, res)=>{
     const newUser = {...req.body}; // this makes a copy
-    storedUsers.push(newUser);
-    setLoggedOnUser(newUser);  // After the registration step, the user is set to logged on.
+    global.users.push(newUser);
+    global.user_id = newUser;  // After the registration step, the user is set to logged on.
     delete req.body.password;
     res.status(201).json(req.body);
 });
 ```
+
+
+When creating a new record, it is standard practice to return the object just created, but of course, you don't want to send back the user password.
 
 Test this with your Postman request.
 
@@ -75,7 +72,7 @@ Let's list all the hokey things you just did.
 
 1. There is no validation.  You don't know if there was a valid body.  Hopefully your Postman request did send one.
 
-2. You stored to memory.  When you restart the server, the data's gone.  Your users will not be happy.
+2. You stored to memory (globals).  When you restart the server, the data's gone.  Your users will not be happy.
 
 3. You don't know if the email is unique.  You are going to use the email as the userid, but a bunch of entries could be created with the same email.
 
@@ -101,8 +98,6 @@ In the general case, you can name modules and functions as you choose.  However,
 The show function returns a single task, and the index function returns all the tasks for the logged on user (or 404 if there aren't any.)
 
 ### **Back to the Coding***
-
-When creating a new record, it is standard practice to return the object just created, but of course, you don't want to send back the user password.
 
 Change the code for the route as follows:
 
@@ -143,15 +138,15 @@ All of the data sent or received by this app is JSON.  You are creating a back e
 res.json({message: "everything worked."});
 ```
 
-At this time, change the res.send() calls you have in your app and middleware to res.json() calls.
+At this time, change the res.send() calls you have in your app and middleware to res.json() calls.  Remember that res.json() calls must return an object.  If this is only a message, then for the sake of consistency, start that object with a `message` attribute.
 
 ### **The Other User Routes**
 
 Here's a spec.
 
-1. You need to have a `/user/logon` POST route.  That one would get a JSON body with an email and a password.  The controller function has to do a find() on the storedUsers array for an entry with a matching email.  If it finds one, it checks to see if the password matches.  If it does, it returns a status code of OK, and a JSON body with the user name.  The user name is convenient for the front end, because it can show who is logged on.  The controller function for the route would also set the value of loggedOnUser to be the entry in the storedUsers array that it finds.  (You don't make a copy, you just set the reference.)  If the email is not found, or if the password doesn't match, the controller returns an UNAUTHORIZED status code, with a message that says Authentication Failed.
+1. You need to have a `/user/logon` POST route.  That one would get a JSON body with an email and a password.  The controller function has to do a find() on the `global.users` array for an entry with a matching email.  If it finds one, it checks to see if the password matches.  If it does, it returns a status code of OK, and a JSON body with the user name and email.  The user name is convenient for the front end, because it can show who is logged on.  The email may or may not be used by the front end, but you can return it.  The controller function for the route would also set the value of `global.user_id` to be the entry in the `global.users` array that it finds.  (You don't make a copy, you just set the reference.)  If the email is not found, or if the password doesn't match, the controller returns an UNAUTHORIZED status code, with a message that says Authentication Failed.
 
-2. You need to have a `/user/logoff` POST route.  That one would just set the loggedOnUser to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
+2. You need to have a `/user/logoff` POST route.  That one would just set the `global.user_id` to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
 
 3. You add the handler functions to the userController, and you add the routes to the user.js router, doing the necessary exports and requires.
 
@@ -160,7 +155,7 @@ Here's a spec.
 
 For the rest of this assignment, you'll set your app aside for a moment, and learn some debugging skills.
 
-
+---
 
 ## **Task 2: Debugging Middleware**
 

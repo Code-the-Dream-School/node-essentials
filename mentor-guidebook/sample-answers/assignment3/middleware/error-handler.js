@@ -6,11 +6,11 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     err.constructor.name,
     JSON.stringify(err, ["name", "message", "stack"]),
   );
-  
+
   if (!res.headersSent) {
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .send("An internal server error occurred.");
+      .json({ message: "An internal server error occurred." });
   }
 };
 

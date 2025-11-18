@@ -8,16 +8,13 @@ exports.index = async (req, res) => {
     [global.user_id],
   );
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "No tasks found for user" });
+    return res.status(404).json({ message: "No tasks found for user" });
   }
   res.status(200).json(result.rows);
 };
 
 exports.show = async (req, res) => {
-  let id = req.params?.id;
-  if (id) {
-    id = parseInt(id);
-  }
+  const id = parseInt(req.params?.id);
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
@@ -27,7 +24,7 @@ exports.show = async (req, res) => {
     [id, global.user_id],
   );
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ message: "Task not found" });
   }
   res.status(200).json(result.rows[0]);
 };
@@ -37,7 +34,7 @@ exports.create = async (req, res) => {
   const { error, value } = taskSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
-      error: "Validation failed",
+      message: "Validation failed",
       details: error.details,
     });
   }
@@ -50,18 +47,18 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  let id = req.params?.id;
-  if (id) {
-    id = parseInt(id);
-  }
+  const id = parseInt(req.params?.id);
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
   // Use global user_id (set during login/registration)
+  if (!req.body) {
+    req.body = {};
+  }
   const { error, value } = patchTaskSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
-      error: "Validation failed",
+      message: "Validation failed",
       details: error.details,
     });
   }
@@ -83,23 +80,17 @@ exports.update = async (req, res) => {
       [isCompleted, id, global.user_id],
     );
   }
-
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ message: "Task not found" });
   }
-
   res.status(200).json(result.rows[0]);
 };
 
 exports.deleteTask = async (req, res) => {
-  let id = req.params?.id;
-  if (id) {
-    id = parseInt(id);
-  }
+  const id = parseInt(req.params?.id);
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
-
   // Use global user_id (set during login/registration)
   const result = await pool.query(
     "DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id, title, is_completed",
@@ -107,8 +98,8 @@ exports.deleteTask = async (req, res) => {
   );
 
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ message: "Task not found" });
   }
 
-  res.status(200).json({ message: "Task deleted successfully" });
+  res.status(200).json(result.rows[0]);
 };
