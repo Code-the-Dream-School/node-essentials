@@ -206,15 +206,15 @@ You also need to create the schema for your test database.  This is used for the
 Create a folder in node-homework called `db`.  Within it, create `pg-pool.js` with the following content:
 
 ```javascript
-const { Pool } = require('pg');
-require('dotenv').config();
+const { Pool } = require("pg");
+require("dotenv").config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err);
+pool.on("error", (err, client) => {
+  console.error("Unexpected error on idle client", err);
 });
 
 module.exports = pool;
@@ -243,10 +243,10 @@ Otherwise your Node process may hang on exit.  You want it to release all databa
 Modify the health check endpoint to verify database connectivity:
 
 ```js
-app.get('/health', async (req, res) => {
+app.get("/health", async (req, res) => {
   try {
-    await pool.query('SELECT 1');
-    res.json({ status: 'ok', db: 'connected' });
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", db: "connected" });
   } catch (err) {
     res.status(500).json({ message: `db not connected, error: ${ err.message }` });
   }
@@ -276,7 +276,7 @@ Your calls to the `pg` pool are asynchronous.  If some of your controller functi
 In userController.js, you need to have a require statement to give access to the pool, so put that near the top.  You currently do a find() on the storedUser array.  Well, you have to eliminate that.  This is the equivalent, assuming you have extracted email and password from the req.body:
 
 ```javascript
-const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 ```
 
 The `result.rows` array might have 0 length, in which case authentication fails: you send back the 401 and the appropriate message.  Otherwise, you use your existing `comparePassword()` function to see if the password in the body of the request matches `result.rows[0].hashed_password`.  If it doesn't, you send the 401 and the authentication failed message.  But, if it does, you send a 200 and the appropriate message -- and you also put `result.rows[0].id` in global.user_id.
@@ -366,7 +366,7 @@ Let's assume that you have run req.body through Joi, and that taskChange is the 
 
 ```javascript
 const keys = taskChange.keys(updates);
-const setClauses = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+const setClauses = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
 const idParm = `$${keys.length + 1}`;
 const userParm = `$${keys.length + 2}`;
 const updatedTask = await pool.query(`UPDATE tasks ${setClauses} 

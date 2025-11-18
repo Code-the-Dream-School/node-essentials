@@ -223,18 +223,18 @@ app.use(express.urlencoded({ extended: true })); // Parse form data
 app.use(express.static('public'));
 
 // 4. Routes
-app.use('/api', apiRoutes);
-app.use('/admin', adminRoutes);
+app.use("/api", apiRoutes);
+app.use("/admin", adminRoutes);
 
 // 5. 404 handler (after all routes)
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: "Route not found" });
 });
 
 // 6. Error handler (last - catches all errors)
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Internal server error' });
+  res.status(500).json({ message: "Internal server error" });
 });
 ```
 
@@ -303,21 +303,21 @@ app.use(express.urlencoded({ extended: true }));
 
 ```js
 // Serve static files from 'public' directory
-app.use(express.static('public'));
+app.use(express.static("public"));
 
 // Serve static files with custom path prefix
-app.use('/static', express.static('public'));
+app.use("/static", express.static("public"));
 ```
 
 #### **Third-party middleware**
 These are created and maintained as separate npm packages.  The following are examples -- not something you need to use as this time.
 
 ```js
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 
-const compression = require('compression');
+const compression = require("compression");
 app.use(compression());
 ```
 
@@ -347,8 +347,8 @@ app.use((req, res, next) => {
 ```js
 // Add custom headers to all responses
 app.use((req, res, next) => {
-  res.setHeader('X-Powered-By', 'MyApp');
-  res.setHeader('X-Request-ID', req.requestId);
+  res.setHeader("X-Powered-By", "MyApp");
+  res.setHeader("X-Request-ID", req.requestId);
   next();
 });
 
@@ -382,7 +382,7 @@ app.use((req, res, next) => {
 // Add request metadata
 app.use((req, res, next) => {
   req.metadata = {
-    userAgent: req.get('User-Agent'),
+    userAgent: req.get("User-Agent"),
     ip: req.ip,
     timestamp: new Date().toISOString()
   };
@@ -397,17 +397,17 @@ Middleware can modify responses before they're sent to the client:
 ```js
 // Add security headers
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
   next();
 });
 
 // Add CORS headers
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 
@@ -429,10 +429,10 @@ The request was successful:
 
 ```js
 // 200 OK - Request successful
-res.status(200).json({ message: 'Success', data: result });
+res.status(200).json({ message: "Success", data: result });
 
 // 201 Created - Resource created successfully
-res.status(201).json({ message: 'User created', user: newUser });
+res.status(201).json({ message: "User created", user: newUser });
 
 // 204 No Content - Success but no content to return
 res.status(204).send();
@@ -443,10 +443,10 @@ The request needs further action:
 
 ```js
 // 301 Moved Permanently
-res.status(301).redirect('/new-path');
+res.status(301).redirect("/new-path");
 
 // 302 Found (temporary redirect)
-res.status(302).redirect('/temporary-path');
+res.status(302).redirect("/temporary-path");
 ```
 
 #### **4xx Client Errors (400-499)**
@@ -457,8 +457,8 @@ The client made an error:
 app.use((req, res, next) => {
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({
-      error: 'Bad Request',
-      message: 'Request body is required'
+      error: "Bad Request",
+      message: "Request body is required"
     });
   }
   next();
@@ -468,8 +468,8 @@ app.use((req, res, next) => {
 app.use('/api', (req, res, next) => {
   if (!req.headers.authorization) {
     return res.status(401).json({
-      error: 'Unauthorized',
-      message: 'Authentication required'
+      error: "Unauthorized",
+      message: "Authentication required"
     });
   }
   next();
@@ -477,10 +477,10 @@ app.use('/api', (req, res, next) => {
 
 // 403 Forbidden - Authenticated but not authorized
 app.use('/admin', (req, res, next) => {
-  if (req.user && req.user.role !== 'admin') {
+  if (req.user && req.user.role !== "admin") {
     return res.status(403).json({
-      error: 'Forbidden',
-      message: 'Admin access required'
+      error: "Forbidden",
+      message: "Admin access required"
     });
   }
   next();
@@ -489,7 +489,7 @@ app.use('/admin', (req, res, next) => {
 // 404 Not Found - Resource doesn't exist
 app.use((req, res) => {
   res.status(404).json({
-    error: 'Not Found',
+    error: "Not Found",
     message: `Route ${req.method} ${req.path} not found`
   });
 });
@@ -498,8 +498,8 @@ app.use((req, res) => {
 app.use((req, res, next) => {
   if (req.body.email && !isValidEmail(req.body.email)) {
     return res.status(422).json({
-      error: 'Unprocessable Entity',
-      message: 'Invalid email format'
+      error: "Unprocessable Entity",
+      message: "Invalid email format"
     });
   }
   next();
@@ -512,10 +512,10 @@ The server encountered an error:
 ```js
 // 500 Internal Server Error - Generic server error
 app.use((err, req, res, next) => {
-  console.error('Server Error:', err);
+  console.error("Server Error:", err);
   res.status(500).json({
-    error: 'Internal Server Error',
-    message: 'Something went wrong on our end'
+    error: "Internal Server Error",
+    message: "Something went wrong on our end"
   });
 });
 
@@ -529,24 +529,24 @@ app.use((err, req, res, next) => {
 #### **REST API Status Codes**
 ```js
 // GET /users - 200 OK (with data)
-app.get('/users', (req, res) => {
+app.get("/users", (req, res) => {
   res.status(200).json({ users: allUsers });
 });
 
 // POST /users - 201 Created
-app.post('/users', (req, res) => {
+app.post("/users", (req, res) => {
   const newUser = createUser(req.body);
   res.status(201).json({ user: newUser });
 });
 
 // PUT /users/:id - 200 OK (updated) or 201 Created (new)
-app.put('/users/:id', (req, res) => {
+app.put("/users/:id", (req, res) => {
   const user = updateUser(req.params.id, req.body);
   res.status(200).json({ user });
 });
 
 // DELETE /users/:id - 204 No Content
-app.delete('/users/:id', (req, res) => {
+app.delete("/users/:id", (req, res) => {
   deleteUser(req.params.id);
   res.status(204).send();
 });
@@ -557,24 +557,24 @@ app.delete('/users/:id', (req, res) => {
 // Validation errors - 400 Bad Request
 if (!req.body.name) {
   return res.status(400).json({
-    error: 'Bad Request',
-    message: 'Name is required'
+    error: "Bad Request",
+    message: "Name is required"
   });
 }
 
 // Authentication errors - 401 Unauthorized
 if (!isValidToken(req.headers.authorization)) {
   return res.status(401).json({
-    error: 'Unauthorized',
-    message: 'Invalid or missing token'
+    error: "Unauthorized",
+    message: "Invalid or missing token"
   });
 }
 
 // Authorization errors - 403 Forbidden
-if (req.user.role !== 'admin') {
+if (req.user.role !== "admin") {
   return res.status(403).json({
-    error: 'Forbidden',
-    message: 'Insufficient permissions'
+    error: "Forbidden",
+    message: "Insufficient permissions"
   });
 }
 
@@ -582,8 +582,8 @@ if (req.user.role !== 'admin') {
 const user = findUser(req.params.id);
 if (!user) {
   return res.status(404).json({
-    error: 'Not Found',
-    message: 'User not found'
+    error: "Not Found",
+    message: "User not found"
   });
 }
 ```
@@ -610,10 +610,10 @@ function createErrorResponse(statusCode, message) {
 ```js
 // Global error handler (place at the end of all routes)
 app.use((err, req, res, next) => {
-  console.error('Error occurred:', err.message);
+  console.error("Error occurred:", err.message);
 
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  const message = err.message || "Internal Server Error";
 
   res.status(statusCode).json({
     error: true,
@@ -625,7 +625,7 @@ app.use((err, req, res, next) => {
 
   // Determine error type and response
   app.use((err, req, res, next) => {
-  console.error('Error occurred:', {
+  console.error("Error occurred:", {
     message: err.message,
     stack: err.stack,
     url: req.url,
@@ -633,20 +633,20 @@ app.use((err, req, res, next) => {
     timestamp: new Date().toISOString()
   });
 
-  if (err.name === 'ValidationError') {
-    return res.status(400).json(createErrorResponse(400, 'Validation failed', err.details));
+  if (err.name === "ValidationError") {
+    return res.status(400).json(createErrorResponse(400, "Validation failed", err.details));
   }
   
-  if (err.name === 'UnauthorizedError') {
-    return res.status(401).json(createErrorResponse(401, 'Authentication required'));
+  if (err.name === "UnauthorizedError") {
+    return res.status(401).json(createErrorResponse(401, "Authentication required"));
   }
   
   if (err.name === 'CastError') {
-    return res.status(400).json(createErrorResponse(400, 'Invalid ID format'));
+    return res.status(400).json(createErrorResponse(400, "Invalid ID format"));
   }
 
   // Default to 500 error
-  res.status(500).json(createErrorResponse(500, 'Internal server error'));
+  res.status(500).json(createErrorResponse(500, "Internal server error"));
 });
 ```
 
@@ -715,7 +715,7 @@ The following middleware function might be helpful.
 
 ```js
 app.use((req, res, next) => {
-    res.on('finish', () => {
+    res.on("finish", () => {
 // Here you'd log information that might be helpful to know about the req and/or the res.
     });
     next();

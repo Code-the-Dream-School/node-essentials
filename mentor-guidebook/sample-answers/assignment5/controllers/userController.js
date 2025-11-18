@@ -20,7 +20,7 @@ exports.register = async (req, res, next) => {
   const { error, value } = userSchema.validate(req.body, { abortEarly: false });
   if (error) {
     return res.status(400).json({
-      error: "Validation failed",
+      message: "Validation failed",
       details: error.details,
     });
   }
@@ -58,12 +58,12 @@ exports.login = async (req, res) => {
     email,
   ]);
   if (users.rows.length === 0) {
-    return res.status(401).json({ error: "Invalid credentials" });
+    return res.status(401).json({ message: "Invalid credentials" });
   }
   const user = users.rows[0];
   const isValidPassword = await comparePassword(password, user.hashed_password);
   if (!isValidPassword) {
-    return res.status(401).json({ error: "Invalid credentials" });
+    return res.status(401).json({ message: "Invalid credentials" });
   }
   // Store user ID globally for session management (not secure for production)
   global.user_id = user.id;

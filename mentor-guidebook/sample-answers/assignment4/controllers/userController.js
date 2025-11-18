@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
   // Check if user already exists
   const existingUser = global.users.find((user) => user.email === email);
   if (existingUser) {
-    return res.status(400).json({ error: "User already exists" });
+    return res.status(400).json({ message: "User already exists" });
   }
   const hashedPassword = await hashPassword(password);
 
@@ -50,7 +50,7 @@ exports.logon = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+    return res.status(400).json({ message: "Email and password are required" });
   }
 
   // Find user
@@ -61,7 +61,7 @@ exports.logon = async (req, res) => {
   }
 
   if (!goodCredentials) {
-    return res.status(401).json({ error: "Invalid credentials" });
+    return res.status(401).json({ message: "Invalid credentials" });
   }
 
   // Set logged on user

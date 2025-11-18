@@ -8,7 +8,7 @@ exports.index = async (req, res) => {
     [global.user_id],
   );
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "No tasks found for user" });
+    return res.status(404).json({ message: "No tasks found for user" });
   }
   res.status(200).json(result.rows);
 };
@@ -24,7 +24,7 @@ exports.show = async (req, res) => {
     [id, global.user_id],
   );
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ message: "Task not found" });
   }
   res.status(200).json(result.rows[0]);
 };
@@ -58,7 +58,7 @@ exports.update = async (req, res) => {
   const { error, value } = patchTaskSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
-      error: "Validation failed",
+      message: "Validation failed",
       details: error.details,
     });
   }
@@ -81,7 +81,7 @@ exports.update = async (req, res) => {
     );
   }
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ message: "Task not found" });
   }
   res.status(200).json(result.rows[0]);
 };
@@ -98,7 +98,7 @@ exports.deleteTask = async (req, res) => {
   );
 
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ message: "Task not found" });
   }
 
   res.status(200).json(result.rows[0]);
