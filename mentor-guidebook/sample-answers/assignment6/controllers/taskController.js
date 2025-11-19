@@ -2,8 +2,9 @@ const prisma = require("../db/prisma");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 exports.index = async (req, res) => {
+  // Use global user_id (set during login/registration)
   const tasks = await prisma.task.findMany({
-    where: { userId: req.user.id },
+    where: { userId: global.user_id },
     select: { title: true, isCompleted: true, id: true },
   });
 
@@ -23,7 +24,7 @@ exports.show = async (req, res) => {
   const task = await prisma.task.findUnique({
     where: {
       id,
-      userId: req.user.id,
+      userId: global.user_id,
     },
     select: {
       id: true,
@@ -53,7 +54,7 @@ exports.create = async (req, res) => {
   const newTask = await prisma.task.create({
     data: {
       ...value,
-      userId: req.user.id,
+      userId: global.user_id,
     },
     select: {
       id: true,
@@ -82,7 +83,7 @@ exports.update = async (req, res, next) => {
   let task;
   try {
     task = await prisma.task.update({
-      where: { id, userId: req.user.id },
+      where: { id, userId: global.user_id },
       data: value,
       select: { id: true, title: true, isCompleted: true },
     });
@@ -103,7 +104,7 @@ exports.deleteTask = async (req, res, next) => {
   let task;
   try {
     task = await prisma.task.delete({
-      where: { id, userId: req.user.id },
+      where: { id, userId: global.user_id },
       select: { id: true, title: true, isCompleted: true },
     });
   } catch (err) {
