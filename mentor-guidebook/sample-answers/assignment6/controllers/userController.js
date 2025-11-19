@@ -1,3 +1,4 @@
+const prisma = require("../db/prisma");
 const userSchema = require("../validation/userSchema").userSchema;
 const crypto = require("crypto");
 const util = require("util");

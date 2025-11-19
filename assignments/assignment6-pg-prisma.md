@@ -102,13 +102,25 @@ model tasks {
 Do you see how the model stanzas map to the SQL you used in part 1?  Pay particular attention to the way the relation between tasks and users is specified.  Also, notice the `@@unique`, which describes the additional index you need.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
 
 ```
+// This is your Prisma schema file
+// Learn more at https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
   id             Int      @id @default(autoincrement())
   email          String   @unique @db.VarChar(255)
   name           String   @db.VarChar(30)
   hashedPassword String   @db.VarChar(255) @map("hashed_password")
   createdAt     DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  tasks          tasks[]
+  Task          Task[]
   @@map("users")
 }
 
@@ -118,7 +130,7 @@ model Task {
   isCompleted Boolean  @default(false) @map("is_completed")
   userId      Int       @map("user_id")
   createdAt   DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User       User    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@unique([id, userId])
   @@map("tasks")
 }

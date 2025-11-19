@@ -9,7 +9,7 @@ exports.index = async (req, res) => {
   });
 
   if (tasks.length === 0) {
-    return res.status(404).json({ error: "No tasks found for user" });
+    return res.status(404).json({ message: "No tasks found for user" });
   }
   res.status(200).json(tasks);
 };
@@ -46,7 +46,7 @@ exports.create = async (req, res) => {
 
   if (error) {
     return res.status(400).json({
-      error: "Validation failed",
+      message: "Validation failed",
       details: error.details,
     });
   }
@@ -65,7 +65,7 @@ exports.create = async (req, res) => {
   res.status(201).json(newTask);
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
@@ -82,7 +82,7 @@ exports.update = async (req, res) => {
   }
   let task;
   try {
-    task = prisma.task.update({
+    task = await prisma.task.update({
       where: { id, userId: global.user_id },
       data: value,
       select: { id: true, title: true, isCompleted: true },
@@ -96,20 +96,14 @@ exports.update = async (req, res) => {
   res.status(200).json(task);
 };
 
-exports.deleteTask = async (req, res) => {
+exports.deleteTask = async (req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
-  if (error) {
-    return res.status(400).json({
-      message: "Validation failed",
-      details: error.details,
-    });
-  }
   let task;
   try {
-    task = prisma.task.delete({
+    task = await prisma.task.delete({
       where: { id, userId: global.user_id },
       select: { id: true, title: true, isCompleted: true },
     });
