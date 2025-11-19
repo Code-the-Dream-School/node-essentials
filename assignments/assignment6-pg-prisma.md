@@ -47,7 +47,7 @@ datasource db {
 }
 ```
 
-This will build your client in the wrong place.  You want it to be in the default location, which is within `node_modules`.  So change the file as follows:
+This would build your client in the wrong place.  You want it to be in the default location, which is within `node_modules`.  So change the file as follows:
 
 ```
 generator client {
@@ -241,6 +241,7 @@ let user = null;
 try {
   user = await prisma.user.create({
     data: { name, email, hashedPassword },
+    select: { name: true, email: true, id: true} // specify the column values to return
   });
 } catch (err) {
     if (err.name === "PrismaClientKnownRequestError" && err.code == "P2002") {
@@ -260,7 +261,8 @@ const tasks = await prisma.task.findMany({
   where: {
     userId: global.user_id, // only the tasks for this user!
   },
-  omit: { userId: true }}); // don't return the userId!
+  select: { title: true, isCompleted: true, id: true }
+});
 ```
 
 #### d. Fix the Task Create Method
@@ -270,15 +272,25 @@ This one's kind of like register.  You want to create the task with a userId of 
 #### e. Fix Task Update
 
 ```js
-// assuming that value contains the validated change coming back from Joi
+// assuming that value contains the validated change coming back from Joi, and that
+// you have a valid req.params.id:
+try {
 const task = await prisma.task.update( data: value,
     where: {
-      id: parseInt(req.params.id),
+      id,
       userId: global.user_id,
-    });
+    },
+    select: { title: true, isCompleted: true, id: true });
+} catch (err) {
+  if (err.code === "P2025" ) {
+    return res.status(404).json({ message: "The task was not found."})
+  } else {
+    return next(err); // pass other errors to the global error handler
+  }
+}
 ```
 
-The return from the update may be null, in which case you should return a 404.
+With the pg package, you'd just get an empty array returned, if no matching task was found.  But Prisma throws the `P2025` error in this case.  You want to catch it at this point -- if you passed it to the global error handler, the caller would not get a useful message.
 
 This is where that special unique index for [id, userId] is important!  Prisma does not
 let you do update() or delete() or findUnique() with two attributes in the where clause **unless** a uniqueness index is present for that combination of attributes.

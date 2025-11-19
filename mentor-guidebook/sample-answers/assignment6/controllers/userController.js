@@ -1,13 +1,18 @@
-const prisma = require("../prisma/db");
 const userSchema = require("../validation/userSchema").userSchema;
 const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
-
 async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
   const derivedKey = await scrypt(password, salt, 64);
   return `${salt}:${derivedKey.toString("hex")}`;
+}
+
+async function comparePassword(inputPassword, storedHash) {
+  const [salt, key] = storedHash.split(":");
+  const keyBuffer = Buffer.from(key, "hex");
+  const derivedKey = await scrypt(inputPassword, salt, 64);
+  return crypto.timingSafeEqual(keyBuffer, derivedKey);
 }
 
 exports.register = async (req, res, next) => {
@@ -43,10 +48,8 @@ exports.register = async (req, res, next) => {
   // Store the user ID globally for session management (not secure for production)
   global.user_id = newUser.id;
   delete newUser.id;
-
   res.status(201).json({
-    message: "User registered successfully",
-    user: newUser,
+    newUser,
   });
 };
 
@@ -54,7 +57,7 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+    return res.status(400).json({ message: "Email and password are required" });
   }
 
   // Find user by email
@@ -63,27 +66,26 @@ exports.login = async (req, res) => {
   });
 
   if (!user) {
-    return res.status(401).json({ error: "Invalid credentials" });
+    return res.status(401).json({ message: "Invalid credentials" });
   }
 
   const isValidPassword = await comparePassword(password, user.hashedPassword);
 
   if (!isValidPassword) {
-    return res.status(401).json({ error: "Invalid credentials" });
+    return res.status(401).json({ message: "Invalid credentials" });
   }
 
   // Store user ID globally for session management (not secure for production)
   global.user_id = user.id;
 
   res.status(200).json({
-    message: "Login successful",
-    user: { name: user.name, email: user.email, id: user.id },
+    name: user.name,
+    email: user.email,
   });
 };
 
 exports.logoff = async (req, res) => {
   // Clear the global user ID for session management
   global.user_id = null;
-
-  res.status(200).json({ message: "Logoff successful" });
+  res.sendStatus(200);
 };

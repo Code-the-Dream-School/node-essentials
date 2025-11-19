@@ -52,6 +52,7 @@ async function shutdown(code = 0) {
     console.log("HTTP server closed.");
     // If you have DB connections, close them here
     await prisma.$disconnect();
+    console.log("Prisma disconnected");
   } catch (err) {
     console.error("Error during shutdown:", err);
     code = 1;
