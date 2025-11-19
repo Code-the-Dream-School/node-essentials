@@ -15,5 +15,5 @@ module.exports = {
   storedUsers,
   storedTasks,
   setLoggedOnUser,
-  getLoggedOnUser
-}; 
+  getLoggedOnUser,
+};

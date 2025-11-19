@@ -1,34 +1,31 @@
 const express = require("express");
+const pool = require("./db/pg-pool");
 const userRoutes = require("./routes/userRoutes");
 const taskRoutes = require("./routes/taskRoutes");
-global.users = [];
-global.tasks = [];
-global.user_id = null;
-
-const app = express();
+const authMiddleware = require("./middleware/auth");
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
-const auth = require("./middleware/auth");
 
-app.use((req, res, next) => {
-  console.log("Method:", req.method);
-  console.log("Path:", req.path);
-  console.log("Query:", req.query);
-  next();
-});
+const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
 // Routes
 app.use("/api/users", userRoutes);
-app.use("/api/tasks", auth, taskRoutes);
+app.use("/api/tasks", authMiddleware, taskRoutes);
 
 // Health check endpoint
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", db: "connected" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ status: "error", db: "not connected", error: err.message });
+  }
 });
-
 app.use(notFound);
 app.use(errorHandler);
 
@@ -54,6 +51,7 @@ async function shutdown(code = 0) {
     await new Promise((resolve) => server.close(resolve));
     console.log("HTTP server closed.");
     // If you have DB connections, close them here
+    await pool.end();
   } catch (err) {
     console.error("Error during shutdown:", err);
     code = 1;
