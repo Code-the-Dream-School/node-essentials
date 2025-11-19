@@ -1,6 +1,4 @@
 const { userSchema } = require("../validation/userSchema");
-const { StatusCodes } = require("http-status-codes");
-const { createUser, verifyUserPassword } = require("../services/userService");
 const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
 
@@ -23,8 +21,7 @@ const setJwtCookie = (req, res, user) => {
 };
 
 const prisma = require("../db/prisma");
-const userSchema = require("../validation/userSchema").userSchema;
-const crypto = require("crypto");
+const crypto = require("crypto")
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
 async function hashPassword(password) {
@@ -71,11 +68,11 @@ exports.register = async (req, res, next) => {
   }
 
   // set the cookie and return the value
-  const csrfToken = setJWTCookie(req, res, newUser);
+  const csrfToken = setJwtCookie(req, res, newUser);
   res.status(201).json({ name: newUser.name, email: newUser.email, csrfToken });
 };
 
-exports.login = async (req, res) => {
+exports.logon = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -98,7 +95,7 @@ exports.login = async (req, res) => {
   }
 
   // Store user ID globally for session management (not secure for production)
-  const csrfToken = setJWTCookie(req, res, user);
+  const csrfToken = setJwtCookie(req, res, user);
 
   res.status(200).json({
     name: user.name,
@@ -112,5 +109,3 @@ exports.logoff = async (req, res) => {
   res.clearCookie("jwt", cookieFlags(req));
   res.sendStatus(200);
 };
-
-module.exports = { logon, register, logoff };

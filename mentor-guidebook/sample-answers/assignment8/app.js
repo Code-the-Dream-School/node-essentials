@@ -1,4 +1,9 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const cors = require('cors');
+const { xss } = require('express-xss-sanitizer');
+const rateLimiter = require('express-rate-limit');
 const prisma = require("./db/prisma");
 const userRoutes = require("./routes/userRoutes");
 const taskRoutes = require("./routes/taskRoutes");
@@ -8,11 +13,46 @@ const notFound = require("./middleware/not-found");
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Security middleware - must come first
+app.use(
+  rateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+  }),
+);
+
+app.use(helmet());
+
+// CORS configuration
+const origins = ["http://localhost:3001"];
+if (process.env.ALLOWED_ORIGINS) {
+  const originArray = process.env.ALLOWED_ORIGINS.split(",");
+  originArray.forEach((orig) => {
+    orig = orig.trim();
+    if (orig.length > 4) {
+      origins.push(orig);
+    }
+  });
+  app.use(
+    cors({
+      origin: origins,
+      credentials: true,
+      methods: "GET,POST,PATCH,DELETE",
+      allowedHeaders: "CONTENT-TYPE, X-CSRF-TOKEN",
+    }),
+  );
+}
+
+// Body and cookie parsing
 app.use(express.json());
+app.use(cookieParser(process.env.JWT_SECRET));
+
+// XSS protection - must come after body parsers
+app.use(xss());
 
 // Routes
-app.use("/api/users", userRoutes);
-app.use("/api/tasks", taskRoutes);
+app.use("/users", userRoutes);
+app.use("/tasks", taskRoutes);
 
 // Health check endpoint
 app.get("/health", async (req, res) => {
