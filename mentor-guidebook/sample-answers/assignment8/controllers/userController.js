@@ -16,101 +16,101 @@ const cookieFlags = (req) => {
 const setJwtCookie = (req, res, user) => {
   // Sign JWT
   const payload = { id: user.id, csrfToken: randomUUID() };
-  req.user = payload; // this is a convenient way to return the csrf token to the caller.
   const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }); // 1 hour expiration
-
   // Set cookie.  Note that the cookie flags have to be different in production and in test.
   res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
   return payload.csrfToken; // this is needed in the body returned by logon() or register()
 };
 
-const logon = async (req, res) => {
-  const { user, isValid } = await verifyUserPassword(
-    req?.body?.email,
-    req?.body?.password,
-  );
-  if (!isValid) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Authentication Failed." });
-  }
-  const csrfToken = setJwtCookie(req, res, user);
-  res
-    .status(StatusCodes.OK)
-    .json({ name: user.name, csrfToken });
-};
+const prisma = require("../db/prisma");
+const userSchema = require("../validation/userSchema").userSchema;
+const crypto = require("crypto");
+const util = require("util");
+const scrypt = util.promisify(crypto.scrypt);
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const derivedKey = await scrypt(password, salt, 64);
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
 
-const register = async (req, res) => {
-  if (!req.body) req.body = {};
+async function comparePassword(inputPassword, storedHash) {
+  const [salt, key] = storedHash.split(":");
+  const keyBuffer = Buffer.from(key, "hex");
+  const derivedKey = await scrypt(inputPassword, salt, 64);
+  return crypto.timingSafeEqual(keyBuffer, derivedKey);
+}
+
+exports.register = async (req, res, next) => {
   const { error, value } = userSchema.validate(req.body, { abortEarly: false });
+
   if (error) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
-  }
-  let user = null;
-  try {
-    user = await createUser(value);
-  } catch (e) {
-    if (e.name === "PrismaClientKnownRequestError" && e.code == "P2002") {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "A user record already exists with that email." });
-    } else {
-      throw e;
-    }
-  }
-  const csrfToken = setJwtCookie(req, res, user);
-  return res
-    .status(StatusCodes.CREATED)
-    .json({ name: value.name, csrfToken });
-};
-
-const logoff = async (req, res) => {
-  res.clearCookie("jwt", cookieFlags(req));
-  res.sendStatus(StatusCodes.OK);
-};
-
-const getUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { fields } = req.query;
-    
-    const userId = parseInt(id);
-    if (isNaN(userId)) {
-      return res.status(400).json({ error: "Invalid user ID" });
-    }
-
-
-    let selectFields = {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true
-    };
-
-    if (fields) {
-      const requestedFields = fields.split(',');
-      selectFields = {};
-      requestedFields.forEach(field => {
-        if (['id', 'name', 'email', 'createdAt'].includes(field.trim())) {
-          selectFields[field.trim()] = true;
-        }
-      });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: selectFields
+    return res.status(400).json({
+      error: "Validation failed",
+      details: error.details,
     });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.status(200).json(user);
-  } catch (err) {
-    console.error('Get user error:', err);
-    res.status(500).json({ error: err.message });
   }
-}; 
 
-module.exports = { logon, register, logoff, getUser };
+  const { email, name, password } = value;
+
+  // Hash the password before storing (using scrypt from lesson 4)
+  const hashedPassword = await hashPassword(password);
+  // Create new user
+  let newUser;
+  try {
+    newUser = await prisma.user.create({
+      data: { email, name, hashedPassword },
+      select: { id: true, email: true, name: true },
+    });
+  } catch (err) {
+    if (err.name === "PrismaClientKnownRequestError" && err.code == "P2002") {
+      return res
+        .status(400)
+        .json({ message: "That email is already registered." });
+    }
+    return next(err);
+  }
+
+  // set the cookie and return the value
+  const csrfToken = setJWTCookie(req, res, newUser);
+  res.status(201).json({ name: newUser.name, email: newUser.email, csrfToken });
+};
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  // Find user by email
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  const isValidPassword = await comparePassword(password, user.hashedPassword);
+
+  if (!isValidPassword) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  // Store user ID globally for session management (not secure for production)
+  const csrfToken = setJWTCookie(req, res, user);
+
+  res.status(200).json({
+    name: user.name,
+    email: user.email,
+    csrfToken,
+  });
+};
+
+exports.logoff = async (req, res) => {
+  // Clear the global user ID for session management
+  res.clearCookie("jwt", cookieFlags(req));
+  res.sendStatus(200);
+};
+
+module.exports = { logon, register, logoff };
