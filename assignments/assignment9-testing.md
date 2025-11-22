@@ -2,7 +2,7 @@
 
 ## **Assignment Instructions**
 
-This assignment is to be added to node-homework.  Be sure to create an assignment9 branch for your work, and to create it from your assignment10 branch, so that you have access to your previous work.  This assignment requires the following packages, most of which have already been installed:
+This assignment is to be added to node-homework.  Be sure to create an assignment9 branch for your work, and to create it from your assignment8 branch, so that you have access to your previous work.  This assignment requires the following packages, most of which have already been installed:
 
 - jest
 - supertest
@@ -88,7 +88,7 @@ describe("user object validation tests", () => {
       { name: "Bob", email: "bob@sample.com", password: "password" },
       { abortEarly: false },
     );
-    // expect() statement needed to
+    // expect() statement needed to test
   });
 });
 ```
@@ -112,7 +112,7 @@ This test will report a failure in two cases.  First, the error might be returne
 
 ### **Style Requirements**
 
-In creating your tests, follow these guidelines.
+In creating your tests, follow these guidelines, so that the provided TDD for assignment 9 can check your work.
 
 1. Do only one `expect()` within each `it()` block.  Note that you could have objects that are used within multiple `it()` blocks, provided that they are declared in a way that keeps them in scope.  Test cases are not always written this way, but if you have multiple expect() statements in one test, the test report may not show all the reasons for the failure.
 
@@ -123,6 +123,8 @@ These requirements are to allow the TDD to work, so that you and your assignment
 Now, run `npm run test`.  The test should succeed.
 
 ## **More Validation Tests**
+
+For the rest of this assignment, you create specific tests as described.  Yep, a bunch of them!  But, aso you'll find out, each test is only a couple of lines of code.
 
 Create the following additional tests within the first describe() block, each in its own it() block:
 
@@ -180,14 +182,17 @@ Next, you need to test `controllers/taskController.js`.  When you test a control
 
 3. You consider **concurrency issues.**  By default, several jest test files may be run concurrently.  If each of them changes the test database, there will be conflicts and flaky test failures.  In your configuration, this won't happen, because you are starting the test with `maxWorkers=1`, so there is no concurrency.  However, this slows the test process, so it is not a good idea if there are lots of tests.  To avoid concurrency issues, you ensure that each test file only reads or writes to a subset of the database.  For this project, you could use different sets of user and task entries for each test file.
 
+You need to create sample data for the test.  In particular, you need to create sample user entries, and these must have hashed passwords.  So, you need to export `hashPassword` from the `userController.js` for the purpose.
+
 Within your test folder, create a file called `taskController.test.js`.  This should start as follows:
 
 ```js
 require("dotenv").config();
+const EventEmitter = require('events').EventEmitter;
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL; // point to the test database!
 const prisma = require("../db/prisma");
-const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
+const { hashPassword } = require("../controllers/userController");
 const {
   index,
   show,
@@ -208,8 +213,6 @@ The call to `dotenv` is needed to get the database URLs.  But **before** you loa
 
 There is a confusing point about the dotenv `config()` call.  The `.env` file is in the root of the project, but this file is not.  The dotenv package resolves the path using the current working directory, not the location of the current file.  You run jest from the root of the project, so that is always the current working directory.
 
-You use the `createUser()` function from your user service.  You use this to create the user records you need in the database, because if you call the Prisma client directly, the password is not hashed.
-
 Jest provides a number of useful hooks:
 
 - beforeAll
@@ -222,18 +225,19 @@ You could specify these outside any `describe()` stanza, in which case they appl
 ```js
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users
-  user1 = await createUser({
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
+  const hashedPassword = await hashPassword("Pa$$word20");
+  user1 = await prisma.user.create({ data: {
     email: "bob@sample.com",
-    password: "Pa$$word20",
+    password: hashedPassword,
     name: "Bob",
-  });
-  user2 = await createUser({
+  }});
+  user2 = await prisma.user.createcreateUser({ data: {
     email: "alice@sample.com",
-    password: "Pa$$word20",
+    password: hashedPassword,
     name: "Alice",
-  });
+  }});
 });
 
 afterAll(() => {
@@ -241,22 +245,22 @@ afterAll(() => {
 })
 ```
 
-Clearly you would not want to do this step unless you are pointing to the test database.  When you pass a function to `beforeAll()` or `it()` or other jest functions, you can declare it as async so that you can use await.  It is important to do the prisma.$disconnect().  If not, Jest may not terminate cleanly, and you might have a zombie process.
+Clearly you would not want to do this step unless you are pointing to the test database.  When you pass a function to `beforeAll()` or `it()` or other jest functions, you can declare it as async so that you can use await.  **It is important to do the prisma.$disconnect().**  If not, Jest may not terminate cleanly, and you might have a zombie process.
 
-Why do we need the user records? Each task record has a foreign key, the userId.  If this is not provided or if it doesn't correspond to a real user record, you get a constraint violation from the database.  It is very important to disconnect from the database at the completion of the test to avoid a hung process.
+Why do we need the user records to test the task controller? Each task record has a foreign key, the userId.  If this is not provided or if it doesn't correspond to a real user record, you get a constraint violation from the database.  It is very important to disconnect from the database at the completion of the test to avoid a hung process.
 
 There are some special issues when testing route handlers and middleware functions.  They take the parameters `req`, `res`, and sometimes `next`.  For the req and res, we use the `node-http-mocks` package.  You can configure the mock req object with the content you are testing: body, query parameters, headers, path parameters, whatever.  Then you call the function to be tested, to see if the result is as you expect.
 
-A route hander or middleware function migth do the following:
+A route hander or middleware function might do the following:
 
 - Call res.send() or res.json() to send a reply.
 - Call next().
 - Throw an error.
 - None of the above.  If a route handler or middleware function doesn't do any of these, it is ill behaved, and your test should catch this.
 
-To know what happened, you have to call the function and check what is returned.  The function might be async.  Or, it might do the res.json() or the call to next() from within a callback.  Your test needs to call the function, and wait for the completion.  When the completion within a callback, or if the code to be tested calls next(), that's a little tricky.  If it's your job to write the tests, you may have no access to the source code of the function.  If your team uses test first development, that source code might not even be written yet.  
+If the route handler or middleware function is async, how can you know when it is done? The res.send() or res.json() or next() could happen inside a callback!  Such a case, even when you await the result of the function, you don't know that it's done.
 
-You should use the following utility function:
+Therefore, when you call a route handler or middleware function from a test, instead of using `await`, you should use the following utility function:
 
 ```js
 const waitForRouteHandlerCompletion = async (func, req, res) => {
@@ -274,21 +278,49 @@ const waitForRouteHandlerCompletion = async (func, req, res) => {
 module.exports = waitForRouteHandlerCompletion;
 ```
 
-Create a file in your /node-homework/test directory called waitForRouteHandlerCompletion.js, with the code above.  You'll call this function from several of the tests you create.  You are about to test the create() function of the task controller. You use the utility routine as follows as follows:
+Create a file in your /node-homework/test directory called waitForRouteHandlerCompletion.js, with the code above.  You'll call this function from several of the tests you create.  You are about to test the create() function of the task controller. You use the utility routine as follows:
 
 ```js
 const next = await waitForRouteHandlerCompletion(create, req, res);
 ```
 
-Let's explain this.  The utility function creates a promise that is resolved by either of two things: `create()` sends the response in the res, or `create()` calls next().  The next() function is built by the jest.fn() call.  When the next() is created, a callback is passed.  That callback is called if create() calls next(). Res objects post a "finish" event when the response is sent, so the utility function resolves the promise if that happens. (Sometimes you listen for the "finish" event in product code too.)  Then the utility function awaits the create().  Then the utility function awaits the promise.  And then it returns the next().  If the create() throws an error, the waitForRouteHandlerCompletion() throws that error, and you can catch it in your test or let Jest catch it.  The other nice thing about a function created with jest.fn() is you can find out if it has been called, like so:
+**Let's explain this code, as there are a number of subtleties here.**
+
+#### Mocking next()
+
+Some of your middleware functions and route handlers must be passed a `next()` function as a parameter. In production, `next()` is called when there is an error to pass to the error hander.  When calling a route handler or middleware in test, you need to have a `next()` function to pass, and Jest provides a way to  generate it as follows:
 
 ```js
-expect(next).toHaveBeenCalled()
+next = jest.fn(callback)
 ```
 
-When you test middleware functions, you can see if they called next().  You can also get the parameters next() was called with, in case the tested function calls the error handler.  If no exception is thrown, and if next() has not been called, then you know that res contains your finished result after await waitForRouteHandlerCompletion(), and you can do expect() assertions on it.  If the function you are testing is ill-behaved, the promise might not resolve, and then Jest times out, so your test identifies the problem.
+When you test, you have to know whether `next()` was called. When you generate the `next()` function in this way, you can then do:
 
-You don't have to understand this fully.  Just use this utility in your tests.  You'll need to add a require() statement for it.
+```js
+expect(next).toHaveBeenCalled(); // or
+expect(next).not.toHaveBeenCalled(); 
+```
+
+If `next()` was called with an error object, there are ways to extract the object that was passed.  **The `next()` function you build in this way is called a `mock`.**  It simulates or mocks the behavior of the real `next()` function you use in the product.
+
+#### Mocks for Req and Res
+
+In your tests of route handlers and middleware functions, you also have to pass req and res objects.  For this purpose, you use the `node-mocks-http` package.  `httpMocks.createRequest()` is used to generate req objects, like those received in production. `httpMocks.createResponse()` generates a res object, and the response to the request is stored in that res when res.send() or res.json() occurs.  When you build the res object, you also configure it with an event handler.  When a res.send() or res.json() occurs, a "finish" event is sent to that event handler.
+
+#### Waiting for Completion
+
+So next, you create a Promise.  You resolve this promise if
+
+- The callback from your mock `next()` function is called, or
+- The "finish" event from the res is received from the res event emitter.
+
+That's what the utility routine above does.  You see that it also returns the mock `next()`.  It does this in case you need to get the error object that was passed to `next()`.
+
+The function you are testing may also throw an error.  You can do an `expect` for that, if this is what the function should do in the test.  Or, Jest will catch the error and report that the test failed.
+
+Whew, complicated, eh?
+
+You don't have to understand this fully, but read the explanation carefully, so that you get the drift.  Use this utility in your tests.  You'll need to add a require() statement for it.
 
 ### **The First Test**
 
@@ -303,7 +335,7 @@ describe("testing task creation", () => {
       method: "POST",
       body: { title: "first task" },
     });
-    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter}); // be sure you create the event emitter
+    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});
     await waitForRouteHandlerCompletion(create,req, saveRes);
     expect(saveRes.statusCode).toBe(201);
   });
@@ -408,9 +440,8 @@ require("dotenv").config();
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion");
 const prisma = require("../db/prisma");
-const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
-const { register, logoff, logon } = require("../controllers/userController");
+const { register, logoff, logon, hashPassword } = require("../controllers/userController");
 const jwtMiddleware = require("../middleware/jwtMiddleware")
 
 // a few useful globals
@@ -434,13 +465,14 @@ function MockResponseWithCookies({eventEmitter: EventEmitter}) {
 
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users
-  await createUser({
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
+  const hashedPassword = await hashPassword("Pa$$word20");
+  await prisma.user.create({ data: {
     email: "bob@sample.com",
-    password: "Pa$$word20",
+    password: hashedPassword,
     name: "Bob",
-  });
+  }});
 });
 
 afterAll(() => {
@@ -474,7 +506,7 @@ const setCookieArray = saveRes.get("Set-Cookie")
 
 Add the following tests:  
 
-35. A string in that array starts with "jwt=".
+35. A string in the cookie array starts with "jwt=".
 
 36. That string contains "HttpOnly;".  (This is a security test!)
 
@@ -608,17 +640,11 @@ Then, add the following additional tests:
 
 Hint: The logoff route is protected.  What do you need to put in the request header?  Where can you get the needed value? Why didn't you have to do this for the controller test?
 
-Then verify that all your tests run without error.  If you want to run just this test, you can do:
-
-```bash
-npx jest test/user.function.test.js
-```
-
-Also, run the TDD (test of the tests) command, if you haven't recently, to see if it identifies any problems with your tests.
+Then verify that all your tests run without error.
 
 ## **On Making Tests Comprehensive**
 
-As you go further up the stack, your tests don't have to be quite as granular.  When you create your controller function tests, you don't have to test all the ways that a task or user object might not pass validation, because your validation tests handle that.  But, you probably ought to test at least one way in which the validation should fail, so that you know that the validation is actually being performed.  Similarly, when you test the actual network tests with supertest, you don't have to test all the things that the controller unit tests do.  On the other hand, it is very important to have comprehensive unit tests.  In theory, you could test every case with supertest -- but then someone would have to analyze **why** the test failed, and **where** in the whole stack the actual bug resides.
+As you go further up the stack, your tests don't have to be quite as granular.  (The phrase, "further up the stack" means, testing functions that call more basic functions.)  When you create your controller function tests, you don't have to test all the ways that a task or user object might not pass validation, because your validation tests handle that.  But, you probably ought to test at least one way in which the validation should fail, so that you know that the validation is actually being performed.  Similarly, when you test the actual network tests with supertest, you don't have to test all the things that the controller unit tests do.  On the other hand, it is very important to have comprehensive unit tests.  In theory, you could test every case with supertest -- but then someone would have to analyze **why** the test failed, and **where** in the whole stack the actual bug resides.
 
 You can check code coverage as follows:
 
@@ -644,7 +670,7 @@ Even when you do have comprehensive code coverage, the tests may be, and this ca
 
 ### **Answers**
 
-1. Logoff is a post operation that could be triggered by cross site request forgery.  A test is needed to verify that this protection is in place. I don't know why an attacker would bother to trigger a logoff, but it is best practice to avoid the attack.
+1. Logoff is a post operation that could be triggered by cross site request forgery.  A test is needed to verify that this protection is in place.
 
 2. To do a task operations functional test, one would first check that none of the task operations can be performed without being logged on.  Then, one would do a logon.  Then, one would check that none of the task operations that change data, those being POST, PATCH, and DELETE, can be done without a CSRF token.  Then, each of the task operations: POST /tasks, PATCH /task/:id, GET /tasks, GET /tasks/:id, and DELETE /tasks/:id, should be tested for correct responses.  One should also check that PATCH, GET, and DELETE operations don't give access to data that doesn't belong to the currently logged on user.  This is the minimum, but might suffice if there are adequate unit tests.
 
@@ -656,7 +682,7 @@ Even when you do have comprehensive code coverage, the tests may be, and this ca
 
 ## **Runnng the Test of the Tests**
 
-To run the TDD for assignment 9, run `npm run lesson9TDD` .  You should get test failures.  Mock versions of some of your JavaScript files are used, with intentionally introduced bugs.  On completion, you should see whether your tests found all the bugs.  This is not a complete test of your tests.  The report at the end will show whether your tests gave the expected results.
+To run the TDD for assignment 9, run `npm run lesson9TDD`.  Mock versions of some of your JavaScript files are used, with intentionally introduced bugs.  **If your tests are correct, you will see test failures, because of the intentional bugs.** So, instead of looking for test failures, see the report at the end.  On completion, you should see whether your tests found all the bugs.  This is not a complete test of your tests.  The report at the end will show whether your tests gave the expected results.
 
 ## **Submit Your Assignment on GitHub**
 

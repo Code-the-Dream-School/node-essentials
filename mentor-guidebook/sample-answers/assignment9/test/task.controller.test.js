@@ -2,7 +2,6 @@ require("dotenv").config();
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 const prisma = require("../db/prisma");
 const EventEmitter = require('events').EventEmitter;
-const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
 const {
   index,
@@ -11,6 +10,7 @@ const {
   update,
   deleteTask,
 } = require("../controllers/taskController");
+const { hashPassword } = require("../controllers/userController");
 const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion");
 
 // a few useful globals
@@ -22,18 +22,19 @@ let saveTaskId = null;
 
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users
-  user1 = await createUser({
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
+  const hashedPassword = await hashPassword("Pa$$word20");
+  user1 = await prisma.user.create( { data: {
     email: "bob@sample.com",
-    password: "Pa$$word20",
+    hashedPassword: hashedPassword,
     name: "Bob",
-  });
-  user2 = await createUser({
+  }});
+  user2 = await prisma.user.create({ data: {
     email: "alice@sample.com",
-    password: "Pa$$word20",
+    hashedPassword: hashedPassword,
     name: "Alice",
-  });
+  }});
 });
 
 afterAll(() => {
