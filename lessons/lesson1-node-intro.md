@@ -297,12 +297,12 @@ This is the way you'll do file I/O for the most part.  Once you have the fileHan
 In the `util` package, which is part of the node base, there is a slick way to wrapper functions that use callbacks to convert it to a function that returns a promise.  Many functions have a signature like:
 
 ```js
-function fnWithCallback(arg1, arg2, arg3, (err, data)) {
+function fnWithCallback(arg1, arg2, arg3, callback) {
 
 }
 ```
 
-The arguments may be required or optional, but the last argument is required.  That's for the callback, and it has to pass the error produced by the function call as the first parameter and the returned value as the second parameter.  You can convert this callback-style function to return a Promise instead:
+The first arguments may be required or optional, but in many cases, the callback argument is required. You have to pass a function as the parameter for that argument. In some cases, the callback has one argument, the error, which is null if no error occurred. In other cases, the callback has two arguments, where the second is the returned value.  You can convert this callback-style function to return a Promise instead:
 
 ```js
 const { promisify } = require("util");
