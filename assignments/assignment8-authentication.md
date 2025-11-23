@@ -162,7 +162,7 @@ but there is no path where both happen.
 You have seen one way to protect the task routes:
 
 ```js
-app.use("/tasks", authMiddleware, taskRouter);
+app.use("/api/tasks", authMiddleware, taskRouter);
 ```
 
 Another approach is to put the following statement into the taskRouter, before any of the defined routes.
@@ -190,12 +190,12 @@ Place this early in the middleware chain so cookies are available when needed.
 
 ## **Testing with Postman**
 
-Test `/user/register` and `/user/logon` with Postman.  
+Test `/api/users` (register) and `/api/users/logon` with Postman.  
 You should see:  
 1. The `csrfToken` returned in the response body.  
 2. The `jwt` cookie being set.  
 
-However, none of your Postman tests for task routes or `user/logoff` route will function properly, because the `csrfToken` isn’t being sent 
+However, none of your Postman tests for task routes or `/api/users/logoff` route will function properly, because the `csrfToken` isn’t being sent 
 in the `X-CSRF-TOKEN` header. Try testing them to confirm this issue.
 
 You want to catch `csrfToken` when it is returned from a `register` or `logon`.  Open up the `logon` request in Postman 

@@ -51,8 +51,8 @@ app.use(cookieParser(process.env.JWT_SECRET));
 app.use(xss());
 
 // Routes
-app.use("/users", userRoutes);
-app.use("/tasks", taskRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // Health check endpoint
 app.get("/health", async (req, res) => {
