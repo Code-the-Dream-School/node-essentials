@@ -130,7 +130,7 @@ const userRouter = require("./routes/userRoutes");
 app.use("/api/users", userRouter);
 ```
 
-The user router is called for the routes that start with "/user".  You don't include that part of the URL path when you create the router itself.
+The user router is called for the routes that start with "/api/users".  You don't include that part of the URL path when you create the router itself.
 
 All of the data sent or received by this app is JSON.  You are creating a back end that just does JSON REST requests.  So, you really shouldn't do res.send("everything worked.").  You should always do this instead:
 
@@ -146,7 +146,7 @@ Here's a spec.
 
 1. You need to have an `/api/users/logon` POST route.  That one would get a JSON body with an email and a password.  The controller function has to do a find() on the `global.users` array for an entry with a matching email.  If it finds one, it checks to see if the password matches.  If it does, it returns a status code of OK, and a JSON body with the user name and email.  The user name is convenient for the front end, because it can show who is logged on.  The email may or may not be used by the front end, but you can return it.  The controller function for the route would also set the value of `global.user_id` to be the entry in the `global.users` array that it finds.  (You don't make a copy, you just set the reference.)  If the email is not found, or if the password doesn't match, the controller returns an UNAUTHORIZED status code, with a message that says Authentication Failed.
 
-2. You need to have a `/api/users/logoff` POST route.  That one would just set the `global.user_id` to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
+2. You need to have an `/api/users/logoff` POST route.  That one would just set the `global.user_id` to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
 
 3. You add the handler functions to the userController, and you add the routes to the userRoutes.js router, doing the necessary exports and requires.
 
