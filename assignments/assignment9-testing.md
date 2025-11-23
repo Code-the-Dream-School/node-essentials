@@ -597,7 +597,7 @@ describe("register a user ", () => {
       email: "jdeere@example.com",
       password: "Pa$$word20",
     };
-    saveRes = await agent.post("/user/register").send(newUser);
+    saveRes = await agent.post("/api/users/register").send(newUser);
     expect(saveRes.status).toBe(201);
   });
 })
@@ -608,7 +608,7 @@ We are using a particular async/await style here, which is what I recommend.  Yo
 ```js
 it('should access a restricted page after sign-in', function (done) {
     agent
-        .get('/tasks')
+        .get('/api/tasks')
         .expect(200) // Expect a successful response after authentication
         .end(done);
 });
@@ -672,7 +672,7 @@ Even when you do have comprehensive code coverage, the tests may be, and this ca
 
 1. Logoff is a post operation that could be triggered by cross site request forgery.  A test is needed to verify that this protection is in place.
 
-2. To do a task operations functional test, one would first check that none of the task operations can be performed without being logged on.  Then, one would do a logon.  Then, one would check that none of the task operations that change data, those being POST, PATCH, and DELETE, can be done without a CSRF token.  Then, each of the task operations: POST /tasks, PATCH /task/:id, GET /tasks, GET /tasks/:id, and DELETE /tasks/:id, should be tested for correct responses.  One should also check that PATCH, GET, and DELETE operations don't give access to data that doesn't belong to the currently logged on user.  This is the minimum, but might suffice if there are adequate unit tests.
+2. To do a task operations functional test, one would first check that none of the task operations can be performed without being logged on.  Then, one would do a logon.  Then, one would check that none of the task operations that change data, those being POST, PATCH, and DELETE, can be done without a CSRF token.  Then, each of the task operations: POST /api/tasks, PATCH /task/:id, GET /api/tasks, GET /api/tasks/:id, and DELETE /api/tasks/:id, should be tested for correct responses.  One should also check that PATCH, GET, and DELETE operations don't give access to data that doesn't belong to the currently logged on user.  This is the minimum, but might suffice if there are adequate unit tests.
 
 3. The short answer is, you can never know for sure that you have enough supertest cases, but every operation that a user might reasonably perform should be tested.  Also, for security, every known attack angle that an attacker might use should be tested.
 
