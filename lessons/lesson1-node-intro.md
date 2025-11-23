@@ -322,7 +322,7 @@ async function doSomething() {
 ```
 
 
-The promisify function doesn't work in all cases. For example, `setTimeout((cb), interval)` doesn't have the right function signature because the callback function does not have enough parameters and is not last in the argument list.
+The promisify function doesn't work in all cases. For example, `setTimeout(callback, interval)` doesn't have the right function signature for promisify because the callback function does not have enough parameters and is not last in the argument list.
 
 ## **1.8 More on Async Functions**
 
