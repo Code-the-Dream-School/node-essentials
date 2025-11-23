@@ -40,7 +40,7 @@ describe("register a user ", () => {
     expect(saveRes.status).toBe(200);
   });
   it("50. See if you are logged in", async () => {
-    const res = await agent.get("/tasks").set("X-CSRF-TOKEN", saveRes.body.csrfToken);
+    const res = await agent.get("/api/tasks").set("X-CSRF-TOKEN", saveRes.body.csrfToken);
     expect(res.status).not.toBe(401);
   });
   it("51. You can logoff.", async () => {
@@ -49,7 +49,7 @@ describe("register a user ", () => {
     expect(saveRes.status).toBe(200);
   });
   it("52. Makes sure we are logged out", async () => {
-    const res = await agent.get("/tasks");
+    const res = await agent.get("/api/tasks");
     expect(res.status).toBe(401);
   });
 });
