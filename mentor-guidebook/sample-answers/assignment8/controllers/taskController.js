@@ -19,7 +19,6 @@ exports.show = async (req, res) => {
     return res.status(400).json({ message: "Invalid task id." });
   }
 
-  // Use global user_id (set during login/registration)
   const task = await prisma.task.findUnique({
     where: {
       id,
@@ -40,7 +39,6 @@ exports.show = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  // Use global user_id (set during login/registration)
   const { error, value } = taskSchema.validate(req.body);
 
   if (error) {
