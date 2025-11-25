@@ -2,7 +2,7 @@ const pool = require("../db/pg-pool");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 exports.index = async (req, res) => {
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   const result = await pool.query(
     "SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
     [global.user_id],
@@ -18,7 +18,7 @@ exports.show = async (req, res) => {
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   const result = await pool.query(
     "SELECT id, title, is_completed FROM tasks WHERE id = $1 AND user_id = $2",
     [id, global.user_id],
@@ -30,7 +30,7 @@ exports.show = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   const { error, value } = taskSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
@@ -51,7 +51,7 @@ exports.update = async (req, res) => {
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   if (!req.body) {
     req.body = {};
   }
@@ -91,7 +91,7 @@ exports.deleteTask = async (req, res) => {
   if (!id) {
     return res.status(400).json({ message: "Invalid task id." });
   }
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   const result = await pool.query(
     "DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id, title, is_completed",
     [id, global.user_id],
