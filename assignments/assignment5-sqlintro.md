@@ -324,7 +324,7 @@ No change needed!
 
 No change needed!
 
-#### e. Changing Task Management: POST /tasks (create)
+#### e. Changing Task Management: POST /api/tasks (create)
 
 You will see that the attribute names change a little bit.  That is because lowercase column names are used in the database.
 
@@ -344,7 +344,7 @@ Note: You should not return the user_id.  That is a foreign key, and should only
 
 Of course, this operation could throw an error, for example if the database is down.  You do not need a try/catch in your controller for this, as your global error handler will take care of it.
 
-#### f. Changing Task Management: GET /tasks (index)
+#### f. Changing Task Management: GET /api/tasks (index)
 
 In each of these task operations, the WHERE cause must filter on th `user_id`, so that a given user can't access a different user's task entries.  For `index()` you need:
 
@@ -356,7 +356,7 @@ const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE 
 
 Again, in case of success, you should not return the user_id.
 
-#### g. Changing Task Management: PATCH /tasks/:id (update)
+#### g. Changing Task Management: PATCH /api/tasks/:id (update)
 
 This one's a little tricky.  You might update the title, or the is_completed, or both.  How can you assemble an SQL statement that would handle all these cases?
 
@@ -376,11 +376,11 @@ const updatedTask = await pool.query(`UPDATE tasks ${setClauses}
 
 This looks a little complicated, and there are other ways to do it if you only have two fields that might change, but if you have many fields, you'd need to do something like this. In the case of success, you want to return the updated object -- but not including the user_id.
 
-#### h. Changing DELETE /tasks/:id (deleteTask)
+#### h. Changing DELETE /api/tasks/:id (deleteTask)
 
 Another one for you to do.  Remember to filter on user_id as well as the task id.
 
-#### i. Changing GET /tasks/:id (show)
+#### i. Changing GET /api/tasks/:id (show)
 
 Same deal. Remember to filter on user_id as well as the task id.
 

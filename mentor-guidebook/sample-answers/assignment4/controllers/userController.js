@@ -39,6 +39,7 @@ exports.register = async (req, res) => {
   // Create new user
   const newUser = { email, name, hashedPassword };
   global.users.push(newUser);
+  global.user_id = newUser;
 
   res.status(201).json({
     email,
@@ -65,11 +66,11 @@ exports.logon = async (req, res) => {
   }
 
   // Set logged on user
-  ((global.user_id = user),
-    res.status(200).json({
-      name: user.name,
-      email: user.email,
-    }));
+  global.user_id = user;
+  res.status(200).json({
+    name: user.name,
+    email: user.email,
+  });
 };
 
 exports.logoff = async (req, res) => {

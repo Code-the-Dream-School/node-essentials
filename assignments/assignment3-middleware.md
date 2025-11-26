@@ -8,7 +8,7 @@ This assignment is to be done in the node-homework folder.  Within that folder, 
 
 You have started work on the application you'll use for your final project.  You now start adding the main functions.
 
-For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the '/user' path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.
+For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the `/api/users` path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.  By convention, REST API routes start with `/api'.
 
 You cannot test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left-hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right-hand side, you see an icon that is a rectangle with a little eye.  No, it doesn't mean the Illuminati.  This is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
 
@@ -25,7 +25,7 @@ This tells Express to parse JSON request bodies as they come in.  The express.js
 Make the following change to the request handler:
 
 ```js
-app.post("/user", (req, res)=>{
+app.post("/api/users", (req, res)=>{
     console.log("This data was posted", JSON.stringify(req.body));
     res.send("parsed the data");
 });
@@ -52,7 +52,7 @@ global.tasks = [];
 And then, change the app.post() as follows:
 
 ```js
-app.post("/user", (req, res)=>{
+app.post("/api/users", (req, res)=>{
     const newUser = {...req.body}; // this makes a copy
     global.users.push(newUser);
     global.user_id = newUser;  // After the registration step, the user is set to logged on.
@@ -103,14 +103,14 @@ Change the code for the route as follows:
 
 ```js
 const { register } = require("./controllers/userController");
-app.post("/user", register);
+app.post("/api/users", register);
 ```
 
 Test again with Postman to make sure it works.
 
 ### **More on Staying Organized: Creating a Router**
 
-You are going to create several more user post routes, one for logon, and one for logoff.  You could have app.post() statements in app.js for each.  But as your application gets more complex, you don't want all that stuff in app.js.  So, you create a router.  Create a folder called routes.  Within that, create a file called user.js.  It should read as follows:
+You are going to create several more user post routes, one for logon, and one for logoff.  You could have app.post() statements in app.js for each.  But as your application gets more complex, you don't want all that stuff in app.js.  So, you create a router.  Create a folder called routes.  Within that, create a file called userRoutes.js.  It should read as follows:
 
 ```js
 const express = require("express");
@@ -126,11 +126,11 @@ module.exports = router;
 Then, change app.js to take out the app.post().  Instead, put this:
 
 ```js
-const userRouter = require("./routes/user");
-app.use("/user", userRouter);
+const userRouter = require("./routes/userRoutes");
+app.use("/api/users", userRouter);
 ```
 
-The user router is called for the routes that start with "/user".  You don't include that part of the URL path when you create the router itself.
+The user router is called for the routes that start with "/api/users".  You don't include that part of the URL path when you create the router itself.
 
 All of the data sent or received by this app is JSON.  You are creating a back end that just does JSON REST requests.  So, you really shouldn't do res.send("everything worked.").  You should always do this instead:
 
@@ -144,13 +144,15 @@ At this time, change the res.send() calls you have in your app and middleware to
 
 Here's a spec.
 
-1. You need to have a `/user/logon` POST route.  That one would get a JSON body with an email and a password.  The controller function has to do a find() on the `global.users` array for an entry with a matching email.  If it finds one, it checks to see if the password matches.  If it does, it returns a status code of OK, and a JSON body with the user name and email.  The user name is convenient for the front end, because it can show who is logged on.  The email may or may not be used by the front end, but you can return it.  The controller function for the route would also set the value of `global.user_id` to be the entry in the `global.users` array that it finds.  (You don't make a copy, you just set the reference.)  If the email is not found, or if the password doesn't match, the controller returns an UNAUTHORIZED status code, with a message that says Authentication Failed.
+1. You need to have an `/api/users/logon` POST route.  That one would get a JSON body with an email and a password.  The controller function has to do a find() on the `global.users` array for an entry with a matching email.  If it finds one, it checks to see if the password matches.  If it does, it returns a status code of OK, and a JSON body with the user name and email.  The user name is convenient for the front end, because it can show who is logged on.  The email may or may not be used by the front end, but you can return it.  The controller function for the route would also set the value of `global.user_id` to be the entry in the `global.users` array that it finds.  (You don't make a copy, you just set the reference.)  If the email is not found, or if the password doesn't match, the controller returns an UNAUTHORIZED status code, with a message that says Authentication Failed.
 
-2. You need to have a `/user/logoff` POST route.  That one would just set the `global.user_id` to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
+2. You need to have an `/api/users/logoff` POST route.  That one would just set the `global.user_id` to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
 
-3. You add the handler functions to the userController, and you add the routes to the user.js router, doing the necessary exports and requires.
+3. You add the handler functions to the userController, and you add the routes to the userRoutes.js router, doing the necessary exports and requires.
 
 4. You test with Postman to make sure all of this works.
+
+5. Run the TDD test!  You type `npm run tdd assignment3a` .
 
 
 For the rest of this assignment, you'll set your app aside for a moment, and learn some debugging skills.
@@ -181,7 +183,7 @@ The dogs are counting on you.
 
 2. To run the provided framework enter ```npm run week3``` in terminal.  You do this to start server before you begin testing with Postman.
 
-3. To run the test, enter ```npm run tdd assignment3``` in terminal.  Your task is to modify the existing files in the `week-3-middleware folder` to make the tests pass.
+3. To run the test, enter ```npm run tdd assignment3b``` in terminal.  Your task is to modify the existing files in the `week-3-middleware folder` to make the tests pass.
 
 ### **Advanced Middleware Implementation**
 
@@ -324,7 +326,7 @@ Test all your new middleware features:
 
 ### Checking Your Work
 
-You start the server for this exercise with `npm run week3`.  You stop it with a Ctrl-C.  You run `npm run tdd assignment3` to run the test for this exercise.  Also use Postman to test.  Confirm the responses in Postman and the logs in your server terminal match the expectations in the deliverables.
+You start the server for this exercise with `npm run week3`.  You stop it with a Ctrl-C.  You run `npm run tdd assignment3b` to run the test for this exercise.  Also use Postman to test.  Confirm the responses in Postman and the logs in your server terminal match the expectations in the deliverables.
 
 ## Video Submission
 

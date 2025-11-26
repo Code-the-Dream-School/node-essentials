@@ -48,7 +48,7 @@ exports.register = async (req, res, next) => {
     .json({ name: result.rows[0].name, email: result.rows[0].email });
 };
 
-exports.login = async (req, res) => {
+exports.logon = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });

@@ -9,9 +9,10 @@
 2. Issues in Internet Deployment
 3. More security for Internet Deployment
 4. How you will Deploy
-5. Thinking About Your Capstone Project
+5. Extra Points to Cover
+6. Thinking About Your Capstone Project
 
-## **2.1 A React Front End for the API**
+## **10.1 A React Front End for the API**
 
 In the React course you recently completed, you implemented a todo list.  This application allowed the user to manage a list of todos, which were stored in Airtable.  The application was configured with an Airtable token and a table identifier.  In this class, you create a means for the user to store tasks, each of which could be a todo.  We have created a React front end for the back end you have created.  It is actually ported from a sample React todo list, but it is changed in important ways:
 
@@ -51,7 +52,7 @@ Now, it may be tempting to make changes to the React front end, so that it looks
 
 In a future iteration of the React class, students will implement a front end that communicates with a Node based back end that is deployed on the Internet, and the React project will include items 1 through 5 above, instead of using Airtable.  Then, in the Node class, they'll build the Node back end for their own front end.
 
-## **2.2 Issues in Internet Deployment**
+## **10.2 Issues in Internet Deployment**
 
 You build an application (usually) so that others can use it.  What do you need?
 
@@ -76,7 +77,7 @@ Whew, a long list! These days, most businesses don't want to sign up for all of 
 
 There is a downside to the cloud, which is that you are dependent on your cloud provider.  In particular, they can get to all your data, so you have to trust them.  Technologies exist to protect your data and code from abuse by vulnerabilities or bad actors at your cloud provider, but they are complicated, and require more hardware that you have to own.  Serious leaks have occurred because of security failures by cloud providers.
 
-## **2.3 More Security for Internet Deployment**
+## **10.3 More Security for Internet Deployment**
 
 Before you deploy, you must be sure that you have enough security built into your back end to prevent misuse.  In Assignment 8, you added quite a few things, but there is still one big hole.  For all the tasks routes and the logoff route, the caller has to have a cookie created by the back end.  And for the logon route, the caller has to have an email address and a password. But for the register route, you have no protection at all.  This creates two risks:
 
@@ -86,7 +87,7 @@ Before you deploy, you must be sure that you have enough security built into you
 
 Typically, you'd fix (1) by sending a notification with some temporary key to the user's email.  They'd have to send it back somehow to prove that they really own that email address.  We won't have you fix that at the moment, which makes it all the more important to address (2).  You'll do that in your assignment by using the Google reCaptcha service.
 
-## **2.4 How You Will Deploy**
+## **10.4 How You Will Deploy**
 
 This is just an outline.  Explicit steps will be provided in your assignment.
 
@@ -121,7 +122,41 @@ This is just an outline.  Explicit steps will be provided in your assignment.
 
 When you use the Render.com free plan, builds are slow.  Your application goes to sleep if it is idle for a while.  It takes a while for it to come back up.  Be patient ... and don't rely on Render.com for your class demo!
 
-## **2.5 Thinking About Your Capstone Project**
+## **10.5 Extra Points to Cover**
+
+Of course, in this introduction to Express, we didn't cover everything.  Here are a few additions.
+
+### **Best Practices for Route Naming**
+
+The same Express server might serve up both a REST API and ordinarly HTML content.  For this reason, it's best to start your REST routes with `/api`.  As your back end evolves, it may be necessary to make changes to add additional capabilities.  Such changes might break the front end applicaitons that call these REST functions.  So, it's best to put a version number in the routes for the APIs.  Net:
+
+Instead of:  
+```
+/users
+/tasks
+```
+You should have:
+```
+/api/v1/users
+/api/v1/tasks
+```
+Don't fix it now -- just be aware that there is a better approach.
+
+### **Sessions**
+
+The app you have created for your project has a minimal user session, just enough to make authentication work.  In some cases, you need more than that.  For example, if you logon to an eCommerce site, you can assemble a shopping cart of stuff you might want to buy.  Where would that be kept?  This information is kept in the session.  A session identifier, some string that contains an identifier for the user and some random nonce for the current session, is stored in an HttpOnly cookie, perhaps in the JWT.  The session identifier is used to write session information, like, for example, the shopping cart, into a database.  You can use the `express-session` package for this purpose.  You can use a variety of session stores, including MongoDB, PostgreSQL, and Redis.
+
+Redis is an in memory key/value store.  It's not really a database.  You can only read or write individual records based on the key.  Sessions don't need to be persisted as carefully as other data, because sessions are temporary.  On the other hand, a session store should be fast and scalable.  The Redis in memory store, as provided by some cloud provider, is a good choice for sessions.
+
+### **Storage**
+
+Suppose your app needs to access data other than SQL records or JSON documents: images, mp3 files, videos, and the like.  For example, suppose you want to store a JPEG image for each user.  Where do you put such data?  Neither SQL nor MongoDB can be used for this.  While your app is running on your laptop, you can write JPEGS to files on your laptop disk, but once you deploy the app to some Internet cloud provider, you won't have a writeable disk for the purpose.  You instead get a storage service, such as Amazon S3, Digital Ocean Spaces, Google Cloud Storage, or various others.
+
+The user selects a JPEG to upload, and a request goes to the back end to get a URL.  The back end obtains a temporary writeable URL from the storage service, and returns it to the front end.  The front end stores the JPEG to that URL.  The back end also gets a durable, read-only URL from the storage service to access that same JPEG, and stores that URL in some user record, so that the JPEG can be retrieved by the front end and shown in subsequent user sessions.
+
+Each of the storage services is accessed using a corresponding toolkit available on NPM.
+
+## **10.6 Thinking About Your Capstone Project**
 
 Review the rubric for the class final project.  Once you complete assignment 10, you will have satisfied nearly all the requirements of the rubric, except one: Do something extra.  There are ideas in the rubric for what the "something extra" might be.  In lesson 11, there are some tips on how to do these.  You may elect to do something else entirely.  However!  Remember that this class is about Node.  You don't want to mess with the front end.  So, you may just be adding APIs or adding additional parameters to existing APIs, or extending the database in some way, and to test and demonstrate, you may have to rely on Postman.  The front end we provide has some function you can leverage, as described in lesson 11.
 

@@ -92,7 +92,7 @@ exports.deleteTask = async (req, res) => {
   if (taskIndex === -1) {
     return res.status(404).json({ message: "Task not found" });
   }
-  const { userId, ...taskCopy } = tasks[taskIndex];
+  const { userId, ...taskCopy } = global.tasks[taskIndex];
   // Delete task
   global.tasks.splice(taskIndex, 1);
 

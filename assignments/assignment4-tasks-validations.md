@@ -10,15 +10,15 @@ You have created route handlers that allow users to register, log in, and log of
 
 Create a task controller and a task router.  You need to support the following routes:
 
-1. POST "/tasks" (the `create` function)  This creates a new entry in the list of tasks for the currently logged on user.
+1. POST "/api/tasks" (the `create` function)  This creates a new entry in the list of tasks for the currently logged on user.
 
-2. GET "/tasks" (`index`).  This returns the list of tasks for the currently logged on user.
+2. GET "/api/tasks" (`index`).  This returns the list of tasks for the currently logged on user.
 
-3. GET "/tasks/:id" (`show`).  This returns the task with a particular ID for the currently logged on user.
+3. GET "/api/tasks/:id" (`show`).  This returns the task with a particular ID for the currently logged on user.
 
-4. PATCH "/tasks/:id" (`update`).  This updates the task with a particular ID for the currently logged on user.
+4. PATCH "/api/tasks/:id" (`update`).  This updates the task with a particular ID for the currently logged on user.
 
-5. DELETE "/tasks/:id (`deleteTask`)".  This deletes the task with a particular ID for the currently logged on user.
+5. DELETE "/api/tasks/:id (`deleteTask`)".  This deletes the task with a particular ID for the currently logged on user.
 
 So, that's five functions you need in the task controller, and five routes that you need in the task router.  But, we have a few problems:
 
@@ -37,8 +37,8 @@ const authMiddleware = require("./middleware/auth");
 But, `app.use(authMiddleware)` would protect any route.  Then no one could register or log on.  You want it only in front of the tasks routes.  So, you do the following:
 
 ```js
-const taskRouter = require("./routers/task"); 
-app.use("/tasks", authMiddleware, taskRouter);
+const taskRouter = require("./routers/taskRoutes"); 
+app.use("/api tasks", authMiddleware, taskRouter);
 ```
 
 That solves the first problem.  The authMiddleware gets called before any of the task routes, and it makes sure that no one can get to those routes without being logged on.  These are called "protected routes" because they require authentication.
