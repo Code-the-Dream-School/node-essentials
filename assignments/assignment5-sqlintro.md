@@ -297,7 +297,7 @@ Right now, you do a find() on the array in the memory store to see if the user i
   }
   let user = null;
   value.hashed_password = await hashPassword(value.password);
-  // the code to here is like the memoryStore version
+  // the code to here is like the in-memory version
   try {
     user = await pool.query(`INSERT INTO users (email, name, hashed_password) 
       VALUES ($1, $2, $3) RETURNING id, email, name`,
