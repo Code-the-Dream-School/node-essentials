@@ -172,7 +172,7 @@ In the previous section on REST and HTTP, you learned about the components of an
 
 4. An error handler.  This is at the end of the chain, in case an error occurs.  There is only one error handler, and it takes four parameters, err, req, res, and next, which is how Express knows it is an error handler.
 
-5. A server.  This is created as a result of an app.listen() on a port.
+5. A server.  This is created as a result of an `app.listen()` on a port.
 
 The mainline code in the app does the following:
 
@@ -227,14 +227,11 @@ app.use((err, req, res, next) => { // The error handler.  You always need one.
   res.status(500).send("internal server error");
 });
 
-let server = null;
+const port = process.env.PORT || 3000;
 
-try {
-  server = app.listen(3000);
-  console.log("server up and running.");
-} catch {
-  console.log("couldn't get access to the port.");
-}
+const server = app.listen(port, ()=>{
+  console.log("server listening on port ", port);
+});
 ```
 
 Of course, for a real app, the route handlers and middleware functions would not be declared inline.  Suppose one set of route handlers deals with customers, via GET/POST/PATCH/PUT/DELETE requests on all paths that start with `/customers`, and suppose you have another set for `/orders`.  Typically you would have a `./controllers` folder, with a `customerController.js` for all the route handlers for customers and an `orderController.js` for all the route handlers for orders.  Typically also, you would have a `./routes` folder, for modules that create express routers.  An express router is a way of associating a collection of routes with a collecton of route handlers.  You'd also have a middleware folder.  In the mainline code, you might have statements like:
@@ -269,9 +266,9 @@ Let's sum up common characteristics of middleware functions and response handler
 - Call next().
 - Throw an error.
 
-Even route handlers sometimes call next().  In these cases they call `next(error` to pass the error to the error handler.  Middleware functions often call next() without parameters, to call the next middleware in the chain or the route handler for the request, but they might call `next(error)` in some cases.
+Even route handlers sometimes call next().  In these cases they call `next(error)` to pass the error to the error handler.  Middleware functions often call next() without parameters, to call the next middleware in the chain or the route handler for the request, but they might call `next(error)` in some cases.
 
-4. If next(error) is called or an error is thrown, the error handler is called and passed the error. In Express 5, this happens even if the error occurs while an async middleware function or route handler is waiting on an asynchronous operation. **However, please note:** Middleware functions and route handlers sometimes call functions that have callbacks. You must **never**  throw an error from within a callback, because that would crash the server. Instead, call next(error), which properly passes the error to Express’s error handling system so it can be handled gracefully without affecting other users.
+4. If `next(error)` is called or an error is thrown, the error handler is called and passed the error. In Express 5, this happens even if the error occurs while an async middleware function or route handler is waiting on an asynchronous operation. **However, please note:** Middleware functions and route handlers sometimes call functions that have callbacks. You must **never**  throw an error from within a callback, because that would crash the server. Instead, call next(error), which properly passes the error to Express’s error handling system so it can be handled gracefully without affecting other users.
 
 
 ## **Parsing the Body of a JSON Request**
@@ -297,16 +294,16 @@ req.host    The host that this Express app is running on
 
 There are many more.
 
-The req.get(headerName) function returns the value of a header associated with the request, if that header is present.
+The `req.get(headerName)` function returns the value of a header associated with the request, if that header is present.
 `req.cookies[cookiename]` returns the cookie of that name associated with request, if one is present.
 
-The res object has the following methods:
+The `res` object has the following methods:
 
-res.status()  This sets the HTTP status code
-res.cookie()  Causes a Set-Cookie header to be attached to the response.
-res.setHeader() Sets a header in the response
-res.json()    When passed a JavaScript object, this method converts the object to JSON and sends it back to the originator of the request
-res.send()    This sends plain text data, or perhaps HTML.
+- `res.status()`  This sets the HTTP status code
+- `res.cookie()`  Causes a Set-Cookie header to be attached to the response.
+- `res.setHeader()` Sets a header in the response
+- `res.json()`    When passed a JavaScript object, this method converts the object to JSON and sends it back to the originator of the request
+- `res.send()`    This sends plain text data, or perhaps HTML.
 
 ### **Check for Understanding**
 
