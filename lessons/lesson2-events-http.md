@@ -215,6 +215,7 @@ app.use("/api", (req, res, next) => {
   // this is called for all methods, but only if the path begins with /api
   // and only if the request got past that first middleware.
   // ...
+  next();  // have to either send a response or pass to next -- else the user waits until timeout.
 });
 
 app.use((req, res) => {
