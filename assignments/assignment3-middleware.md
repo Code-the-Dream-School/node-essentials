@@ -84,7 +84,11 @@ Well ... we'll fix all of that, over time.
 
 ### **Keeping Your Code Organized: Creating a Controller**
 
-You are going to have to create a couple more post routes.  Also, you are going to have to add a lot of logic, to solve problems 1 through 5 above.  You don't want all of that in app.js.  So, create a directory called controllers. Within it, create a file called userController.js.  Within that, create a function called register.  The register() function takes a req and a res, and the body is just as above. You should also do a require for http-status-codes, and instead of using 201, you use StatusCodes.CREATED.  Then, you put register inside the module.exports object for this module.
+You are going to have to create a couple more post routes.  Also, you are going to have to add a lot of logic, to solve problems 1 through 5 above.  You don't want all of that in app.js.  So, create a directory called controllers. Within it, create a file called userController.js.  Within that, create a function called register.  The register() function takes a req and a res, and the body is just as above. You should also do a
+```js
+const  { StatusCodes } = require("http-status-codes");
+```  
+and instead of using 201, you use StatusCodes.CREATED.  Then, you put register inside the module.exports object for this module.
 
 ### **On Naming**
 
