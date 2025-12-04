@@ -47,6 +47,23 @@ model Task {
 }
 ```
 
+**Note on Prisma Enums:** While the example above uses a `String` field for priority, you can also use a Prisma enum for better type safety and database-level validation. If you want to use an enum instead, define it in your schema:
+
+```prisma
+enum Priority {
+  low
+  medium
+  high
+}
+
+model Task {
+  // ... other fields remain the same ...
+  priority    Priority @default(medium) // Use enum instead of String
+  // ... rest of your model fields ...
+}
+```
+Use enums when you have a fixed set of values that are unlikely to change frequently. Enums provide type safety, database-level validation, and better developer experience with autocomplete. **Note:** The tests only verify that priority values are returned as strings ("low", "medium", "high") in JSON responses, and Prisma enums serialize as strings in JSON, so both String and enum approaches will work with the tests. Using enums also helps the frontend know the exact possible values for dropdowns, filters, or validation.
+
 #### b. Run Migration
 
 After updating the schema, you need to create and apply a migration:
