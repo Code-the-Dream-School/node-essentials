@@ -23,7 +23,7 @@ You will learn:
 
 3. **Database transactions for data consistency** - Critical when multiple database operations must succeed or fail together. For example, when a user registers, you want to create their account AND their welcome tasks atomically. If creating the tasks fails, you don't want a user account without tasks—transactions ensure both succeed or both fail.
 
-4. **Batch operations (createMany, updateMany)** - When you need to create or update many records at once (like importing data, bulk updates, or initializing default data), batch operations are much faster than looping through individual create/update calls. They reduce database round trips and improve performance significantly.
+4. **Batch operations (createMany, updateMany, deleteMany)** - When you need to create, update, or delete many records at once (like importing data, bulk updates, cleanup operations, or initializing default data), batch operations are much faster than looping through individual create/update/delete calls. They reduce database round trips and improve performance significantly.
 
 5. **Raw SQL basics with $queryRaw** - Sometimes Prisma's query builder can't express what you need, like complex text search with relevance ranking, advanced JOINs, or database-specific features. Raw SQL gives you the power to write custom queries while still using Prisma's connection management and security features.
 
@@ -438,10 +438,48 @@ const updatedTasks = await prisma.task.updateMany({
 });
 ```
 
+**Example Use Cases:**
+- Mark all tasks older than 7 days as completed
+- Update priority for all high-priority tasks
+- Archive all completed tasks from a specific date range
+
+### c. Deleting Multiple Records
+
+Use `deleteMany` to delete multiple records at once:
+
+```javascript
+// Delete all completed tasks older than 30 days
+const deletedTasks = await prisma.task.deleteMany({
+  where: {
+    isCompleted: true,
+    createdAt: {
+      lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Older than 30 days
+    }
+  }
+});
+
+// Delete all tasks for a specific user
+const deletedUserTasks = await prisma.task.deleteMany({
+  where: {
+    userId: 1
+  }
+});
+```
+
+**Example Use Cases:**
+- Clean up old completed tasks
+- Delete all tasks for a user when they delete their account
+- Remove test data or temporary records
+
+**Important Notes:**
+- `deleteMany` does NOT return the deleted records, only a count
+- Use with caution - there's no undo! Consider soft deletes (marking as deleted) for important data
+- Always use a `where` clause - without it, `deleteMany` will delete ALL records in the table
+
 **Batch Operation Benefits:**
 - **Performance**: Fewer database round trips
 - **Efficiency**: Database optimizes bulk operations
-- **Consistency**: All records updated with same logic
+- **Consistency**: All records updated/deleted with same logic
 
 ---
 
@@ -559,7 +597,6 @@ SQL injection is when an attacker tricks your app into running malicious SQL cod
 - **No code execution**: User input can never become executable SQL
 
 **Remember:** Always use parameterized queries, never concatenate user input directly into SQL strings.
-
 ---
 
 ## **6. Performance Optimization**
@@ -646,7 +683,115 @@ res.status(200).json({
 - **User Experience**: Faster page loads
 - **Scalability**: Works with large datasets
 
-### c. Query Optimization
+### c. Filtering with Query Parameters
+
+You can add filtering capabilities to your index endpoints by reading query parameters from `req.query` and building dynamic `where` clauses. Each filter type can be implemented independently and combined together.
+
+#### 1. Search by Title (`find` parameter)
+
+Search for tasks containing a specific string in the title (case-insensitive search).
+
+**Example URL:** `GET /api/tasks?find=meeting`
+
+**Code Implementation:**
+```javascript
+const { find } = req.query;
+const whereClause = { userId: global.user_id };
+
+if (find) {
+  whereClause.title = {
+    contains: find,        // Matches %find% pattern
+    mode: 'insensitive'    // Case-insensitive search (ILIKE in PostgreSQL)
+  };
+}
+```
+
+This searches for tasks with "meeting" anywhere in the title, regardless of case. The `contains` operator with `mode: 'insensitive'` translates to `ILIKE '%meeting%'` in PostgreSQL.
+
+#### 2. Filter by Completion Status (`isCompleted` parameter)
+
+Filter tasks by their completion status (completed or not completed).
+
+**Example URLs:**
+- `GET /api/tasks?isCompleted=true` - Returns only completed tasks
+- `GET /api/tasks?isCompleted=false` - Returns only incomplete tasks
+
+**Code Implementation:**
+```javascript
+const { isCompleted } = req.query;
+const whereClause = { userId: global.user_id };
+
+if (isCompleted !== undefined) {
+  whereClause.isCompleted = isCompleted === 'true';
+}
+```
+
+Note: We check `isCompleted !== undefined` because the query parameter might be missing entirely. When present, we convert the string `'true'` to boolean `true`.
+
+#### 3. Filter by Minimum Date (`min_date` parameter)
+
+Filter tasks created on or after a specific date.
+
+**Example URL:** `GET /api/tasks?min_date=2024-01-01`
+
+Returns tasks created on or after January 1, 2024.
+
+**Code Implementation:**
+```javascript
+const { min_date } = req.query;
+const whereClause = { userId: global.user_id };
+
+if (min_date) {
+  whereClause.createdAt = {
+    gte: new Date(min_date)  // Greater than or equal to
+  };
+}
+```
+
+The `gte` operator means "greater than or equal to", so it includes tasks created on the specified date and all dates after.
+
+#### 4. Filter by Maximum Date (`max_date` parameter)
+
+Filter tasks created on or before a specific date.
+
+**Example URL:** `GET /api/tasks?max_date=2024-12-31`
+
+Returns tasks created on or before December 31, 2024.
+
+**Code Implementation:**
+```javascript
+const { max_date } = req.query;
+const whereClause = { userId: global.user_id };
+
+if (max_date) {
+  whereClause.createdAt = {
+    lte: new Date(max_date)  // Less than or equal to
+  };
+}
+```
+
+The `lte` operator means "less than or equal to", so it includes tasks created on the specified date and all dates before.
+
+#### 5. Combining Multiple Filters
+
+You can combine multiple filters together by building the `whereClause` incrementally. All filters are combined with AND logic.
+
+**Example URL:** `GET /api/tasks?find=project&isCompleted=false&min_date=2024-01-01`
+
+This returns incomplete tasks with "project" in the title, created after January 1, 2024.
+
+**Implementation Idea:**
+Start with a base `whereClause` and add each filter conditionally. Each filter checks if its query parameter exists, and if so, adds the appropriate condition to the `whereClause`. When you use the `whereClause` in your `findMany()` query, Prisma automatically combines all conditions with AND logic.
+
+**Note:** When combining `min_date` and `max_date`, you need to merge them into a single `createdAt` object with both `gte` and `lte` properties, rather than overwriting one with the other.
+
+**Filtering Benefits:**
+- **Flexibility**: Users can filter data based on their needs
+- **Performance**: Database does the filtering efficiently
+- **User Experience**: Users see only relevant data
+- **Composability**: Multiple filters can be combined
+
+### d. Query Optimization
 
 ```javascript
 // Use indexes effectively
@@ -661,7 +806,6 @@ const recentTasks = await prisma.task.findMany({
   take: 10
 });
 ```
-
 ---
 
 ## **7. Advanced Error Handling**
@@ -727,7 +871,6 @@ try {
 }
 // ... it succeeded!
 ```
-
 As previously mentioned, not all errors should be handled in the context of the controllers.  That would be redundant.  Some the errors should be handled in context, though.  For example, if a user is registering, and the `P2002` error occurs, that is best handled in context, so that good feedback can be returned to the caller.
 
 ### d. Error Handling in Analytics Controllers
@@ -803,7 +946,6 @@ exports.getUserAnalytics = async (req, res, next) => {
   }
 };
 ```
-
 ---
 
 ## **8. Setting Up Routes**
@@ -937,19 +1079,6 @@ Your complete route structure should look like this:
 
 ---
 
-## Summary
-
-Building on the Prisma fundamentals from Lesson 6, you've now learned advanced features. In this lesson, you've learned:
-- **Eager Loading**: Efficiently fetch related data with `include` or `select` to eliminate N+1 queries
-- **Aggregations**: Use `groupBy` for data analysis and statistics, including `_count` with relations
-- **Transactions**: Ensure data consistency across multiple operations with `$transaction`
-- **Batch Operations**: Improve performance with `createMany` and `updateMany`, including validation
-- **Raw SQL**: Use `$queryRaw` when Prisma's features aren't sufficient, with parameterized queries
-- **Security**: Prevent SQL injection with parameterized queries
-- **Performance**: Optimize queries with selective loading, pagination, and proper metadata
-- **Error Handling**: Handle Prisma-specific error codes appropriately in advanced contexts
-- **Routes**: Set up route files and wire them into your Express application with proper middleware
-
 ### Key Benefits of Advanced Prisma Features
 - **Performance**: Fewer database queries and optimized operations
 - **Data Consistency**: Transactions ensure atomic operations
@@ -961,8 +1090,6 @@ Building on the Prisma fundamentals from Lesson 6, you've now learned advanced f
 1. **Complete Assignment 7** following this lesson
 2. **Test your advanced Prisma features** thoroughly
 3. **Explore Prisma documentation** for more advanced usage
-4. **Practice with real-world scenarios** using these patterns
-
 ---
 
 ## Resources
@@ -983,4 +1110,4 @@ Building on the Prisma fundamentals from Lesson 6, you've now learned advanced f
 - Test each endpoint individually
 - Ask for help if you get stuck on specific concepts
 
-**Remember:** This lesson builds on Lesson 6. Make sure you have a working Prisma application from Lesson 6 before adding advanced features!
+
