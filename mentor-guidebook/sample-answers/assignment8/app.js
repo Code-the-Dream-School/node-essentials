@@ -43,16 +43,13 @@ if (process.env.ALLOWED_ORIGINS) {
   );
 }
 
-// Body and cookie parsing
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
-
-// XSS protection - must come after body parsers
-app.use(xss());
 
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/analytics", require("./routes/analyticsRoutes")); // Add this
 
 // Health check endpoint
 app.get("/health", async (req, res) => {

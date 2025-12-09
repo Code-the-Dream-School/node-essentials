@@ -1,4 +1,5 @@
-const { userSchema } = require("../validation/userSchema");
+const prisma = require("../db/prisma");
+const userSchema = require("../validation/userSchema").userSchema;
 const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
 
@@ -20,8 +21,7 @@ const setJwtCookie = (req, res, user) => {
   return payload.csrfToken; // this is needed in the body returned by logon() or register()
 };
 
-const prisma = require("../db/prisma");
-const crypto = require("crypto")
+const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
 async function hashPassword(password) {
@@ -40,36 +40,70 @@ async function comparePassword(inputPassword, storedHash) {
 exports.register = async (req, res, next) => {
   const { error, value } = userSchema.validate(req.body, { abortEarly: false });
 
-  if (error) {
-    return res.status(400).json({
-      error: "Validation failed",
-      details: error.details,
-    });
-  }
+  if (error) return next(error);
 
   const { email, name, password } = value;
 
   // Hash the password before storing (using scrypt from lesson 4)
   const hashedPassword = await hashPassword(password);
-  // Create new user
-  let newUser;
+  // In your register method, after validation and password hashing:
+  // Do the Joi validation, so that value contains the user entry you want.
+  // hash the password, and put it in value.hashedPassword
+  // delete value.password as that doesn't get stored
   try {
-    newUser = await prisma.user.create({
-      data: { email, name, hashedPassword },
-      select: { id: true, email: true, name: true },
-    });
-  } catch (err) {
-    if (err.name === "PrismaClientKnownRequestError" && err.code == "P2002") {
-      return res
-        .status(400)
-        .json({ message: "That email is already registered." });
-    }
-    return next(err);
-  }
+    const result = await prisma.$transaction(async (tx) => {
+      // Create user account (similar to Assignment 6, but using tx instead of prisma)
+      const newUser = await tx.user.create({
+        data: { email, name, hashedPassword },
+        select: { id: true, email: true, name: true },
+      });
 
-  // set the cookie and return the value
-  const csrfToken = setJwtCookie(req, res, newUser);
-  res.status(201).json({ name: newUser.name, email: newUser.email, csrfToken });
+      // Create 3 welcome tasks using createMany
+      const welcomeTaskData = [
+        {
+          title: "Complete your profile",
+          userId: newUser.id,
+          priority: "medium",
+        },
+        { title: "Add your first task", userId: newUser.id, priority: "high" },
+        { title: "Explore the app", userId: newUser.id, priority: "low" },
+      ];
+      await tx.task.createMany({ data: welcomeTaskData });
+
+      // Fetch the created tasks to return them
+      const welcomeTasks = await tx.task.findMany({
+        where: {
+          userId: newUser.id,
+          title: { in: welcomeTaskData.map((t) => t.title) },
+        },
+        select: {
+          id: true,
+          title: true,
+          isCompleted: true,
+          priority: true,
+        },
+      });
+
+      return { user: newUser, welcomeTasks };
+    });
+    const csrfToken = setJwtCookie(req, res, result.user);
+    delete result.user.id;
+    // Send response with status 201
+    res.status(201).json({
+      user: result.user,
+      welcomeTasks: result.welcomeTasks,
+      transactionStatus: "success",
+      csrfToken,
+    });
+    return;
+  } catch (err) {
+    if (err.code === "P2002") {
+      // send the appropriate error back -- the email was already registered
+      return res.status(400).json({ error: "Email already registered" });
+    } else {
+      return next(err); // the error handler takes care of other errors
+    }
+  }
 };
 
 exports.logon = async (req, res) => {
@@ -108,4 +142,38 @@ exports.logoff = async (req, res) => {
   // Clear the global user ID for session management
   res.clearCookie("jwt", cookieFlags(req));
   res.sendStatus(200);
+};
+
+exports.show = async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+      Task: {
+        where: { isCompleted: false },
+        select: {
+          id: true,
+          title: true,
+          priority: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      },
+    },
+  });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  res.status(200).json(user);
 };

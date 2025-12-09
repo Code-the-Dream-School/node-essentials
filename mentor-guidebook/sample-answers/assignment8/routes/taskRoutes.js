@@ -6,12 +6,12 @@ const {
   create,
   update,
   deleteTask,
+  bulkCreate, // Add this import
 } = require("../controllers/taskController");
-const jwtMiddleware = require("../middleware/jwtMiddleware");
 
-// All task routes are protected with JWT middleware
-router.use(jwtMiddleware);
+router.use(require("../middleware/jwtMiddleware"));
 
+router.post("/bulk", bulkCreate);
 router.get("/", index);
 router.get("/:id", show);
 router.post("/", create);
