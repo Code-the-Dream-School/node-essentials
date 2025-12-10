@@ -421,7 +421,7 @@ Run the tests, and make sure all of them pass.
 
 ## **Tests of the User Controller**
 
-Because of the length of this assignment, the user.controller.test.js file is **optional**.  Be sure you do implement the network testing that follows this section.
+Because of the length of this assignment, the user.controller.test.js file is **optional**.  Be sure you do implement the actual network operations testing that follows this section.  Even if you don't implement the tests in this section, read the descriptions to see how they would work.
 
 We want to test logon.  But, we have a problem.  The logon method sets a cookie.  If that cookie is not set, things aren't working, so we have to test this.  The first problem is that a res object returned by `httpMocks.createResponse()` doesn't keep track of cookies. So, we create an enhanced version of the mock res object.  This one, created by MockRequestWithCookies, keeps track of 'Set-Cookie' operations.
 
@@ -434,7 +434,8 @@ const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion")
 const prisma = require("../db/prisma");
 const httpMocks = require("node-mocks-http");
 const { register, logoff, logon } = require("../controllers/userController");
-const jwtMiddleware = require("../middleware/jwtMiddleware")
+const jwtMiddleware = require("../middleware/jwtMiddleware");
+const jwt = require("jsonwebtoken");
 
 // a few useful globals
 let saveRes = null;
@@ -509,36 +510,83 @@ Add the following tests:
 
 38. The returned data contains a csrfToken.
 
-39. A logon attempt with a bad password returns a 401.
-
-40. You can't register with an email address that is already registered.
-
 43. You can now logoff.
 
 45. The logoff clears the cookie.
 
+Here's how you check: After the logoff in 43, the `setCookieArray` in `saveRes` should contain a string starting with "jwt=", and that string should contain "Jan 1970".  Cookies are cleared by setting the expiration date to some time in the past.  The code you need is:
+
+```js
+  it("41. The logoff clears the cookie.", () => {
+    const setCookieArray = saveRes.get("Set-Cookie");
+    jwtCookie = setCookieArray.find((str) => str.startsWith("jwt="));
+    expect(jwtCookie).toContain("Jan 1970");
+  });
+```
+
+39. A logon attempt with a bad password returns a 401.
+
+40. You can't register with an email address that is already registered.
+
+The following tests should be in a a new stanza, that starts as follows:
+
+```js
+describe("Testing JWT middleware", () =>{
+```
+
+Although you are testing middleware, and not a route handler, you test the same way.  You need the req and the res, and then do:
+```js
+await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
+```
+
 61. jwtMiddleware Returns a 401 if the JWT cookie is not present in the req.
+
+If you don't put in a cookie, in, you should get the 401.
 
 62. Returns a 401 if the JWT is invalid.
 
-Hint: Put a bogus string in req.cookies.jwt.  A better test would be to create a real jwt, but sign it with a bad secret.
+Here's the code you need:
+```js
+  it("62. Returns a 401 if the JWT is invalid", async ()=>{
+    const req = httpMocks.createRequest({
+      method: "POST"
+    })
+    saveRes = MockResponseWithCookies();
+    const jwtCookie = jwt.sign({id: 5, csrfToken: "badToken"}, "badSecret", { expiresIn: "1h" });
+    req.cookies = {jwt: jwtCookie }
+    await waitForRouteHandlerCompletion(jwtMiddleware,req,saveRes);
+    expect(saveRes.statusCode).toBe(401);
+  });
+```
+The `req.cookies` object may have various cookies.  The code above puts the jwt cookie in, but you see that is signed with "badSecret", so it isn't valid.
 
 63. Returns a 401 if the JWT is valid but the CSRF token isn't.
 
-Hint: req.cookies.jwt should have a JWT cookie with a csrfToken in the payload (any string).  Put an X-CSRF-TOKEN header in the req, but use a different string.
+Here, you create a good cookie, signed with `process.env.JWT_SECRET`.  You put a `csrfToken` in the payload, with value "badToken", as well as `id: 5`, which represents the id of some (imagined) user record.  Then, you do the following:
+
+```js
+    if (!req.headers) {
+      req.headers={};
+    }
+    req.headers["X-CSRF-TOKEN"]= "goodtoken";
+```
+
+So, the CSRF token in the header doesn't match the one in the cookie.  Do a POST operation, so that the middleware will check the CSRF values -- and reject them because they don't match.
 
 64. Calls next() if both the token and the jwt are good.
 
-Hint: The `await waitForRouteHandlerCompletion()` returns the value of the next function.  You can then do:
+You want to do the same as for 63, but make the CSRF token values in the header and the cookie match this time.  Do a POST as before.  Then:
+
 ```js
+const next = await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
 expect(next).toHaveBeenCalled();
 ```
 
 65. If both the token and the jwt are good, req.user.id has the appropriate value.
 
-Hint: The jwt payload has to have id: 5, or some other integer, and req.user.id should have the same integer.
+You use the `req` object from 64 -- no need to send a new request.  Your `expect()` statement should check that `req.user.id` is 5.
 
-For the last test above, when you retrieve the setCookieArray from saveRes, it should contain a string starting with "jwt=", and that string should contain "Jan 1970".  Cookies are cleared by setting the expiration date to some time in the past.
+For the last test above, 
 
 If you have done this optional part of the assignment, verify that "npm run test" runs all these tests successfully.
 
