@@ -76,7 +76,7 @@ In taskController.js, you need a function called `create(req, res)`. And inside 
 ```js
 const newTask = {...req.body, id: taskCounter(), userId: global.user_id.email};
 global.tasks.push(newTask);
-const (userId, ...sanitizedTask) = newTask; 
+const {userId, ...sanitizedTask} = newTask; 
 // we don't send back the userId! This statement removes it.
 res.json(sanitizedTask);  
 ```
