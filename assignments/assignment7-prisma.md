@@ -164,6 +164,12 @@ exports.show = async (req, res) => {
 
 ### 3. Implement GroupBy Operations
 
+For the following programming tasks, you will assemble statistics and do pagination on user tasks.  To test your work, you need a bunch of task entries in the database with various `createdAt` values.  We provide a utility for the purpose.  You can run:
+```bash
+node class-utils/create-many <email>
+```
+where the email is one for a user that is already registered in your database.  This creates 100 task entries for that user, with random data.  The `createdAt` values are spread out over the last 5 weeks, to make the statistics work well.  The titles are created with the `@faker-js/faker` package, which is useful for creating mock data for testing purposes.  They are in an imaginary language called Lorem Ipsum, which Google Translate does not support.
+
 #### a. Create Analytics Controller
 
 Create a new file `controllers/analyticsController.js`. You need to require prisma at the top, similar to how you did it in your other controllers in Assignment 6:
