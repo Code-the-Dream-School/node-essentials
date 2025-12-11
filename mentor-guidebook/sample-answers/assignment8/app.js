@@ -1,13 +1,14 @@
-const express = require('express');
-const prisma = require('./prisma/db');
-const userRoutes = require('./routes/userRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
+const express = require("express");
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const cors = require('cors');
 const { xss } = require('express-xss-sanitizer');
 const rateLimiter = require('express-rate-limit');
+const prisma = require("./db/prisma");
+const userRoutes = require("./routes/userRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+const errorHandler = require("./middleware/error-handler");
+const notFound = require("./middleware/not-found");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,7 +24,7 @@ app.use(
 app.use(helmet());
 
 // CORS configuration
-const origins = [];
+const origins = ["http://localhost:3001"];
 if (process.env.ALLOWED_ORIGINS) {
   const originArray = process.env.ALLOWED_ORIGINS.split(",");
   originArray.forEach((orig) => {
@@ -42,87 +43,70 @@ if (process.env.ALLOWED_ORIGINS) {
   );
 }
 
-// Body and cookie parsing
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 
-// XSS protection - must come after body parsers
-app.use(xss());
-
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/analytics', analyticsRoutes);
-
-// Add routes for testing compatibility
-app.use('/user', userRoutes);
-app.use('/tasks', taskRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/analytics", require("./routes/analyticsRoutes")); // Add this
 
 // Health check endpoint
-app.get('/health', async (req, res) => {
+app.get("/health", async (req, res) => {
   try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', db: 'connected' });
+    await prisma.$queryRaw("SELECT 1");
+    res.json({ status: "ok", db: "connected" });
   } catch (err) {
-    res.status(500).json({ status: 'error', db: 'not connected', error: err.message });
+    res
+      .status(500)
+      .json({ status: "error", db: "not connected", error: err.message });
   }
 });
+app.use(notFound);
+app.use(errorHandler);
 
-// Enhanced error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Global error:', err);
-  
-  // Handle Prisma-specific errors
-  if (err.code) {
-    switch (err.code) {
-      case 'P2002':
-        return res.status(409).json({ 
-          error: 'Unique constraint violation',
-          details: 'A record with this unique field already exists'
-        });
-      case 'P2025':
-        return res.status(404).json({ 
-          error: 'Record not found',
-          details: 'The requested record could not be found'
-        });
-      case 'P2003':
-        return res.status(400).json({ 
-          error: 'Foreign key constraint violation',
-          details: 'Referenced record does not exist'
-        });
-      default:
-        return res.status(500).json({ 
-          error: 'Database error',
-          details: err.message 
-        });
-    }
+const server = app.listen(port, () =>
+  console.log(`Server is listening on port ${port}...`),
+);
+
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`Port ${port} is already in use.`);
+  } else {
+    console.error("Server error:", err);
   }
-  
-  // Handle validation errors
-  if (err.isJoi) {
-    return res.status(400).json({ 
-      error: 'Validation error',
-      details: err.details 
-    });
+  process.exit(1);
+});
+
+let isShuttingDown = false;
+async function shutdown(code = 0) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log("Shutting down gracefully...");
+  try {
+    await new Promise((resolve) => server.close(resolve));
+    console.log("HTTP server closed.");
+    // If you have DB connections, close them here
+    await prisma.$disconnect();
+    console.log("Prisma disconnected");
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    code = 1;
+  } finally {
+    console.log("Exiting process...");
+    process.exit(code);
   }
-  
-  // Default error response
-  res.status(500).json({ 
-    error: 'Internal server error',
-    details: err.message 
-  });
+}
+
+process.on("SIGINT", () => shutdown(0)); // ctrl+c
+process.on("SIGTERM", () => shutdown(0)); // e.g. `docker stop`
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  shutdown(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+  shutdown(1);
 });
 
-// 404 handler - catch all unmatched routes
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Endpoint not found',
-    path: req.originalUrl 
-  });
-});
-
-const server = app.listen(port, () => {
-  console.log(`Prisma server running on port ${port}`);
-});
-
-module.exports = { app, server }; 
+module.exports = { server, app };
