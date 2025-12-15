@@ -1,11 +1,10 @@
 require("dotenv").config();
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 const prisma = require("../db/prisma");
-const { createUser } = require("../services/userService");
+const jwtMiddleware = require("../middleware/jwtMiddleware")
 const httpMocks = require("node-mocks-http");
 const EventEmitter = require('events').EventEmitter;
-const { register, logoff } = require("../controllers/userController");
-const { logonRouteHandler, jwtMiddleware } = require("../passport/passport");
+const { register, logon, logoff } = require("../controllers/userController");
 const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion.js")
 const jwt = require("jsonwebtoken");
 let saveReq;
@@ -33,14 +32,8 @@ function MockResponseWithCookies() {
 
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users
-  await createUser({
-    email: "bob@sample.com",
-    password: "Pa$$word20",
-    name: "Bob",
-  });
-
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
 });
 
 afterAll(() => {
@@ -50,13 +43,22 @@ afterAll(() => {
 let jwtCookie;
 
 describe("testing logon, register, and logoff", () => {
-  it("33. The user can be logged on", async () => {
+  it("33. The user can be registered.", async () => {
+    const req = httpMocks.createRequest({
+      method: "POST",
+      body: { email: "bob@sample.com", password: "Pa$$word20", name: "Bob" },
+    });
+    saveRes = MockResponseWithCookies();
+    await waitForRouteHandlerCompletion(register,req,saveRes);
+    expect(saveRes.statusCode).toBe(201); // success!
+  });
+  it("34. The user can be logged on", async () => {
     const req = httpMocks.createRequest({
       method: "POST",
       body: { email: "bob@sample.com", password: "Pa$$word20" },
     });
     saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(logonRouteHandler,req,saveRes);
+    await waitForRouteHandlerCompletion(logon,req,saveRes);
     expect(saveRes.statusCode).toBe(200); // success!
   });
   it("35. A string in the Set-Cookie array starts with jwt=.", () => {
@@ -80,10 +82,23 @@ describe("testing logon, register, and logoff", () => {
       body: { email: "bob@sample.com", password: "bad password" },
     });
     saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(logonRouteHandler,req,saveRes);
+    await waitForRouteHandlerCompletion(logon,req,saveRes);
     expect(saveRes.statusCode).toBe(401);
   });
-  it("40. You can't register with an email address that is already registered.", async () => {
+    it("40. You can now logoff.", async () => {
+    const req = httpMocks.createRequest({
+      method: "POST",
+    });
+    saveRes = MockResponseWithCookies();
+    await waitForRouteHandlerCompletion(logoff, req, saveRes);
+    expect(saveRes.statusCode).toBe(200);
+  });
+  it("41. The logoff clears the cookie.", () => {
+    const setCookieArray = saveRes.get("Set-Cookie");
+    jwtCookie = setCookieArray.find((str) => str.startsWith("jwt="));
+    expect(jwtCookie).toContain("Jan 1970");
+  });
+  it("42. You can't register with an email address that is already registered.", async () => {
     const req = httpMocks.createRequest({
       method: "POST",
       body: {
@@ -95,41 +110,6 @@ describe("testing logon, register, and logoff", () => {
     saveRes = MockResponseWithCookies();
     await waitForRouteHandlerCompletion(register, req, saveRes);
     expect(saveRes.statusCode).toBe(400);
-  });
-  it("41. You can register an additional user.", async () => {
-    const req = httpMocks.createRequest({
-      method: "POST",
-      body: {
-        email: "manuel@sample.com",
-        name: "Manuel",
-        password: "Pa$$word20",
-      },
-    });
-    saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(register, req, saveRes);
-    expect(saveRes.statusCode).toBe(201);
-  });
-  it("42. You can logon as that new user.", async () => {
-    const req = httpMocks.createRequest({
-      method: "POST",
-      body: { email: "manuel@sample.com", password: "Pa$$word20" },
-    });
-    saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(logonRouteHandler,req,saveRes);
-    expect(saveRes.statusCode).toBe(200);
-  });
-  it("43. You can now logoff.", async () => {
-    const req = httpMocks.createRequest({
-      method: "POST",
-    });
-    saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(logoff, req, saveRes);
-    expect(saveRes.statusCode).toBe(200);
-  });
-  it("45. The logoff clears the cookie.", () => {
-    const setCookieArray = saveRes.get("Set-Cookie");
-    jwtCookie = setCookieArray.find((str) => str.startsWith("jwt="));
-    expect(jwtCookie).toContain("Jan 1970");
   });
 });
 

@@ -2,7 +2,7 @@
 
 ## **Assignment Instructions**
 
-This assignment is to be added to node-homework.  Be sure to create an assignment9 branch for your work, and to create it from your assignment10 branch, so that you have access to your previous work.  This assignment requires the following packages, most of which have already been installed:
+This assignment is to be added to node-homework.  Be sure to create an assignment9 branch for your work, and to create it from your assignment8 branch, so that you have access to your previous work.  This assignment requires the following packages, most of which have already been installed:
 
 - jest
 - supertest
@@ -34,7 +34,7 @@ Do an `npm install --save-dev`  of each of them, to make sure you have them.  Yo
 Create a `test` directory inside of the `node-homework` folder.  Then update your `package.json` so that the scripts stanza includes:
 
 ```json
-    "test": "NODE_ENV=test jest --testPathPatterns=test/ --verbose --maxWorkers=1",
+    "test": "NODE_ENV=test jest --testPathPatterns=test/ --verbose --maxWorkers=1 --detectOpenHandles",
 ```
 **Note: This way of setting the NODE_ENV environment variable works on Windows Native, but only if you are running the test under Git Bash.  If you are developing in Windows Native, you should use Git Bash for all development, and you should configure VSCode so that Git Bash is the default terminal program.**
 
@@ -88,7 +88,7 @@ describe("user object validation tests", () => {
       { name: "Bob", email: "bob@sample.com", password: "password" },
       { abortEarly: false },
     );
-    // expect() statement needed to
+    // expect() statement needed here
   });
 });
 ```
@@ -186,7 +186,6 @@ Within your test folder, create a file called `taskController.test.js`.  This sh
 require("dotenv").config();
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL; // point to the test database!
 const prisma = require("../db/prisma");
-const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
 const {
   index,
@@ -208,7 +207,7 @@ The call to `dotenv` is needed to get the database URLs.  But **before** you loa
 
 There is a confusing point about the dotenv `config()` call.  The `.env` file is in the root of the project, but this file is not.  The dotenv package resolves the path using the current working directory, not the location of the current file.  You run jest from the root of the project, so that is always the current working directory.
 
-You use the `createUser()` function from your user service.  You use this to create the user records you need in the database, because if you call the Prisma client directly, the password is not hashed.
+Although this is a test of the task controller, you need to use the `register` function from the user controller, so that you can create users with associated tasks.
 
 Jest provides a number of useful hooks:
 
@@ -224,16 +223,10 @@ beforeAll(async () => {
   // clear database
   await prisma.Task.deleteMany(); // delete all tasks
   await prisma.User.deleteMany(); // delete all users
-  user1 = await createUser({
-    email: "bob@sample.com",
-    password: "Pa$$word20",
-    name: "Bob",
-  });
-  user2 = await createUser({
-    email: "alice@sample.com",
-    password: "Pa$$word20",
-    name: "Alice",
-  });
+  user1 = await prisma.User.create({data: { name: "Bob", 
+    email: "bob@sample.com", hashedPassword: "nonsense"}});
+  user2 = await prisma.User.create({data: { name: "Alice", 
+    email: "alice@sample.com", hashedPassword: "nonsense"}});
 });
 
 afterAll(() => {
@@ -243,7 +236,7 @@ afterAll(() => {
 
 Clearly you would not want to do this step unless you are pointing to the test database.  When you pass a function to `beforeAll()` or `it()` or other jest functions, you can declare it as async so that you can use await.  It is important to do the prisma.$disconnect().  If not, Jest may not terminate cleanly, and you might have a zombie process.
 
-Why do we need the user records? Each task record has a foreign key, the userId.  If this is not provided or if it doesn't correspond to a real user record, you get a constraint violation from the database.  It is very important to disconnect from the database at the completion of the test to avoid a hung process.
+Why do we need the user records? Each task record has a foreign key, the userId.  If this is not provided or if it doesn't correspond to a real user record, you get a constraint violation from the database.  Of course, the values provided for `hashedPassword` are not actually hashed passwords, so it would not be possible to logon with either of these, but one can associate task records with each.
 
 There are some special issues when testing route handlers and middleware functions.  They take the parameters `req`, `res`, and sometimes `next`.  For the req and res, we use the `node-http-mocks` package.  You can configure the mock req object with the content you are testing: body, query parameters, headers, path parameters, whatever.  Then you call the function to be tested, to see if the result is as you expect.
 
@@ -254,15 +247,18 @@ A route hander or middleware function migth do the following:
 - Throw an error.
 - None of the above.  If a route handler or middleware function doesn't do any of these, it is ill behaved, and your test should catch this.
 
-To know what happened, you have to call the function and check what is returned.  The function might be async.  Or, it might do the res.json() or the call to next() from within a callback.  Your test needs to call the function, and wait for the completion.  When the completion within a callback, or if the code to be tested calls next(), that's a little tricky.  If it's your job to write the tests, you may have no access to the source code of the function.  If your team uses test first development, that source code might not even be written yet.  
+To know what happened, you have to call the function and check what is returned.  The function might be async.  Or, it might do the res.json() or the call to next() from within a callback.  Your test needs to call the function, and wait for the completion.  When the completion is within a callback, or if the code to be tested calls next(), that's a little tricky.  If it's your job to write the tests, you may have no access to the source code of the function.  If your team uses test first development, that source code might not even be written yet.  
 
 You should use the following utility function:
 
 ```js
 const waitForRouteHandlerCompletion = async (func, req, res) => {
   let next;
-  const promise = new Promise((resolve) => {
-    next = jest.fn(() => resolve());
+  const promise = new Promise((resolve, reject) => {
+    next = jest.fn((error) => {
+      if (error) return reject(error);
+      resolve());
+    }
     res.on("finish", () => {
       resolve();
     });
@@ -298,12 +294,13 @@ Our first test looks like this:
 
 ```js
 describe("testing task creation", () => {
-  it("14. create a task", async () => {
+  it("14. Creates a task", async () => {
     const req = httpMocks.createRequest({
       method: "POST",
       body: { title: "first task" },
     });
-    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter}); // be sure you create the event emitter
+    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});
+    // be sure you pass the event emitter class
     await waitForRouteHandlerCompletion(create,req, saveRes);
     expect(saveRes.statusCode).toBe(201);
   });
@@ -318,7 +315,7 @@ OK, all looks good.  This is a valid task object for creation.  So, run the test
       method: "POST",
       body: { title: "first task" },
     });
-    saveRes = httpMocks.httpMocks.createResponse({eventEmitter: EventEmitter});;
+    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});;
     try {
       await waitForRouteHandlerCompletion(create,req, saveRes);
     } catch (e) {
@@ -361,9 +358,32 @@ Create a new describe stanza called "test getting created tasks" and test the fo
 
 21. If you use user1's id, the call returns a 200 status.
 
-22. The returned JSON array has length 1.
+Here's some code for this:
+
+```js
+   it("21. If you use user1's id on index() the call returns a 200 status.", async () => {
+    const req = httpMocks.createRequest({
+      method: "GET",
+    });
+    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});;
+    await waitForRouteHandlerCompletion(index,req, saveRes);
+    expect(saveRes.statusCode).toBe(200);
+  });
+```
+
+22. The returned object has a tasks array of length 1.
+
+Here's some code for this:
+```js
+  it("22. The returned object has a tasks array of length 1.", async () => {
+    saveData = saveRes._getJSONData(); // reusing saveRes
+    expect(saveData.tasks.length).toBe(1);
+  });
+```
 
 23. The title in the first array object is as expected.
+
+You are checking `saveData.tasks[0].title`.
 
 24. The first array object does not contain a userId.
 
@@ -371,11 +391,15 @@ Create a new describe stanza called "test getting created tasks" and test the fo
 
 (This is a security test for access control!  You do not want Alice to access Bob's data!)
 
-26. You can retrieve the created object using show().
+26. You can retrieve the created task using show().
 
-Hint: You have to set req.params.  You want req.params.id to be a string representation of saveTaskId: req.params = { id: saveTaskId.toString() }
+Hint: You have to set req.params.  You want req.params.id to be a string representation of saveTaskId:
+```js 
+req.params = { id: saveTaskId.toString() }
+```
+You can just check for a 200 result code.
 
-27. User2 can't retrieve this task entry. 
+27. User2 can't retrieve this task entry. You should get a 404.
 
 (Why test this? We don't use this operation in the app -- but we have to test it, as it could be a back door.)
 
@@ -397,7 +421,7 @@ Run the tests, and make sure all of them pass.
 
 ## **Tests of the User Controller**
 
-Because of the length of this assignment, the user.controller.test.js file is **optional**.  Be sure you do implement the network testing that follows this section.
+Because of the length of this assignment, the user.controller.test.js file is **optional**.  Be sure you do implement the actual network operations testing that follows this section.  Even if you don't implement the tests in this section, read the descriptions to see how they would work.
 
 We want to test logon.  But, we have a problem.  The logon method sets a cookie.  If that cookie is not set, things aren't working, so we have to test this.  The first problem is that a res object returned by `httpMocks.createResponse()` doesn't keep track of cookies. So, we create an enhanced version of the mock res object.  This one, created by MockRequestWithCookies, keeps track of 'Set-Cookie' operations.
 
@@ -408,10 +432,10 @@ require("dotenv").config();
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion");
 const prisma = require("../db/prisma");
-const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
 const { register, logoff, logon } = require("../controllers/userController");
-const jwtMiddleware = require("../middleware/jwtMiddleware")
+const jwtMiddleware = require("../middleware/jwtMiddleware");
+const jwt = require("jsonwebtoken");
 
 // a few useful globals
 let saveRes = null;
@@ -436,11 +460,6 @@ beforeAll(async () => {
   // clear database
   await prisma.Task.deleteMany(); // delete all tasks
   await prisma.User.deleteMany(); // delete all users
-  await createUser({
-    email: "bob@sample.com",
-    password: "Pa$$word20",
-    name: "Bob",
-  });
 });
 
 afterAll(() => {
@@ -454,7 +473,16 @@ Now you can create the logon test:
 
 ```js
 describe("testing logon, register, and logoff", () => {
-  it("33. The user can be logged on", async () => {
+  it("33. A user can be registered.", async () => {
+    const req = httpMocks.createRequest({
+      method: "POST",
+      body: { name: "Bob", email: "bob@sample.com", password: "Pa$$word20" },
+    });
+    saveRes = MockResponseWithCookies();
+    await waitForRouteHandlerCompletion(register, req, saveRes);
+    expect(saveRes.statusCode).toBe(201); // success!
+  });
+    it("34. The user can logon.", async () => {
     const req = httpMocks.createRequest({
       method: "POST",
       body: { email: "bob@sample.com", password: "Pa$$word20" },
@@ -474,43 +502,91 @@ const setCookieArray = saveRes.get("Set-Cookie")
 
 Add the following tests:  
 
-35. A string in that array starts with "jwt=".
+35. A string in the cookie array starts with "jwt=".
 
 36. That string contains "HttpOnly;".  (This is a security test!)
 
-37. The returned data has the expected name.
+37. The returned data from the register has the expected name.
 
 38. The returned data contains a csrfToken.
-
-39. A logon attempt with a bad password returns a 401.
-
-40. You can't register with an email address that is already registered.
-
-41. You can register an additional user.
-
-42. You can logon as that new user.
 
 43. You can now logoff.
 
 45. The logoff clears the cookie.
 
+Here's how you check: After the logoff in 43, the `setCookieArray` in `saveRes` should contain a string starting with "jwt=", and that string should contain "Jan 1970".  Cookies are cleared by setting the expiration date to some time in the past.  The code you need is:
+
+```js
+  it("41. The logoff clears the cookie.", () => {
+    const setCookieArray = saveRes.get("Set-Cookie");
+    jwtCookie = setCookieArray.find((str) => str.startsWith("jwt="));
+    expect(jwtCookie).toContain("Jan 1970");
+  });
+```
+
+39. A logon attempt with a bad password returns a 401.
+
+40. You can't register with an email address that is already registered.
+
+The following tests should be in a a new stanza, that starts as follows:
+
+```js
+describe("Testing JWT middleware", () =>{
+```
+
+Although you are testing middleware, and not a route handler, you test the same way.  You need the req and the res, and then do:
+```js
+await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
+```
+
 61. jwtMiddleware Returns a 401 if the JWT cookie is not present in the req.
+
+If you don't put in a cookie, in, you should get the 401.
 
 62. Returns a 401 if the JWT is invalid.
 
-Hint: Create a signed JWT cookie, but sign it with a bogus secret.  Put that in req.cookies.jwt.
+Here's the code you need:
+```js
+  it("62. Returns a 401 if the JWT is invalid", async ()=>{
+    const req = httpMocks.createRequest({
+      method: "POST"
+    })
+    saveRes = MockResponseWithCookies();
+    const jwtCookie = jwt.sign({id: 5, csrfToken: "badToken"}, "badSecret", { expiresIn: "1h" });
+    req.cookies = {jwt: jwtCookie }
+    await waitForRouteHandlerCompletion(jwtMiddleware,req,saveRes);
+    expect(saveRes.statusCode).toBe(401);
+  });
+```
+The `req.cookies` object may have various cookies.  The code above puts the jwt cookie in, but you see that is signed with "badSecret", so it isn't valid.
 
-63. Returns a 401 if the JWT is valid but the token isn't.
+63. Returns a 401 if the JWT is valid but the CSRF token isn't.
 
-Hint: req.cookies.jwt should have a JWT cookie with a csrfToken in the payload (any string).  Put an X-CSRF-TOKEN header in the req, but use a different string.
+Here, you create a good cookie, signed with `process.env.JWT_SECRET`.  You put a `csrfToken` in the payload, with value "badToken", as well as `id: 5`, which represents the id of some (imagined) user record.  Then, you do the following:
+
+```js
+    if (!req.headers) {
+      req.headers={};
+    }
+    req.headers["X-CSRF-TOKEN"]= "goodtoken";
+```
+
+So, the CSRF token in the header doesn't match the one in the cookie.  Do a POST operation, so that the middleware will check the CSRF values -- and reject them because they don't match.
 
 64. Calls next() if both the token and the jwt are good.
 
+You want to do the same as for 63, but make the CSRF token values in the header and the cookie match this time.  Do a POST as before.  Then:
+
+```js
+const next = await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
+expect(next).toHaveBeenCalled();
+```
+
 65. If both the token and the jwt are good, req.user.id has the appropriate value.
 
-Hint: The jwt payload has to have id: 5, or some other integer, and req.user.id should have the same integer.
+You use the `req` object from 64 -- no need to send a new request.  Your `expect()` statement should check that `req.user.id` is 5.
 
-For the last test above, when you retrieve the setCookieArray from saveRes, it should contain a string starting with "jwt=", and that string should contain "Jan 1970".  Cookies are cleared by setting the expiration date to some time in the past.
+For the last test above, 
 
 If you have done this optional part of the assignment, verify that "npm run test" runs all these tests successfully.
 
@@ -556,9 +632,7 @@ Now for the first test of this type:
 
 ```js
 describe("register a user ", () => {
-  let res = null // we'll declare this out here, so that we can reference it in several tests
-  it("46. it creates the user entry", async () => {
-describe("register a user ", () => {
+  let saveRes = null; // we'll declare this out here, so that we can reference it in several tests
   it("46. it creates the user entry", async () => {
     const newUser = {
       name: "John Deere",
@@ -598,7 +672,9 @@ npx jest test/user.function.test.js
 
 Then, add the following additional tests:
 
-47. Registration returns an object with the expected name.  In this case, that's in saveRes.body.
+47. Registration returns an object with the expected name.
+
+In this case, that's in saveRes.body.
 
 48. Test that the returned object includes a csrfToken.
 

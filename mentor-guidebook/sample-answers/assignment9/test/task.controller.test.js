@@ -2,7 +2,6 @@ require("dotenv").config();
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 const prisma = require("../db/prisma");
 const EventEmitter = require('events').EventEmitter;
-const { createUser } = require("../services/userService");
 const httpMocks = require("node-mocks-http");
 const {
   index,
@@ -22,18 +21,18 @@ let saveTaskId = null;
 
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users
-  user1 = await createUser({
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
+  user1 = await prisma.user.create( { data: {
     email: "bob@sample.com",
-    password: "Pa$$word20",
+    hashedPassword: "nonsense",
     name: "Bob",
-  });
-  user2 = await createUser({
+  }});
+  user2 = await prisma.user.create({ data: {
     email: "alice@sample.com",
-    password: "Pa$$word20",
+    hashedPassword:"nonsense",
     name: "Alice",
-  });
+  }});
 });
 
 afterAll(() => {
@@ -115,13 +114,13 @@ describe("getting created tasks", () => {
   });
   it("22. The returned JSON array has length 1.", () => {
     saveData = saveRes._getJSONData();
-    expect(saveData).toHaveLength(1);
+    expect(saveData.tasks).toHaveLength(1);
   });
   it("23. The title in the first array object is as expected.", () => {
-    expect(saveData[0].title).toBe("first task");
+    expect(saveData.tasks[0].title).toBe("first task");
   });
   it("24. The first array object does not contain a userId.", () => {
-    expect(saveData[0].userId).not.toBeDefined();
+    expect(saveData.tasks[0].userId).not.toBeDefined();
   });
   it("25. If get the list of tasks using the userId from user2, you get a 404.", async () => {
     const req = httpMocks.createRequest({
