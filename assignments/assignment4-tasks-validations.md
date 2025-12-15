@@ -38,7 +38,7 @@ But, `app.use(authMiddleware)` would protect any route.  Then no one could regis
 
 ```js
 const taskRouter = require("./routers/taskRoutes"); 
-app.use("/api tasks", authMiddleware, taskRouter);
+app.use("/api/tasks", authMiddleware, taskRouter);
 ```
 
 That solves the first problem.  The authMiddleware gets called before any of the task routes, and it makes sure that no one can get to those routes without being logged on.  These are called "protected routes" because they require authentication.
