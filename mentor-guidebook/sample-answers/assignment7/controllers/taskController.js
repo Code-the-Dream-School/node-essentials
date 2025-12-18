@@ -2,23 +2,11 @@ const prisma = require("../db/prisma");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 const whereClause = (query) => {
-  const filters = [];
+  const where = {};
   if (query.find) {
-    filters.push({ title: { contains: query.find, mode: "insensitive" } });
+    where.title = { contains: query.find, mode: "insensitive" };
   }
-  if (query.isCompleted) {
-    const boolToFind = query.isCompleted === "true";
-    filters.push({ isCompleted: boolToFind });
-  }
-  if (query.priority) {
-    filters.push({ priority: query.priority });
-  }
-  if (query.max_date) {
-    filters.push({ createdAt: { lte: new Date(query.max_date) } });
-  }
-  if (query.min_date) {
-    filters.push({ createdAt: { gte: new Date(query.min_date) } });
-  }
+  return where;
 };
 
 const getFields = (fields) => {
@@ -87,11 +75,11 @@ exports.index = async (req, res) => {
     take: limit,
     orderBy: { createdAt: "desc" },
   });
-  if (tasks.length === 0) {
-    return res.status(404).json({ message: "No tasks found for user" });
-  }
   const totalTasks = await prisma.task.count({
-    where: { userId: global.user_id },
+    where: {
+      userId: global.user_id,
+      ...whereClause(req.query),
+    },
   });
   const pagination = {
     page,
@@ -115,7 +103,7 @@ exports.show = async (req, res) => {
     return res.status(400).json({ message: "Invalid task id." });
   }
 
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   const task = await prisma.task.findUnique({
     where: {
       id,
@@ -143,8 +131,7 @@ exports.show = async (req, res) => {
   res.status(200).json(task);
 };
 
-exports.create = async (req, res) => {
-  // Use global user_id (set during login/registration)
+exports.create = async (req, res, next) => {
   const { error, value } = taskSchema.validate(req.body);
 
   if (error) return next(error);
