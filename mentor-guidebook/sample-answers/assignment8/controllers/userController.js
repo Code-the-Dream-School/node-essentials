@@ -115,6 +115,7 @@ exports.logon = async (req, res) => {
   }
 
   // Find user by email
+  email = email.toLowerCase();
   const user = await prisma.user.findUnique({
     where: { email },
   });
