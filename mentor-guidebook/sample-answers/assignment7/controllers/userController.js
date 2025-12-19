@@ -1,4 +1,5 @@
 const prisma = require("../db/prisma");
+const { StatusCodes } = require("http-status-codes");
 const userSchema = require("../validation/userSchema").userSchema;
 const crypto = require("crypto");
 const util = require("util");
@@ -71,7 +72,7 @@ exports.register = async (req, res, next) => {
     global.user_id = result.user.id;
 
     // Send response with status 201
-    res.status(201);
+    res.status(StatusCodes.CREATED);
     res.json({
       user: result.user,
       welcomeTasks: result.welcomeTasks,
@@ -81,7 +82,9 @@ exports.register = async (req, res, next) => {
   } catch (err) {
     if (err.code === "P2002") {
       // send the appropriate error back -- the email was already registered
-      return res.status(400).json({ error: "Email already registered" });
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ error: "Email already registered" });
     } else {
       return next(err); // the error handler takes care of other errors
     }
@@ -92,28 +95,27 @@ exports.logon = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ error: "Email and password are required" });
   }
 
   // Find user by email
+  email = email.toLowerCase();
   const user = await prisma.user.findUnique({
     where: { email },
   });
 
-  if (!user) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  const isValidPassword = await comparePassword(password, user.hashedPassword);
-
-  if (!isValidPassword) {
-    return res.status(401).json({ message: "Invalid credentials" });
+  if (!user || !(await comparePassword(password, user.hashedPassword))) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ error: "Invalid credentials" });
   }
 
   // Store user ID globally for session management (not secure for production)
   global.user_id = user.id;
 
-  res.status(200).json({
+  res.json({
     name: user.name,
     email: user.email,
   });
@@ -122,14 +124,16 @@ exports.logon = async (req, res) => {
 exports.logoff = async (req, res) => {
   // Clear the global user ID for session management
   global.user_id = null;
-  res.sendStatus(200);
+  res.sendStatus(StatusCodes.OK);
 };
 
 exports.show = async (req, res) => {
   const userId = parseInt(req.params.id);
 
   if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ error: "Invalid user ID" });
   }
 
   const user = await prisma.user.findUnique({
@@ -153,8 +157,8 @@ exports.show = async (req, res) => {
     },
   });
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "User not found" });
   }
 
-  res.status(200).json(user);
+  res.json(user);
 };

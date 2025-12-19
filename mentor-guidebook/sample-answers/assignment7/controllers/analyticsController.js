@@ -1,3 +1,4 @@
+const { StatusCodes } = require("http-status-codes");
 const prisma = require("../db/prisma");
 exports.getUserAnalytics = async (req, res, next) => {
   // Parse and validate user ID
@@ -5,8 +6,8 @@ exports.getUserAnalytics = async (req, res, next) => {
   if (isNaN(userId)) {
     // ... handle invalid ID
     return res
-      .status(400)
-      .json({ message: "Invalid userId passed in request to userStats" });
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ error: "Invalid userId passed in request to userStats" });
   }
 
   // Use groupBy to count tasks by completion status
@@ -127,7 +128,7 @@ exports.searchTasks = async (req, res, next) => {
   // Validate search query
   const searchQuery = req.query?.q;
   if (!searchQuery || searchQuery.trim().length < 2) {
-    return res.status(400).json({
+    return res.status(StatusCodes.BAD_REQUEST).json({
       error: "Search query must be at least 2 characters long",
     });
   }
@@ -169,7 +170,7 @@ exports.searchTasks = async (req, res, next) => {
 
   // Return results with query and count
   // Hint: The test expects results array, query string, and count number
-  res.status(200).json({
+  res.json({
     results: searchResults,
     query: searchQuery,
     count: searchResults.length,
