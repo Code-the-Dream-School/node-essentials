@@ -3,33 +3,11 @@ const { StatusCodes } = require("http-status-codes");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 const whereClause = (query) => {
-  const filters = [];
+  const where = {};
   if (query.find) {
-    filters.push({ title: { contains: query.find, mode: "insensitive" } });
+    where.title = { contains: query.find, mode: "insensitive" };
   }
-  if (query.isCompleted) {
-    const boolToFind = query.isCompleted === "true";
-    filters.push({ isCompleted: boolToFind });
-  }
-  if (query.priority) {
-    filters.push({ priority: query.priority });
-  }
-  function validDate(dateString) {
-    const dateObj = new Date(dateString); // Attempt to create a Date object
-    // Check if the time value is NaN
-    if (isNaN(dateObj.getTime())) return null;
-    return dateObj;
-  }
-  const max_date = validDate(query.max_date);
-  const min_date = validDate(query.min_date);
-  if (max_date && min_date) {
-    filters.push({ createdAt: { lte: max_date, gte: min_date } });
-  } else if (min_date) {
-    filters.push({ createdAt: { gte: min_date } });
-  } else if (max_date) {
-    filters.push({ createdAt: { lte: max_date } });
-  }
-  return filters.length ? { AND: filters } : {};
+  return where;
 };
 
 const getFields = (fields) => {
@@ -96,14 +74,9 @@ exports.index = async (req, res) => {
     take: limit,
     orderBy: { createdAt: "desc" },
   });
-  if (tasks.length === 0) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ error: "No tasks found for user" });
-  }
   const totalTasks = await prisma.task.count({
     where: {
-      userId: global.user_id, // using global.user_id from auth
+      userId: global.user_id,
       ...whereClause(req.query),
     },
   });
@@ -131,7 +104,7 @@ exports.show = async (req, res) => {
       .json({ error: "Invalid task id." });
   }
 
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   const task = await prisma.task.findUnique({
     where: {
       id,
@@ -159,8 +132,7 @@ exports.show = async (req, res) => {
   res.json(task);
 };
 
-exports.create = async (req, res) => {
-  // Use global user_id (set during login/registration)
+exports.create = async (req, res, next) => {
   const { error, value } = taskSchema.validate(req.body);
 
   if (error) return next(error);
