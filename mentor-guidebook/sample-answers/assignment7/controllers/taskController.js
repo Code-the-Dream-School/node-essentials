@@ -3,7 +3,7 @@ const { StatusCodes } = require("http-status-codes");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 const whereClause = (query) => {
-  const filters = [];
+  const where = {};
   if (query.find) {
     filters.push({ title: { contains: query.find, mode: "insensitive" } });
   }
@@ -131,7 +131,7 @@ exports.show = async (req, res) => {
       .json({ error: "Invalid task id." });
   }
 
-  // Use global user_id (set during login/registration)
+  // Use global user_id (set during logon/registration)
   const task = await prisma.task.findUnique({
     where: {
       id,
@@ -159,8 +159,7 @@ exports.show = async (req, res) => {
   res.json(task);
 };
 
-exports.create = async (req, res) => {
-  // Use global user_id (set during login/registration)
+exports.create = async (req, res, next) => {
   const { error, value } = taskSchema.validate(req.body);
 
   if (error) return next(error);
