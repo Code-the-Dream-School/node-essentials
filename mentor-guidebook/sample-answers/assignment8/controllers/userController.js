@@ -1,4 +1,5 @@
 const prisma = require("../db/prisma");
+const { StatusCodes } = require("http-status-codes");
 const userSchema = require("../validation/userSchema").userSchema;
 const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
@@ -89,7 +90,7 @@ exports.register = async (req, res, next) => {
     const csrfToken = setJwtCookie(req, res, result.user);
     delete result.user.id;
     // Send response with status 201
-    res.status(201).json({
+    res.status(StatusCodes.CREATED).json({
       user: result.user,
       welcomeTasks: result.welcomeTasks,
       transactionStatus: "success",
@@ -99,7 +100,7 @@ exports.register = async (req, res, next) => {
   } catch (err) {
     if (err.code === "P2002") {
       // send the appropriate error back -- the email was already registered
-      return res.status(400).json({ error: "Email already registered" });
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email already registered" });
     } else {
       return next(err); // the error handler takes care of other errors
     }
@@ -110,7 +111,7 @@ exports.logon = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email and password are required" });
   }
 
   // Find user by email
@@ -118,20 +119,12 @@ exports.logon = async (req, res) => {
     where: { email },
   });
 
-  if (!user) {
-    return res.status(401).json({ message: "Invalid credentials" });
+  if (!user || !await comparePassword(password, user.hashedPassword)) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Invalid credentials" });
   }
-
-  const isValidPassword = await comparePassword(password, user.hashedPassword);
-
-  if (!isValidPassword) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  // Store user ID globally for session management (not secure for production)
   const csrfToken = setJwtCookie(req, res, user);
 
-  res.status(200).json({
+  res.json({
     name: user.name,
     email: user.email,
     csrfToken,
@@ -148,7 +141,7 @@ exports.show = async (req, res) => {
   const userId = parseInt(req.params.id);
 
   if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid user ID" });
   }
 
   const user = await prisma.user.findUnique({
@@ -172,8 +165,8 @@ exports.show = async (req, res) => {
     },
   });
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "User not found" });
   }
 
-  res.status(200).json(user);
+  res.json(user);
 };

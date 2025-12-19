@@ -4,7 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 const send401 = (res) => {
   res
     .status(StatusCodes.UNAUTHORIZED)
-    .json({ message: "No user is authenticated." });
+    .json({ error: "No user is authenticated." });
 };
 
 module.exports = async (req, res, next) => {
