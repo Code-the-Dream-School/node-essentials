@@ -9,6 +9,14 @@ exports.getUserAnalytics = async (req, res, next) => {
       .json({ message: "Invalid userId passed in request to userStats" });
   }
 
+  // Check if user exists
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
   // Use groupBy to count tasks by completion status
   const taskStats = await prisma.task.groupBy({
     by: ["isCompleted"],
