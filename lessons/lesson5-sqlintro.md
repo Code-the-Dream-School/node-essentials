@@ -10,7 +10,7 @@
 4. More on JOINs.
 5. BEGIN, COMMIT, and RETURNING.
 6. SQL from a Node program.
-7. Converting Your Tasks App From the Memory Store to PostgreSQL
+7. Converting Your Tasks App From an in-memory store to PostgreSQL
 8. Understanding Schema
 9. Using the pg Package in Your Node App
 10. Queries
@@ -33,7 +33,7 @@ By the end of this lesson, you will be able to:
 In this lesson, you will learn how to integrate PostgreSQL with your Node.js Express application. You'll move from storing data in memory (which gets lost when the server restarts) to using a persistent database that keeps your data safe and accessible.
 
 **Prologue:**
-Right now you are using `memoryStore.js` to store users and a list of tasks for each. For this lesson, you want to eliminate all use of `memoryStore.js`, and to read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+Right now you are using `global.users` to store users and `global.tasks` to store a list of tasks for each. For this lesson, you want to eliminate all use of these globals, and to read and write from the database instead. (You still use `global.user_id` for now.)  The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
 
 **Prerequisites:** This lesson builds on the work you completed in **Week 4**, where you built a working Express application with in-memory storage. Make sure you have a functional Express app with user and task management before proceeding.
 

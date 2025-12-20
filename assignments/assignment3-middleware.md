@@ -8,7 +8,7 @@ This assignment is to be done in the node-homework folder.  Within that folder, 
 
 You have started work on the application you'll use for your final project.  You now start adding the main functions.
 
-For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the `/api/users` path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.  By convention, REST API routes start with `/api'.
+For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the `/api/users/register` path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.  By convention, REST API routes start with `/api'.
 
 You cannot test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left-hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right-hand side, you see an icon that is a rectangle with a little eye.  No, it doesn't mean the Illuminati.  This is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
 
@@ -25,7 +25,7 @@ This tells Express to parse JSON request bodies as they come in.  The express.js
 Make the following change to the request handler:
 
 ```js
-app.post("/api/users", (req, res)=>{
+app.post("/api/users/register", (req, res)=>{
     console.log("This data was posted", JSON.stringify(req.body));
     res.send("parsed the data");
 });
@@ -52,7 +52,7 @@ global.tasks = [];
 And then, change the app.post() as follows:
 
 ```js
-app.post("/api/users", (req, res)=>{
+app.post("/api/users/register", (req, res)=>{
     const newUser = {...req.body}; // this makes a copy
     global.users.push(newUser);
     global.user_id = newUser;  // After the registration step, the user is set to logged on.
@@ -103,7 +103,7 @@ Change the code for the route as follows:
 
 ```js
 const { register } = require("./controllers/userController");
-app.post("/api/users", register);
+app.post("/api/user/register", register);
 ```
 
 Test again with Postman to make sure it works.
@@ -196,13 +196,13 @@ The dog rescue team wants to add more robust middleware to their application. Im
 - Include the request ID in the error response
 
 **Error Handling Middleware:**
-- Create a custom `ValidationError` class that extends `Error` with a status code property
+- Create custom error classes that extend `Error` with status code properties
 - Add middleware to catch different error types and return appropriate HTTP status codes:
   - `ValidationError` → 400 Bad Request
   - `NotFoundError` → 404 Not Found  
   - `UnauthorizedError` → 401 Unauthorized
   - Default errors → 500 Internal Server Error
-- Log errors with different severity levels based on status code
+- Log errors with different severity levels based on status code (see Task 4 for details)
 
 
 **Testing Your Implementation:**
@@ -234,9 +234,19 @@ The dog rescue team wants to add more robust middleware to their application. Im
 
 ### Deliverables
 
-Your work will involve editing `app.js` to add the expected middleware. Do **not** modify the existing route logic in `routes/dogs.js`.
+Your work will involve editing `app.js` to add the expected middleware. You will also need to modify `routes/dogs.js` to throw custom errors (`ValidationError` and `NotFoundError`) instead of returning error responses directly.
 
 **Important:** Pay attention to the **order** of your middleware! As you learned in Lesson 3, middleware executes in the order it's defined. Place each middleware in the correct position in the chain.
+
+**Recommended Middleware Order:**
+1. Request ID middleware (adds `req.requestId`)
+2. Logging middleware (logs requests with requestId)
+3. Security headers middleware (sets security headers)
+4. Body parsing middleware (`express.json()` with size limit)
+5. Content-Type validation middleware (for POST requests)
+6. Routes (your route handlers)
+7. Error handling middleware (catches thrown errors)
+8. 404 handler (catches unmatched routes)
 
 1. **Built-In Middleware**  
 
@@ -247,36 +257,115 @@ Your work will involve editing `app.js` to add the expected middleware. Do **not
 
    * The following middleware should be chained and applied globally to all routes:  
      * We would like to add a unique request ID to all incoming requests for debugging purposes. Using the `uuid` library to generate the unique value, write a custom middleware that:
-       * Adds a `requestId` to all requests in the application
-       * Injects this value as an `X-Request-Id` in the response headers
+       * Adds a `requestId` property to `req` object (e.g., `req.requestId`) for all requests in the application
+       * Injects this value as an `X-Request-Id` header in the response headers (note: header name is case-insensitive, but use `X-Request-Id`)
+       * This middleware should run first, before any other middleware that might need the requestId
+       
+       **💡 Hint: Using the `uuid` Library**
+       - First, install the package: `npm install uuid`
+       - Import it at the top of your `app.js`: `const { v4: uuidv4 } = require('uuid');`
+       - Generate a unique ID: `const requestId = uuidv4();` (this creates a string like "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d")
+       - Example middleware structure:
+         ```js
+         app.use((req, res, next) => {
+           req.requestId = uuidv4();
+           res.setHeader('X-Request-Id', req.requestId);
+           next();
+         });
+         ```
+       
      * We would like to output logs on all requests. These logs should contain the timestamp of the request, the method, path, and request ID. They should be formatted as:
 
        ```js
        `[${timestamp}]: ${method} ${path} (${requestID})`
        ```
+       
+       **💡 Hint: Logging Format Requirements**
+       - Use `console.log()` to output these logs
+       - The timestamp can be formatted as an ISO string: `new Date().toISOString()` (e.g., "2024-01-15T10:30:45.123Z")
+       - The method should be `req.method` (e.g., "GET", "POST")
+       - The path should be `req.path` (e.g., "/dogs", "/adopt")
+       - The requestID should come from `req.requestId` set by the request ID middleware above
+       - Example implementation:
+         ```js
+         app.use((req, res, next) => {
+           const timestamp = new Date().toISOString();
+           console.log(`[${timestamp}]: ${req.method} ${req.path} (${req.requestId})`);
+           next();
+         });
+         ```
+       - **Important:** Make sure this middleware runs AFTER the request ID middleware, so that `req.requestId` is already set
 
 3. **Custom Error Handling**  
 
-* Catch any uncaught errors and respond with a `500 Internal Server Error` error status and a JSON response body with the `requestID` and an error message. You can test this middleware with the `/error` endpoints
+* Catch any uncaught errors and respond with a `500 Internal Server Error` error status and a JSON response body with the `requestId` (note: lowercase 'd') and an error message set to "Internal Server Error"
+* The error response should be a JSON object: `{ error: "Internal Server Error", requestId: "..." }`
+* You can test this middleware with the `/error` endpoint
+
+**💡 Hint: Basic Error Handling Middleware**
+
+Error handling middleware must have 4 parameters: `(err, req, res, next)`. Express recognizes it as an error handler because of the 4 parameters.
+
+```js
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    error: "Internal Server Error",
+    requestId: req.requestId
+  });
+});
+```
+
+**Note:** The error handling middleware should be placed after all routes but before the 404 handler, as error handlers must be the last middleware (except for 404 handlers).
 
 ## **Task 3: Enhanced Middleware Features**
 
 The dog rescue team wants to add more robust middleware to their application. Implement these additional features:
 
-**Remember:** Pay attention to middleware order! As you learned in Lesson 3, middleware executes in the order it's defined. Place each middleware in the correct position in the chain.
-
 ### **Request Size Limiting**
 - Add middleware to limit request body size to prevent large requests from crashing the server
-- Use `express.json({ limit: '1mb' })` and `express.urlencoded({ limit: '1mb' })` for form data
-- This middleware should come before your routes
+- Use `express.json({ limit: '1mb' })` for JSON request bodies
+- This middleware should come before your routes but after security headers
+
+**💡 Hint: Request Size Limiting**
+- The `limit` option in `express.json()` prevents the server from processing request bodies larger than the specified size
+- If a request exceeds the limit, Express will automatically return a 413 (Payload Too Large) error
+- The limit can be specified as a string like `'1mb'`, `'500kb'`, or `'10mb'`
+- Example: `app.use(express.json({ limit: '1mb' }));`
+- This helps protect your server from denial-of-service attacks where attackers send extremely large request bodies
 
 ### **Content-Type Validation**
 - Add middleware that validates the `Content-Type` header for POST requests
 - If a POST request doesn't have `application/json` content type, return a 400 error with a helpful message
-- Include the request ID in the error response
+- The error message should match the pattern: `Content-Type must be application/json`
+- Include the request ID in the error response (as `requestId` in the JSON response body)
+- The error response should be: `{ error: "Content-Type must be application/json", requestId: "..." }`
+- **Important:** This validation should only apply to POST requests - GET requests should not be validated
+- This middleware should run after body parsing middleware but before routes
+
+**💡 Hint: Content-Type Validation Middleware**
+- Check if the request method is POST: `req.method === 'POST'`
+- Get the Content-Type header: `req.get('Content-Type')` or `req.headers['content-type']`
+- Check if it equals `'application/json'` (case-insensitive comparison is recommended)
+- If validation fails, send a 400 response with the error message and requestId
+- If validation passes (or it's not a POST request), call `next()` to continue
+- Example structure:
+  ```js
+  app.use((req, res, next) => {
+    if (req.method === 'POST') {
+      const contentType = req.get('Content-Type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return res.status(400).json({
+          error: 'Content-Type must be application/json',
+          requestId: req.requestId
+        });
+      }
+    }
+    next();
+  });
+  ```
 
 ### **404 Handler**
-- Add a proper 404 handler that runs after all routes
+- Add a proper 404 handler that runs after all routes (this should be the very last middleware)
 - It should return a JSON response with status 404 and include the request ID:
   ```js
   {
@@ -284,6 +373,7 @@ The dog rescue team wants to add more robust middleware to their application. Im
     "requestId": "your-request-id"
   }
   ```
+- The requestId should be accessed from `req.requestId` (set by your request ID middleware)
 
 ## **Task 4: Advanced Error Handling**
 
@@ -297,14 +387,144 @@ Implement sophisticated error handling using custom error classes:
 - Export all error classes from the `errors.js` file
 - Import and use these error classes in your `app.js` and `routes/dogs.js` files
 
+**Note:** While `UnauthorizedError` is not tested in assignment3b, you should create it as you'll need it for future assignments that implement authentication.
+
+**💡 Hint: How to Create Custom Error Classes**
+
+In JavaScript, you can create custom error classes by extending the built-in `Error` class. Here's how:
+
+```js
+// errors.js
+class ValidationError extends Error {
+  constructor(message) {
+    super(message); // Call the parent Error constructor with the message
+    this.name = 'ValidationError'; // Set the error name (used for error identification)
+    this.statusCode = 400; // Add a custom property for the HTTP status code
+  }
+}
+
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NotFoundError';
+    this.statusCode = 404;
+  }
+}
+
+class UnauthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'UnauthorizedError';
+    this.statusCode = 401;
+  }
+}
+
+module.exports = {
+  ValidationError,
+  NotFoundError,
+  UnauthorizedError
+};
+```
+
+**Key Points:**
+- `extends Error` makes your class inherit from JavaScript's built-in Error class
+- `super(message)` calls the parent constructor to set the error message
+- `this.name` should match the class name (this helps error handlers identify the error type)
+- `this.statusCode` is a custom property you add for HTTP status codes
+- Export the classes so they can be imported in other files
+
+**Usage Example:**
+```js
+// In routes/dogs.js
+const { ValidationError, NotFoundError } = require('../errors');
+
+// Throw a ValidationError
+if (!name || !email || !dogName) {
+  throw new ValidationError("Missing required fields");
+}
+
+// Throw a NotFoundError
+if (!dog || dog.status !== "available") {
+  throw new NotFoundError("Dog not found or not available");
+}
+```
+
+**Important:** You will need to modify `routes/dogs.js` to throw these custom errors:
+
+1. **Add validation for required fields:**
+   - In the `/adopt` POST route, first check if required fields are present
+   - If `name`, `email`, or `dogName` are missing, throw a `ValidationError` with the exact message: `"Missing required fields"`
+   - This will result in a 400 Bad Request response
+
+2. **Add validation for dog existence and availability:**
+   - After checking required fields, check if the requested dog exists and is available
+   - Find the dog in the `dogData` array (imported from `../dogData.js`) by matching the `dogName` from the request body with the dog's `name` property in the array
+   - If the dog is not found in the array OR if the dog's `status` is not "available", throw a `NotFoundError` with a message that matches the pattern `/not found or not available/`
+   - Example messages that would match: `"Dog not found or not available"` or `"Dog not found or not available for adoption"`
+   - This will result in a 404 Not Found response
+
+3. **Error message requirements:**
+   - **The error messages must match exactly** - the test checks for specific patterns in the error messages
+   - For ValidationError: The message must match `/Missing required fields/`
+   - For NotFoundError: The message must match `/not found or not available/`
+   - If your error messages don't match these patterns, the tests will fail
+
+4. **Implementation details:**
+   - The error should be thrown (not returned with `res.status`), so that the error handling middleware can catch it
+   - Make sure to import the error classes at the top of `routes/dogs.js`
+   - **Note:** The success response (status 201 with message) should remain unchanged - only modify the error handling logic
+
 ### **Error Handling Middleware**
 - Add middleware to catch different error types and return appropriate HTTP status codes:
   - `ValidationError` → 400 Bad Request
   - `NotFoundError` → 404 Not Found  
   - `UnauthorizedError` → 401 Unauthorized
   - Default errors → 500 Internal Server Error
-- Log errors with different severity levels based on the status code (ERROR, WARN, INFO)
+- Log errors with different severity levels based on the error type:
+  - **4xx errors (400, 401, 404):** Use `console.warn()` to log these errors
+    - `ValidationError` (400) → Log with `console.warn("WARN: ValidationError", error.message)` or `console.warn("WARN: ValidationError " + error.message)`
+    - `UnauthorizedError` (401) → Log with `console.warn("WARN: UnauthorizedError", error.message)` or `console.warn("WARN: UnauthorizedError " + error.message)`
+    - `NotFoundError` (404) → Log with `console.warn("WARN: NotFoundError", error.message)` or `console.warn("WARN: NotFoundError " + error.message)`
+  - **5xx errors (500):** Use `console.error()` to log these errors
+    - Default errors (500) → Log with `console.error("ERROR: Error", error.message)` or `console.error("ERROR: Error " + error.message)`
+- **Important:** The logged message must contain "WARN:" for 4xx errors and "ERROR:" for 5xx errors (the test uses `stringMatching` to check if the logged string contains these patterns)
 - Ensure all error responses include the request ID for debugging
+- All error responses should be JSON objects with `error` and `requestId` properties
+
+**💡 Hint: Error Handling Middleware Structure**
+
+Error handling middleware has 4 parameters: `(err, req, res, next)`. Express recognizes it as an error handler because it has 4 parameters.
+
+```js
+app.use((err, req, res, next) => {
+  // Determine the status code from the error
+  const statusCode = err.statusCode || 500;
+  
+  // Log based on error type
+  if (statusCode >= 400 && statusCode < 500) {
+    // 4xx errors: client errors (use console.warn)
+    // This includes ValidationError (400), UnauthorizedError (401), NotFoundError (404)
+    console.warn(`WARN: ${err.name}`, err.message);
+  } else {
+    // 5xx errors: server errors (use console.error)
+    console.error(`ERROR: Error`, err.message);
+  }
+  
+  // Send error response
+  res.status(statusCode).json({
+    error: err.message || 'Internal Server Error',
+    requestId: req.requestId
+  });
+});
+```
+
+**Key Points:**
+- Check `err.name` or `err.statusCode` to identify the error type
+- Use `err.statusCode` if available, otherwise default to 500
+- For 4xx errors (400-499), use `console.warn()` with "WARN:" prefix
+- For 5xx errors (500+), use `console.error()` with "ERROR:" prefix
+- Always include `requestId` from `req.requestId` in the error response
+- The error response should have `error` and `requestId` properties
 
 ### **Security Headers**
 - Add middleware that sets basic security headers:

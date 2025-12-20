@@ -232,12 +232,15 @@ Once you've done this much, test the new health check to make sure it works.
 
 In the steps that follow, you can fix one controller method at a time and test that method.  Other methods will use `pg` until you have fixed them all.
 
-#### a. Fix Login
+#### a. Fix Logon
 
-You need to have a `require()` statement for prisma in the user controller, in addition the one for the pool.  For login, you need to find the user:
+You need to have a `require()` statement for prisma in the user controller, in addition to the one for the pool.  For logon, you need to find the user:
 
 ```js
-const user = await prisma.user.findUnique({ where: { email: { equals: email, mode: "insensitive" }}});
+email = email.toLowerCase() // Joi validation always converts the email to lower case
+                            // but you don't want logon to fail if the user types mixed case
+const user = await prisma.user.findUnique({ where: { email }});
+                            // also Prisma findUnique can't do a case insensitive search
 ```
 That may return null, in which case authentication fails.  If not, you still have to do a `comparePassword()`, which may or may not return true.
 

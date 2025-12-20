@@ -1,18 +1,18 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { 
-  getUserAnalytics, 
-  getUsersWithTaskStats, 
-  searchTasks 
-} = require('../controllers/analyticsController');
+const {
+  getUserAnalytics,
+  getUsersWithStats,
+  searchTasks,
+} = require("../controllers/analyticsController");
 
-// User productivity analytics
-router.get('/users/:id', getUserAnalytics);
+// GET /api/analytics/users/:id - User productivity analytics
+router.get("/users/:id", getUserAnalytics);
 
-// Users list with task statistics
-router.get('/users', getUsersWithTaskStats);
+// GET /api/analytics/users - Users with task statistics and pagination
+router.get("/users", getUsersWithStats);
 
-// Task search with raw SQL
-router.get('/tasks/search', searchTasks);
+// GET /api/analytics/tasks/search - Task search with raw SQL
+router.get("/tasks/search", searchTasks);
 
 module.exports = router;
