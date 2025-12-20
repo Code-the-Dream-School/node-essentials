@@ -3,7 +3,7 @@ const { StatusCodes } = require("http-status-codes");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 const whereClause = (query) => {
-  const where = {};
+  const filters = [];
   if (query.find) {
     filters.push({ title: { contains: query.find, mode: "insensitive" } });
   }
@@ -65,10 +65,12 @@ exports.index = async (req, res) => {
     select = getFields(req.query.fields);
     if (!select) {
       // no task fields specified, not allowed
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        error:
-          "When specifying fields, at least one task field must be included.",
-      });
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({
+          error:
+            "When specifying fields, at least one task field must be included.",
+        });
     }
   } else {
     select = {
@@ -97,13 +99,11 @@ exports.index = async (req, res) => {
     orderBy: { createdAt: "desc" },
   });
   if (tasks.length === 0) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ error: "No tasks found for user" });
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "No tasks found for user" });
   }
   const totalTasks = await prisma.task.count({
     where: {
-      userId: global.user_id, // using global.user_id from auth
+      userId: global.user_id,
       ...whereClause(req.query),
     },
   });
@@ -126,12 +126,10 @@ exports.index = async (req, res) => {
 exports.show = async (req, res) => {
   const id = parseInt(req.params?.id);
   if (!id) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Invalid task id." });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid task id." });
   }
 
-  // Use global user_id (set during logon/registration)
+  // Use global user_id (set during login/registration)
   const task = await prisma.task.findUnique({
     where: {
       id,
@@ -160,7 +158,8 @@ exports.show = async (req, res) => {
 };
 
 exports.create = async (req, res, next) => {
-  const { error, value } = taskSchema.validate(req.body);
+  // Use global user_id (set during login/registration)
+  const { error, value } = taskSchema.validate(req.body, { abortEarly: false });
 
   if (error) return next(error);
 
@@ -183,14 +182,12 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Invalid task id." });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid task id." });
   }
   if (!req.body) {
     req.body = {};
   }
-  const { error, value } = patchTaskSchema.validate(req.body);
+  const { error, value } = patchTaskSchema.validate(req.body, { abortEarly: false });
   if (error) return next(error);
   let task;
   try {
@@ -207,9 +204,7 @@ exports.update = async (req, res, next) => {
     });
   } catch (err) {
     if (err.code === "P2025") {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "The task was not found." });
+      return res.status(StatusCodes.NOT_FOUND).json({ error: "The task was not found." });
     }
     return next(err);
   }
@@ -219,9 +214,7 @@ exports.update = async (req, res, next) => {
 exports.deleteTask = async (req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Invalid task id." });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid task id." });
   }
   let task;
   try {
@@ -237,9 +230,7 @@ exports.deleteTask = async (req, res, next) => {
     });
   } catch (err) {
     if (err.code === "P2025") {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "The task was not found." });
+      return res.status(StatusCodes.NOT_FOUND).json({ error: "The task was not found." });
     }
     return next(err);
   }
@@ -248,7 +239,7 @@ exports.deleteTask = async (req, res, next) => {
 
 exports.bulkCreate = async (req, res, next) => {
   // Validate the tasks array
-  const tasks = req.body?.tasks;
+  const tasks = req.body;
   if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       error: "Invalid request data. Expected an array of tasks.",
@@ -258,7 +249,7 @@ exports.bulkCreate = async (req, res, next) => {
   // Validate all tasks before insertion
   const validTasks = [];
   for (const task of tasks) {
-    const { error, value } = taskSchema.validate(task);
+    const { error, value } = taskSchema.validate(task, { abortEarly: false });
     if (error) return next(error);
     validTasks.push({
       title: value.title,
