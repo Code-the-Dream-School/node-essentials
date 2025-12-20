@@ -52,7 +52,8 @@ app.use(xss());
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
-app.use('/api/analytics', analyticsRoutes);
+// app.use('/api/analytics', analyticsRoutes);
+// The analytics routes are not safe for internet deployment without RBAC
 
 // Add routes for testing compatibility
 app.use('/user', userRoutes);

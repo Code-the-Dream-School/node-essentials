@@ -3,6 +3,10 @@ const userSchema = require("../validation/userSchema").userSchema;
 const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
+const {
+  googleGetUserInfo,
+  generateUserPassword,
+} = require("../services/userService");
 
 const cookieFlags = (req) => {
   return {
@@ -38,53 +42,7 @@ async function comparePassword(inputPassword, storedHash) {
   return crypto.timingSafeEqual(keyBuffer, derivedKey);
 }
 
-exports.register = async (req, res, next) => {
-if (!req.body) req.body = {};
-  let isPerson = false;
-  if (req.body.recaptchaToken) {
-    const token = req.body.recaptchaToken;
-    const params = new URLSearchParams();
-    params.append("secret", process.env.RECAPTCHA_SECRET);
-    params.append("response", token);
-    params.append("remoteip", req.ip);
-    const response = await fetch(
-      // might throw an error that would cause a 500 from the error handler
-      "https://www.google.com/recaptcha/api/siteverify",
-      {
-        method: "POST",
-        body: params.toString(),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
-    const data = await response.json();
-    if (data.success) isPerson = true;
-    delete req.body.recaptchaToken;
-  } else if (
-    process.env.RECAPTCHA_BYPASS &&
-    req.get("X-Recaptcha-Test") === process.env.RECAPTCHA_BYPASS
-  ) {
-    // might be a test environment
-    isPerson = true;
-  }
-  if (!isPerson) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ message: "We can't tell if you're a person or a bot." });
-  }
-  const { error, value } = userSchema.validate(req.body, { abortEarly: false });
-
-  if (error) return next(error);
-
-  const { email, name, password } = value;
-
-  // Hash the password before storing (using scrypt from lesson 4)
-  const hashedPassword = await hashPassword(password);
-  // In your register method, after validation and password hashing:
-  // Do the Joi validation, so that value contains the user entry you want.
-  // hash the password, and put it in value.hashedPassword
-  // delete value.password as that doesn't get stored
+const createUser2 = async (req, res, next, email, name, hashedPassword) => {
   try {
     const result = await prisma.$transaction(async (tx) => {
       // Create user account (similar to Assignment 6, but using tx instead of prisma)
@@ -139,6 +97,56 @@ if (!req.body) req.body = {};
       return next(err); // the error handler takes care of other errors
     }
   }
+};
+
+exports.register = async (req, res, next) => {
+  if (!req.body) req.body = {};
+  let isPerson = false;
+  if (req.body.recaptchaToken) {
+    const token = req.body.recaptchaToken;
+    const params = new URLSearchParams();
+    params.append("secret", process.env.RECAPTCHA_SECRET);
+    params.append("response", token);
+    params.append("remoteip", req.ip);
+    const response = await fetch(
+      // might throw an error that would cause a 500 from the error handler
+      "https://www.google.com/recaptcha/api/siteverify",
+      {
+        method: "POST",
+        body: params.toString(),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    const data = await response.json();
+    if (data.success) isPerson = true;
+    delete req.body.recaptchaToken;
+  } else if (
+    process.env.RECAPTCHA_BYPASS &&
+    req.get("X-Recaptcha-Test") === process.env.RECAPTCHA_BYPASS
+  ) {
+    // might be a test environment
+    isPerson = true;
+  }
+  if (!isPerson) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: "We can't tell if you're a person or a bot." });
+  }
+  const { error, value } = userSchema.validate(req.body, { abortEarly: false });
+
+  if (error) return next(error);
+
+  const { email, name, password } = value;
+
+  // Hash the password before storing (using scrypt from lesson 4)
+  const hashedPassword = await hashPassword(password);
+  // In your register method, after validation and password hashing:
+  // Do the Joi validation, so that value contains the user entry you want.
+  // hash the password, and put it in value.hashedPassword
+  // delete value.password as that doesn't get stored
+  return createUser2(req, res, next, email, name, hashedPassword);
 };
 
 exports.logon = async (req, res) => {
@@ -213,55 +221,65 @@ exports.show = async (req, res) => {
   res.status(200).json(user);
 };
 
-exports.googleLogon = async (req, res) => {
+exports.googleLogon = async (req, res, next) => {
+  if (!req.body.code) {
+    // throw new Error("Required body parameter missing: 'code'.");
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "The Google authentication code was not provided." });
+  }
+  let googleUserInfo;
   try {
-    if (!req.body.code) {
-      // throw new Error("Required body parameter missing: 'code'.");
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({ message: "The Google authentication code was not provided." });
-    }
-    const googleAccessToken = await googleGetAccessToken(req.body.code);
-    const googleUserInfo = await googleGetUserInfo(googleAccessToken);
+    googleUserInfo = await googleGetUserInfo(req.body.code);
+  } catch {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "Authentication failed." });
+  }
+  if (!googleUserInfo.email || !googleUserInfo.isEmailVerified) {
+    // throw new Error("The email is either missing or not verified.");
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      message: "Google did not include the email, or it hasn't been verified.",
+    });
+  }
+  if (!googleUserInfo.name) {
+    // throw new Error("The name is missing.");
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "Google did not include the user name." });
+  }
 
-    if (!googleUserInfo.email || !googleUserInfo.isEmailVerified) {
-      // throw new Error("The email is either missing or not verified.");
-      return res.status(StatusCodes.UNAUTHORIZED).json({
-        message:
-          "Google did not include the email, or it hasn't been verified.",
-      });
-    }
-    if (!googleUserInfo.name) {
-      // throw new Error("The name is missing.");
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({ message: "Google did not include the user name." });
-    }
-
-    let user = await prisma.user.findFirst({
-      where: {
-        email: {
-          equals: googleUserInfo.email,
-          mode: "insensitive",
-        },
+  let user = await prisma.user.findFirst({
+    where: {
+      email: {
+        equals: googleUserInfo.email,
+        mode: "insensitive",
       },
-    });
+    },
+  });
 
-    if (!user) {
-      const randomPassword = generateUserPassword();
-      // TODO: notify user with generated password
-      console.log("Creating user with a random password.");
-      user = await createUser({
-        name: googleUserInfo.name,
-        email: googleUserInfo.email,
-        password: randomPassword,
-      });
-    }
-    setJwtCookie(req, res, user);
-    return res.json({ name: user.name, email: user.email, csrfToken: req.user.csrfToken });
-  } catch (error) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      message: "Google auth error: " + error?.message,
-    });
+  if (!user) {
+    const randomPassword = generateUserPassword();
+    //   // TODO: notify user with generated password
+    //   console.log("Creating user with a random password.");
+    //   user = await createUser({
+    //     name: googleUserInfo.name,
+    //     email: googleUserInfo.email,
+    //     password: randomPassword,
+    //   });
+    // }
+    // const csrfToken = setJwtCookie(req, res, user);
+    // return res.json({ name: user.name, email: user.email, csrfToken });
+    return createUser2(
+      req,
+      res,
+      next,
+      googleUserInfo.email,
+      googleUserInfo.name,
+      randomPassword
+    );
+  } else {
+    const csrfToken = setJwtCookie(req, res, user);
+    res.status(200).json({ name: user.name, email: user.email, csrfToken });
   }
 };

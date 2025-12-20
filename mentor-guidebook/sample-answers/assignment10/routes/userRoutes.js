@@ -12,6 +12,6 @@ router.post("/register", register);
 router.post("/logon", logon);
 router.post("/googleLogon", googleLogon);
 router.post("/logoff", require("../middleware/jwtMiddleware"), logoff);
-router.get("/:id", show);
+// router.get("/:id", show); not safe for internet deployment
 
 module.exports = router;
