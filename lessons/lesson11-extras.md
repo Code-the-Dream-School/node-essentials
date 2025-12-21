@@ -129,31 +129,35 @@ There are various ways to implement this, but you'll need to extend the data mod
 
 ### **11.3.3 Role Based Access Control**
 
-You'd need to extend the user model to add a role column.  One way to do this is to add an optional string called roles, which would have a comma delimited list of the roles the user has.  You could keep it simple for now.  For example, you might have a "manager" role.  The manager is keeping tabs on all the users, to see who is progressing at getting their todos done.  The manager would have special access to one or several routes that allow them to see everyone's tasks.  You'd have to have some kind of standalone program that sets the value of the roles string for a given user.  At logon time, if the user record has a role attribute, you'd include that in the JWT.  Your authentication middleware would store this information, if present in the JWT, into req.user.roles.  The special manager routes would deny access if req.user.roles isn't present or doesn't include "manager".
+You'd need to extend the user model to add a role column.  One way to do this is to add an optional string called roles, which would have a comma delimited list of the roles the user has.  You could keep it simple for now.  For example, you might have a "manager" role.  The manager is keeping tabs on all the users, to see who is progressing at getting their todos done.  The manager would have special access to the `analyticsRoutes` that allow them to see everyone's tasks.  You can just use Prisma Studio or some similar tool to add roles to a user's entry in the database.  At logon time, if the user record has a role attribute, you'd include that in the JWT.  Your authentication middleware would store this information, if present in the JWT, into req.user.roles.  The special manager routes would deny access if req.user.roles isn't present or doesn't include "manager".
 
-Now, the manager probably doesn't want to see only the list of tasks, but also the name and email for the owner of each task.  You can do this with one Prisma query. Can you figure out how?
+Once you have this in place, you'd add some middleware to `analyticsRoutes.js` to allow access only to the manager, and to return 401 for others.  Be sure to test both cases! 
 
-### **11.3.4 Pagination of Result Sets**
-
-Your React application does do pagination.  The way it does it, of course, is to load the entire list of tasks, and then just show some of them.  If the list you are paginating is long, that can be unwise.  You can have Prisma do the pagination for you.  Prisma pagination is described **[here.](https://www.prisma.io/docs/orm/prisma-client/queries/pagination)**  You would have query parameters that specify which page you want, when you do a GET for /tasks.  You would probably want to create a standalone program that populates the database with several hundred tasks for a given user, so that you can test your work.  You could test pagination this with Postman.
-
-## **11.3.5 Documenting Your APIs with Swagger**
+## **11.3.4 Documenting Your APIs with Swagger**
 
 Swagger, also known as the OpenAPI specification, is a good way to document your APIs.  You document each API in your code with comments of a particular format.  Then Swagger builds and exports an entire user interface that other developers can use to experiment with your APIs, including in this case, registering, logging on, adding tasks, etc.  The process is documented **[here.](https://blog.logrocket.com/documenting-express-js-api-swagger/)**  You have been testing with Postman.  You can export your Postman test descriptions in Swagger format, to generate some of the documentation you need automatically, but you'll have to add on to what Postman provides.  You select your Postman collection and choose "export".  That creates a JSON file.  Then, you convert that to Swagger with **[this tool](https://metamug.com/util/postman-to-swagger/)**  Then, you can check out the user interface you create, which will be a web page at http://localhost:3000/api-docs/.
 
-## **11.3.6 A Progress Log for Each Task**
+## **11.3.5 A Progress Log for Each Task**
 
 When you work as a team, various team members may be assigned large tasks, and may want to keep other team members apprised of their progress.  So, you could have a logs table.  Each log record might have a date and a string describing status.  Each log record would belong to a task, and a task may have many log records.  You'd need to add an additional route that records a log record for a task.  You already have a route that retrieves a task.  You could add a query parameter that says, get the log records as well as the tasks.
 
-Note that you will cause the delete operation to fail, because of the foreign key constraint.  You can't delete a task that has log records.  How can you fix this?
+Note that this will cause the delete operation to fail, because of the foreign key constraint.  You can't delete a task that has log records.  How can you fix this?  (Hint: You can do something special in the schema.)
 
-## **11.3.7 Updating Many Records with a Single Operation**
+## **11.3.6 Updating Many Records with a Single Operation**
 
-You might want to update a collection of tasks to mark them all complete.  Or, you might want to delete a collection of tasks.  In each case, you'd have a route, and in the JSON body of the request, you'd have an array of all the task IDs for the particular operation.
+You might want to update a collection of tasks to mark them all complete.  Or, you might want to delete a collection of tasks.  You could use `updateMany` or  `deleteMany`, but you would support query parameters, such as `?isCompleted=true` to specify the tasks to be updated and/or deleted.
 
-## **11.3.8 Implementing a Backlog**
+## **11.3.7 Bulk Update or Delete**
 
-You could add a backlog table.  Each entry would be the title for a task.  Each logged on user could see the list of backlog entries and add, modify, or delete any.  However, a logged on user could also claim a task.  That would create a task with the same title belonging to the logged on user, and remove the corresponding backlog item.  Here's a tip: You should use a transaction!  You don't want a race condition, where one user claims a task, and so does another user, before the first one gets it deleted from the backlog.
+Another way to do this might be to allow a REST request that specifies an array of task IDs.  You can imagine the front end having a check box to select from the list of tasks.  Then, the user could send a delete operation to delete all the selected tasks.  We don't want you to change the front end.  Just build the bulk update or bulk delete REST request.  This would also use `updateMany` or `deleteMany`, but the where clause would specify `in:` to specify the set of ids you want to include.
+
+## **11.3.8 Recycle Bin**
+
+You could add a "trash" optional boolean to the task model. When a deletion occurs, the trash column could be set to true, and the queries would be modified so that tasks with trash=true aren't returned.  But, a REST request would empty the trash, actually deleting the entries.  A filter on the index request might allow trash entries to be included in what is returned, so that they could be updated to take them out of the trash.
+
+## **11.3.9 Implementing a Backlog**
+
+You could add a backlog table.  Each entry would be the title for a task, along with a priority.  Each logged on user could see the list of backlog entries and add, modify, or delete from that list.  However, a logged on user could also claim a task.  That would create a task with the same title,, createdAt, and priority belonging to the logged on user, and remove the corresponding backlog item.  Here's a tip: You should use a transaction!  You don't want a race condition, where one user claims a task, and so does another user, before the first one gets it deleted from the backlog.
 
 ---
 
