@@ -1,5 +1,6 @@
 # **Lesson 7: Advanced Prisma ORM Features**
 
+> **⚠️ Warning: This is a long assignment that requires implementing multiple advanced Prisma features. Please set aside plenty of time to complete it thoroughly. The tasks build on each other, so make sure you understand each section before moving on.**
 ## **Lesson Overview**
 
 You have learned to use Prisma ORM for basic CRUD operations in your app from Lesson 6.  Often, though, you need more advanced features.  This lesson will describe advanced Prisma features that will make your database operations more powerful and efficient.  The lesson explains eager loading, aggregations, transactions, batch operations, raw SQL, and performance optimization techniques.  You'll implement these features in the assignment.
@@ -238,6 +239,17 @@ const users = usersRaw.map(user => ({
 - Performance metrics
 - Data insights
 
+### d. Security Consideration: Role-Based Access Control (RBAC)
+
+**Important Security Note:** The analytics endpoints that allow querying user statistics (such as `GET /api/analytics/users` which returns all users with their task counts) create a security vulnerability. In a production application, one user should not be able to see another user's tasks or statistics. These routes should be protected with Role-Based Access Control (RBAC) to ensure only authorized users (such as administrators) can access aggregated data across all users.
+
+For now, in this assignment, you'll implement these endpoints as described. However, be aware that in a real-world application, you would need to:
+- Implement role-based access control
+- Restrict access to user statistics endpoints to admin users only
+- Ensure regular users can only access their own data
+
+You'll have the opportunity to implement RBAC for these routes in Assignment 11.
+
 ---
 
 ## **3. Database Transactions**
@@ -365,58 +377,6 @@ const newUsers = await prisma.user.createMany({
   ],
   skipDuplicates: true  // Skip if email already exists
 });
-```
-
-### a.1. Bulk Create with Validation
-
-When creating multiple records from user input, always validate each record:
-
-```javascript
-// Bulk create with validation
-exports.bulkCreate = async (req, res, next) => {
-  const { tasks } = req.body;
-
-  // Validate the tasks array
-  if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
-    return res.status(400).json({ 
-      error: "Invalid request data. Expected an array of tasks." 
-    });
-  }
-
-  // Validate all tasks before insertion
-  const validTasks = [];
-  for (const task of tasks) {
-    const { error, value } = taskSchema.validate(task);
-    if (error) {
-      return res.status(400).json({
-        error: "Validation failed",
-        details: error.details,
-      });
-    }
-    validTasks.push({
-      title: value.title,
-      isCompleted: value.isCompleted || false,
-      priority: value.priority || 'medium',
-      userId: global.user_id
-    });
-  }
-
-  // Use createMany for batch insertion
-  try {
-    const result = await prisma.task.createMany({
-      data: validTasks,
-      skipDuplicates: false
-    });
-
-    res.status(201).json({
-      message: "Bulk task creation successful",
-      tasksCreated: result.count,
-      totalRequested: tasks.length
-    });
-  } catch (err) {
-    return next(err);
-  }
-};
 ```
 
 ### b. Updating Multiple Records
@@ -603,7 +563,11 @@ SQL injection is when an attacker tricks your app into running malicious SQL cod
 
 ### a. Selective Field Loading
 
+**Note:** Selective field loading is covered in detail in Lesson 6. This section provides a brief reminder for context.
+
 As previously mentioned in Lesson 6, you can use `select` to load only the fields you need. This becomes even more important when working with advanced queries:
+
+**Important:** When returning task data in assignments and sample code, you should include `createdAt` in your select statements, as this field is useful for sorting, filtering, and displaying when tasks were created.
 
 ```javascript
 // ❌ Loads all fields (including password)
@@ -810,274 +774,16 @@ const recentTasks = await prisma.task.findMany({
 
 ## **7. Advanced Error Handling**
 
-### a. Prisma Error Codes
+Error handling for Prisma operations follows the same patterns you learned in Lesson 6. When building analytics endpoints and other advanced Prisma features, apply the same error handling principles:
 
-As you learned in Lesson 6, Prisma provides specific error codes for different scenarios. In this section, we'll explore how to handle these errors in more advanced contexts:
+- **Validate input parameters** (e.g., check if user ID is a valid number before using it)
+- **Handle Prisma error codes** (P2002 for duplicates, P2025 for not found, etc.) as you did in Lesson 6
+- **Use try/catch blocks** for operations that might fail
+- **Pass errors to the error handler middleware** using `next(err)` when appropriate
+- **Handle context-specific errors** (like invalid user ID) directly in the controller with appropriate status codes
 
-**Common Error Codes:**
-- **`P2002`**: Unique constraint violation (duplicate email) → Return 400 Bad Request
-- **`P2025`**: Record not found → Return 404 Not Found
-- **`P2003`**: Foreign key constraint violation → Return 400 Bad Request
-- **`P2014`**: Invalid relation → Return 400 Bad Request
+For analytics controllers specifically, follow the same error handling approach you used in your task and user controllers in Assignment 6. Validate inputs, catch Prisma errors, and use the error handler middleware for unexpected errors.
 
-The `P2025` only occurs for the following operations: `update()`, `delete()`, `findUniqueOrThrow()`, `findFirstOrThrow()`.  For a `findMany()` an empty array is returned if no entry is found.  For a `findUnique()`, a null value is returned if no entry is found.
-
-### b. Implementing Error Handling
-
-```javascript
-try {
-  const user = await prisma.user.create({
-    data: { email, name, hashedPassword }
-  });
-  res.json(user);
-} catch (error) {
-  if (error.code === 'P2002') {
-    return res.status(400).json({ 
-      error: "User with this email already exists" 
-    });
-  }
-  
-  if (error.code === 'P2025') { 
-    return res.status(404).json({ 
-      error: "Record not found" 
-    });
-  }
-  
-  console.error('Prisma error:', error);
-  res.status(500).json({ 
-    error: "Internal server error" 
-  });
-}
-```
-
-### c. Error Handling in Context
-
-```javascript
-let updatedTask = null;
-try {
-  updatedTask = await prisma.task.update({
-    where: { 
-      id: parseInt(taskId),
-      userId: req.userId
-    },
-    data: { title: newTitle }
-  });
-} catch (err) {
-  if (err.code === "P2025") {
-    return res.status(404).json({ message: "The task was not found." });
-  } else {
-    return next(err); // if inside of a controller
-  }
-}
-// ... it succeeded!
-```
-As previously mentioned, not all errors should be handled in the context of the controllers.  That would be redundant.  Some the errors should be handled in context, though.  For example, if a user is registering, and the `P2002` error occurs, that is best handled in context, so that good feedback can be returned to the caller.
-
-### d. Error Handling in Analytics Controllers
-
-When building analytics endpoints, ensure proper error handling for all operations:
-
-```javascript
-exports.getUserAnalytics = async (req, res, next) => {
-  try {
-    const userId = parseInt(req.params.id);
-    
-    if (isNaN(userId)) {
-      res.status(400).json({ error: "Invalid user ID" });
-      return;
-    }
-
-    // Use groupBy to count tasks by completion status
-    const taskStats = await prisma.task.groupBy({
-      by: ['isCompleted'],
-      where: { userId },
-      _count: { id: true }
-    });
-
-    // Include recent task activity with eager loading
-    const recentTasks = await prisma.task.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        title: true,
-        isCompleted: true,
-        priority: true,
-        createdAt: true,
-        userId: true,
-        User: {
-          select: { name: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 10
-    });
-
-    // Calculate weekly progress using groupBy
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-    const weeklyProgress = await prisma.task.groupBy({
-      by: ['createdAt'],
-      where: {
-        userId,
-        createdAt: { gte: oneWeekAgo }
-      },
-      _count: { id: true }
-    });
-
-    res.status(200).json({
-      taskStats,
-      recentTasks,
-      weeklyProgress
-    });
-    return;
-  } catch (err) {
-    // Handle errors appropriately
-    if (next && typeof next === 'function') {
-      return next(err);
-    }
-    // If next is not provided (like in tests), send error response directly
-    if (!res.headersSent) {
-      res.status(500).json({ 
-        error: "Internal server error", 
-        message: err.message 
-      });
-    }
-  }
-};
-```
----
-
-## **8. Setting Up Routes**
-
-### a. Creating Route Files
-
-When implementing advanced Prisma features, you'll need to create route files to expose your endpoints. Here's how to set up routes for analytics and bulk operations:
-
-#### Creating Analytics Routes
-
-Create a new file `routes/analyticsRoutes.js`:
-
-```javascript
-const express = require("express");
-const router = express.Router();
-const {
-  getUserAnalytics,
-  getUsersWithStats,
-  searchTasks,
-} = require("../controllers/analyticsController");
-
-// GET /api/analytics/users/:id - User productivity analytics
-router.get("/users/:id", getUserAnalytics);
-
-// GET /api/analytics/users - Users with task statistics and pagination
-router.get("/users", getUsersWithStats);
-
-// GET /api/analytics/tasks/search - Task search with raw SQL
-router.get("/tasks/search", searchTasks);
-
-module.exports = router;
-```
-
-#### Adding Bulk Endpoint to Task Routes
-
-Update your existing `routes/taskRoutes.js` to include the bulk create endpoint:
-
-```javascript
-const express = require("express");
-const router = express.Router();
-const {
-  index,
-  show,
-  create,
-  update,
-  deleteTask,
-  bulkCreate,  // Add this import
-} = require("../controllers/taskController");
-
-router.get("/", index);
-router.get("/:id", show);
-router.post("/", create);
-router.post("/bulk", bulkCreate);  // Add this route - must come before /:id
-router.patch("/:id", update);
-router.delete("/:id", deleteTask);
-
-module.exports = router;
-```
-
-**Important:** The `/bulk` route must be defined before `/:id` because Express matches routes in order. If `/:id` comes first, it will match `/bulk` as an ID parameter.
-
-### b. Wiring Routes in app.js
-
-Update your main `app.js` file to include the new routes:
-
-```javascript
-const express = require("express");
-const prisma = require("./db/prisma");
-const userRoutes = require("./routes/userRoutes");
-const taskRoutes = require("./routes/taskRoutes");
-const analyticsRoutes = require("./routes/analyticsRoutes");  // Add this
-const authMiddleware = require("./middleware/auth");
-const errorHandler = require("./middleware/error-handler");
-const notFound = require("./middleware/not-found");
-
-const app = express();
-const port = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// Routes
-app.use("/api/users", userRoutes);
-app.use("/api/tasks", authMiddleware, taskRoutes);
-app.use("/api/analytics", authMiddleware, analyticsRoutes);  // Add this
-
-// Health check endpoint
-app.get("/health", async (req, res) => {
-  try {
-    await prisma.$queryRaw("SELECT 1");
-    res.json({ status: "ok", db: "connected" });
-  } catch (err) {
-    res.status(500).json({ 
-      status: "error", 
-      db: "not connected", 
-      error: err.message 
-    });
-  }
-});
-
-app.use(notFound);
-app.use(errorHandler);
-
-// ... rest of server setup
-```
-
-### c. Route Structure Summary
-
-Your complete route structure should look like this:
-
-```
-/api/users
-  POST /register          - User registration with welcome tasks (transaction)
-  POST /login            - User login
-  POST /logoff           - User logoff
-
-/api/tasks (requires auth)
-  GET  /                 - List tasks with pagination and eager loading
-  GET  /:id              - Show task with user info (eager loading)
-  POST /                 - Create single task
-  POST /bulk             - Bulk create tasks (createMany)
-  PATCH /:id             - Update task
-  DELETE /:id            - Delete task
-
-/api/analytics (requires auth)
-  GET  /users/:id        - User analytics with groupBy operations
-  GET  /users            - Users with stats and pagination
-  GET  /tasks/search     - Task search with raw SQL
-```
-
-**Note:** All `/api/tasks` and `/api/analytics` routes require authentication middleware, which sets `global.user_id` for session management.
-
----
 
 ### Key Benefits of Advanced Prisma Features
 - **Performance**: Fewer database queries and optimized operations

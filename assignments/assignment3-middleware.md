@@ -8,7 +8,7 @@ This assignment is to be done in the node-homework folder.  Within that folder, 
 
 You have started work on the application you'll use for your final project.  You now start adding the main functions.
 
-For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the `/api/users` path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.  By convention, REST API routes start with `/api'.
+For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the `/api/users/register` path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.  By convention, REST API routes start with `/api'.
 
 You cannot test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left-hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right-hand side, you see an icon that is a rectangle with a little eye.  No, it doesn't mean the Illuminati.  This is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
 
@@ -25,7 +25,7 @@ This tells Express to parse JSON request bodies as they come in.  The express.js
 Make the following change to the request handler:
 
 ```js
-app.post("/api/users", (req, res)=>{
+app.post("/api/users/register", (req, res)=>{
     console.log("This data was posted", JSON.stringify(req.body));
     res.send("parsed the data");
 });
@@ -52,7 +52,7 @@ global.tasks = [];
 And then, change the app.post() as follows:
 
 ```js
-app.post("/api/users", (req, res)=>{
+app.post("/api/users/register", (req, res)=>{
     const newUser = {...req.body}; // this makes a copy
     global.users.push(newUser);
     global.user_id = newUser;  // After the registration step, the user is set to logged on.
@@ -103,7 +103,7 @@ Change the code for the route as follows:
 
 ```js
 const { register } = require("./controllers/userController");
-app.post("/api/users", register);
+app.post("/api/user/register", register);
 ```
 
 Test again with Postman to make sure it works.

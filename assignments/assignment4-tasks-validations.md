@@ -38,7 +38,7 @@ But, `app.use(authMiddleware)` would protect any route.  Then no one could regis
 
 ```js
 const taskRouter = require("./routers/taskRoutes"); 
-app.use("/api tasks", authMiddleware, taskRouter);
+app.use("/api/tasks", authMiddleware, taskRouter);
 ```
 
 That solves the first problem.  The authMiddleware gets called before any of the task routes, and it makes sure that no one can get to those routes without being logged on.  These are called "protected routes" because they require authentication.
@@ -76,7 +76,7 @@ In taskController.js, you need a function called `create(req, res)`. And inside 
 ```js
 const newTask = {...req.body, id: taskCounter(), userId: global.user_id.email};
 global.tasks.push(newTask);
-const (userId, ...sanitizedTask) = newTask; 
+const {userId, ...sanitizedTask} = newTask; 
 // we don't send back the userId! This statement removes it.
 res.json(sanitizedTask);  
 ```
