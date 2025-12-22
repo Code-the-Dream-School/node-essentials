@@ -239,7 +239,7 @@ exports.deleteTask = async (req, res, next) => {
 
 exports.bulkCreate = async (req, res, next) => {
   // Validate the tasks array
-  const tasks = req.body;
+  const tasks = req.body?.tasks;
   if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       error: "Invalid request data. Expected an array of tasks.",
