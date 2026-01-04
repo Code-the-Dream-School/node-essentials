@@ -1,6 +1,6 @@
-const { StatusCodes } = require("http-status-codes");
 const prisma = require("../db/prisma");
-exports.getUserAnalytics = async (req, res, next) => {
+const { StatusCodes } = require("http-status-codes");
+exports.getUserAnalytics = async (req, res) => {
   // Parse and validate user ID
   const userId = parseInt(req.params.id);
   if (isNaN(userId)) {
@@ -8,14 +8,6 @@ exports.getUserAnalytics = async (req, res, next) => {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .json({ error: "Invalid userId passed in request to userStats" });
-  }
-
-  // Check if user exists
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
   }
 
   // Use groupBy to count tasks by completion status
@@ -71,7 +63,7 @@ exports.getUserAnalytics = async (req, res, next) => {
   return;
 };
 
-exports.getUsersWithStats = async (req, res, next) => {
+exports.getUsersWithStats = async (req, res) => {
   // Parse pagination parameters (similar to how you did in the task index method above)
   // Hint: Parse page and limit from req.query, calculate skip
   // Basic pagination
@@ -125,14 +117,14 @@ exports.getUsersWithStats = async (req, res, next) => {
   };
 
   // Return users and pagination
-  res.status(200).json({
+  res.json({
     // ... you need to return users and pagination
     users,
     pagination,
   });
 };
 
-exports.searchTasks = async (req, res, next) => {
+exports.searchTasks = async (req, res) => {
   // Validate search query
   const searchQuery = req.query?.q;
   if (!searchQuery || searchQuery.trim().length < 2) {
@@ -173,7 +165,8 @@ exports.searchTasks = async (req, res, next) => {
       ELSE 4
     END,
     t.created_at DESC
-  LIMIT ${parseInt(limit)}
+  LIMIT ${parseInt(limit)} 
+  OFFSET ${skip}
 `;
 
   // Return results with query and count

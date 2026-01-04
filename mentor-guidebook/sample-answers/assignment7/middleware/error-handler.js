@@ -2,7 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 
 const errorHandlerMiddleware = (err, req, res, next) => {
   if (err.name === "ValidationError") {
-    return res.status(StatusCodes.BAD_REQUEST).json({
+    return res.status(400).json({
       error: "Validation failed",
       details: err.details,
     });
@@ -19,7 +19,7 @@ const errorHandlerMiddleware = (err, req, res, next) => {
   if (!res.headersSent) {
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: "An internal server error occurred." });
+      .json({ error: "An internal server error occurred."});
   }
 };
 

@@ -82,9 +82,7 @@ exports.register = async (req, res, next) => {
   } catch (err) {
     if (err.code === "P2002") {
       // send the appropriate error back -- the email was already registered
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ error: "Email already registered" });
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email already registered" });
     } else {
       return next(err); // the error handler takes care of other errors
     }
@@ -92,12 +90,10 @@ exports.register = async (req, res, next) => {
 };
 
 exports.logon = async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Email and password are required" });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email and password are required" });
   }
 
   // Find user by email
@@ -106,15 +102,11 @@ exports.logon = async (req, res) => {
     where: { email },
   });
 
-  if (!user || !(await comparePassword(password, user.hashedPassword))) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ error: "Invalid credentials" });
+  if (!user || !await comparePassword(password, user.hashedPassword)) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Invalid credentials" });
   }
-
   // Store user ID globally for session management (not secure for production)
   global.user_id = user.id;
-
   res.json({
     name: user.name,
     email: user.email,
@@ -124,16 +116,14 @@ exports.logon = async (req, res) => {
 exports.logoff = async (req, res) => {
   // Clear the global user ID for session management
   global.user_id = null;
-  res.sendStatus(StatusCodes.OK);
+  res.sendStatus(200);
 };
 
 exports.show = async (req, res) => {
   const userId = parseInt(req.params.id);
 
   if (isNaN(userId)) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Invalid user ID" });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid user ID" });
   }
 
   const user = await prisma.user.findUnique({
@@ -159,6 +149,5 @@ exports.show = async (req, res) => {
   if (!user) {
     return res.status(StatusCodes.NOT_FOUND).json({ error: "User not found" });
   }
-
   res.json(user);
 };

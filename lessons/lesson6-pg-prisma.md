@@ -9,7 +9,7 @@ You have learned to use SQL for CRUD operations in your app.  Often, though, tha
 You will learn:
 - What object-relational mappings (ORMs) are
 - Why ORMs are used.
-- Characterisics of the Prisma ORM
+- Characteristics of the Prisma ORM
 - How to set up Prisma in your project
 - How to use Prisma to manage the schema
 - Prisma for CRUD operations: How to replace your SQL with Prisma calls
@@ -27,7 +27,7 @@ You will learn:
 
 ## **1. What is an ORM, and why are they used?**
 
-SQL is a powerful language, but it isn't pretty.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With an ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programminga assistance.
+SQL is a powerful language, but it isn't pretty.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With an ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programming assistance.
 
 In addition, ORMs have certain inherent advantages:
 
@@ -168,7 +168,7 @@ The Prisma schema describes the database schema.  There are two cases to conside
 - **Schema Evolution is difficult for a team project**
 - **Schema Management is difficult in production**
 
-2. **Migration** If there is no existing databae schema, Prisma schema definitions can be created by hand, like those above.  Then, those schema definitions are used to create tables with corresponding columns, constraints, and indexes.  This process is called **migration**.  If there is existing data, it can be preserved.
+2. **Migration** If there is no existing database schema, Prisma schema definitions can be created by hand, like those above.  Then, those schema definitions are used to create tables with corresponding columns, constraints, and indexes.  This process is called **migration**.  If there is existing data, it can be preserved.
 
 In the assignment, you will do each of these.
 
@@ -262,7 +262,7 @@ try {
   });
 } catch (err) {
   if (err.code === "P2025") {
-    return res.status(404).json(message: "The entry was not found.");
+    return res.status(404).json({ message: "The entry was not found." });
   } else {
     return next(err); // if inside of a controller
   }
@@ -413,7 +413,7 @@ In this lesson, you've learned:
 - **Relationships**: Simple handling of complex database relationships
 
 ### Next Steps
-1. **Complete Assignment 6b** following this lesson
+1. **Complete Assignment 6** following this lesson
 2. **Test your Prisma integration** thoroughly
 3. **Continue to Lesson 7** to learn advanced Prisma features
 4. **Explore Prisma documentation** for more advanced usage

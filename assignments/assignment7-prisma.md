@@ -805,7 +805,7 @@ try {
   const task = await prisma.task.update({
     where: {
       id: parseInt(req.params.id),
-      userId: req.userId
+      userId: global.user_id
     },
     data: value,
     select: { title: true, isCompleted: true, id: true, priority: true }
@@ -906,7 +906,7 @@ Make sure all operations work as before. They are:
 
 As you did for Assignment 6, conduct a test to verify that one user can't read, modify, or delete another's tasks.
 
-Then, run `npm tdd assignment7` and make sure it completes without test failure.
+Then, run `npm run tdd assignment7` and make sure it completes without test failure.
 
 #### a. Database Testing
 

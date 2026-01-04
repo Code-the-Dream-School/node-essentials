@@ -123,7 +123,7 @@ Authentication is not the only security issue to worry about.  You also need to 
 
 2. Denial of service attacks (DOS).  This is where a bot sends a flood of requests to overload the server.  There are also distributed denial of service (DDOS) attacks, where the flood of requests originate from a collection of bots.
 
-3. Cross origin attacks: These are when requests come from a hostile front end.  We have mentioned CORS.  If Express is run without the CORS package, all browser requests that use the CORS protocol fail.  THe CORS package grants limited access to a limited number of front end origins.
+3. Cross origin attacks: These are when requests come from a hostile front end.  We have mentioned CORS.  If Express is run without the CORS package, all browser requests that use the CORS protocol fail.  The CORS package grants limited access to a limited number of front end origins.
 
 4. Attacks on the front end: Security is the business of the front end developer too.  Many, in fact the majority, of security attacks on the Internet involve the front end.  React offers some level of protection, but not enough.  This course doesn't cover front end issues, but [here is a reference](https://relevant.software/blog/react-js-security-guide/) you may want to bookmark on React security.
 
