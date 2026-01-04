@@ -413,7 +413,7 @@ In this lesson, you've learned:
 - **Relationships**: Simple handling of complex database relationships
 
 ### Next Steps
-1. **Complete Assignment 6b** following this lesson
+1. **Complete Assignment 6** following this lesson
 2. **Test your Prisma integration** thoroughly
 3. **Continue to Lesson 7** to learn advanced Prisma features
 4. **Explore Prisma documentation** for more advanced usage

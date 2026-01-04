@@ -8,9 +8,9 @@
 - Implement advanced Prisma features like relationships and transactions
 
 ## Assignment Overview
-In this assignment, you will transform your existing PostgreSQL application (from Assignment 6a) to use Prisma ORM instead of raw SQL queries. You'll gain better type safety, autocomplete, and maintainability while keeping the same functionality.
+In this assignment, you will transform your existing PostgreSQL application (from Assignment 5) to use Prisma ORM instead of raw SQL queries. You'll gain better type safety, autocomplete, and maintainability while keeping the same functionality.
 
-Be sure to create an assignment6b branch before you make any new changes.  This branch should build on top of assignment6a, so you create the assignment6b branch when assignment6a is the active branch.
+Be sure to create an assignment6 branch before you make any new changes. This branch should build on top of assignment5, so you create the assignment6 branch when assignment5 is the active branch.
 
 **Prologue:**
 Right now you are using raw SQL queries with the `pg` library to interact with your PostgreSQL database. For this assignment, you want to replace all raw SQL queries with Prisma ORM methods, while maintaining the same functionality including password hashing and global user_id storage. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
@@ -428,25 +428,23 @@ Test all endpoints with Postman or curl:
 
 ## Submission Instructions
 
-You now create the 
-
 ### 1️⃣ Add, Commit, and Push Your Changes
-Within your `node-homework` folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment6b` branch.
+Within your `node-homework` folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment6` branch.
 
 ```bash
 git add .
-git commit -m "Complete Assignment 6b: Prisma ORM Integration"
-git push origin assignment6b
+git commit -m "Complete Assignment 6: Prisma ORM Integration"
+git push origin assignment6
 ```
 
 ### 2️⃣ Create a Pull Request
 1. Log on to your GitHub account
 2. Open your `node-homework` repository
-3. Select your `assignment6b` branch. It should be one or several commits ahead of your main branch
-4. Create a pull request with a descriptive title like "Assignment 6b: Prisma ORM Integration"
+3. Select your `assignment6` branch. It should be one or several commits ahead of your main branch
+4. Create a pull request with a descriptive title like "Assignment 6: Prisma ORM Integration"
 
 ### 3️⃣ Submit Your GitHub Link
-Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  Include also a link to the pull request for assignment 6a.
+Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  Include also a link to the pull request for assignment 5.
 
 **Important:** Make sure your pull request includes:
 - All the modified files with Prisma integration
@@ -505,5 +503,5 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 - Test each endpoint individually
 - Ask for help if you get stuck on specific concepts
 
-**Remember:** This assignment builds on Assignment 6a. Make sure you have a working PostgreSQL application before adding Prisma ORM!
+**Remember:** This assignment builds on Assignment 5. Make sure you have a working PostgreSQL application before adding Prisma ORM!
 
