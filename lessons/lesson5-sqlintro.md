@@ -101,7 +101,7 @@ When a table is defined in the schema, one or several **constraints** on the val
 
 If you try to create a record that doesn't comply with constraints, or update one in violation of constraints, you get an error.
 
-### **DIfferent Relational Databases
+### **Different Relational Databases
 
 There are a variety of different implementations of relational databases.  All support SQL, but each is optimized for a particular use case.  For very large data volumes and transaction rates, you might use Amazon Aurora, BigQuery, or various others.  Be aware that SQL implementations vary.  SQL statments that work for one implementation may not work unchanged in a different one.  In this class, you use PostgreSQL, in part because it is freely available and runs both on your local laptop and in the cloud.
 
@@ -344,7 +344,7 @@ SELECT customer_id FROM customers WHERE customer_name = 'Conrad-Harris';
 SELECT employee_id FROM employees WHERE first_name = 'David' AND last_name='Thornton';
 SELECT product_id FROM products WHERE product_name = 'Fantastic Shoes';
 SELECT product_id FROM products WHERE product_name = 'Sausages';
-INSERT INTO orders (customer_id, employee_id, date) VALUES(3,2, '2025-03-11') RETURNING order_id;
+INSERT INTO orders (customer_id, employee_id, date) VALUES (3, 2, '2025-03-11') RETURNING order_id;
 INSERT INTO line_items (order_id, product_id, quantity) VALUES (252, 1, 2), (252, 3, 5);
 COMMIT;
 ```
@@ -561,7 +561,7 @@ async function runTransactionalWork() {
 
     // Example operation #1
     const userResult = await client.query(
-      `SELECT FROM users WHERE email = $1`,
+      `SELECT * FROM users WHERE email = $1`,
       ["testuser@example.com"]
     );
     if (userResult.rows.length) { // if the user was found

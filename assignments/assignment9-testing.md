@@ -730,7 +730,7 @@ Even when you do have comprehensive code coverage, the tests may be, and this ca
 
 ## **Code Coverage**
 
-## **Runnng the Test of the Tests**
+## **Running the Test of the Tests**
 
 To run the TDD for assignment 9, run `npm run lesson9TDD` .  You should get test failures.  Mock versions of some of your JavaScript files are used, with intentionally introduced bugs.  On completion, you should see whether your tests found all the bugs.  This is not a complete test of your tests.  The report at the end will show whether your tests gave the expected results.
 

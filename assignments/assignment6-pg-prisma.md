@@ -156,7 +156,7 @@ There is plenty one can learn about this -- but you have enough information for 
 As you may make schema changes in the future, you also want Prisma to manage the schema of the test database.  So do the following:
 
 ```bash
-DATABASE_URL=<TEST_DATABASE_URL> prisma migrate deploy
+DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy
 ```
 
 Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable from your `.env` file.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
@@ -165,7 +165,7 @@ Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable
 
 **Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
 
-From this point on, if you make a schema change, you change the model, do a `prisma migrate dev`, and then, for the test database, do the corresponding `migrate deploy`.  You do not change the schema with ordinary SQL.
+From this point on, if you make a schema change, you change the model, do a `npx prisma migrate dev`, and then, for the test database, do the corresponding `npx prisma migrate deploy`.  You do not change the schema with ordinary SQL.
 
 ### 2. Create Prisma Database Connection
 
@@ -174,11 +174,14 @@ Create `db/prisma.js`.  This is going to be the substitute for the `pg` pool.  T
 
 ```js
 const { PrismaClient } = require("@prisma/client");
-if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
-  opts = {log: ["query"]};
+
+let opts;
+if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
+  opts = { log: ["query"] };
 } else {
   opts = {};
 }
+
 const prisma = new PrismaClient(opts);
 
 module.exports = prisma;
@@ -210,7 +213,7 @@ Change your health check so that it uses Prisma:
 ```js
 app.get('/health', async (req, res) => {
   try {
-    await prisma.$queryRaw('SELECT 1');
+    await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', db: 'connected' });
   } catch (err) {
     res.status(500).json({ status: 'error', db: 'not connected', error: err.message });
@@ -222,7 +225,7 @@ Also, you want to catch connection errors in your error handler, perhaps adding 
 
 ```js
 if (err.name === "PrismaClientInitializationError") {
-  console.error("Couldn't connect to the database. Is It running?")
+  console.error("Couldn't connect to the database. Is it running?")
 }
 ```
 
@@ -259,10 +262,10 @@ try {
     select: { name: true, email: true, id: true} // specify the column values to return
   });
 } catch (err) {
-    if (err.name === "PrismaClientKnownRequestError" && err.code == "P2002") {
+    if (err.name === "PrismaClientKnownRequestError" && err.code === "P2002") {
       // send the appropriate error back -- the email was already registered
     } else {
-      return next(err); // the error handler takes care of other erors
+      return next(err); // the error handler takes care of other errors
     }
 }
 // otherwise register succeeded, so set global.user_id with user.id, and do the
@@ -290,12 +293,14 @@ This one's kind of like register.  You want to create the task with a userId of 
 // assuming that value contains the validated change coming back from Joi, and that
 // you have a valid req.params.id:
 try {
-const task = await prisma.task.update( data: value,
+  const task = await prisma.task.update({
+    data: value,
     where: {
       id,
       userId: global.user_id,
     },
-    select: { title: true, isCompleted: true, id: true });
+    select: { title: true, isCompleted: true, id: true }
+  });
 } catch (err) {
   if (err.code === "P2025" ) {
     return res.status(404).json({ message: "The task was not found."})
@@ -324,7 +329,7 @@ You no longer need the pool, as all operations now use Prisma.
 
 ### 4. Testing Your Prisma Integration
 
-Test using Postman.  Everything should still work -- but remember that the migrate step delected all the data, so you have to create each entry again.
+Test using Postman.  Everything should still work -- but remember that the migrate step deleted all the data, so you have to create each entry again.
 
 Make sure all operations work as before.  They are:
 
@@ -340,7 +345,7 @@ Make sure all operations work as before.  They are:
 
 As you did for pg, conduct a test to verify that one user can't read, modify, or delete another's tasks.
 
-Then, run `npm tdd assignment6` and make sure it completes without test failure.
+Then, run `npm run tdd assignment6` and make sure it completes without test failure.
 
 #### a. Database Testing
 
@@ -352,13 +357,6 @@ Then, run `npm tdd assignment6` and make sure it completes without test failure.
 
 #### b. API Testing
 Test your endpoints using Postman or curl:
-
-**Required Tests:**
-- All user operations (register, login) with password hashing
-- Global user_id storage after login/registration
-- All task operations (create, read, update, delete) using global user_id
-- Relationship queries (user with tasks, tasks with user)
-- Error handling scenarios
 
 **Required Tests:**
 - All user operations (register, login) with password hashing

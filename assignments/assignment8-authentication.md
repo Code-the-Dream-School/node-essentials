@@ -297,7 +297,7 @@ git commit
 
 for the files you have created, so that they are added to the `assignment8` branch.
 - Push that branch to GitHub  
-```git push origin assignmment8```
+```git push origin assignment8```
 
 #### **2️⃣ Create a Pull Request**
 

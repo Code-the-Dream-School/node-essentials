@@ -1,13 +1,14 @@
 # Week 2 Assignment Event Handlers, HTTP Servers, and Express
 
 ## Assignment Instructions
-- Your assignment files are to be created in the `assignment2` folder of your node-homework folder.
+- Create an `assignment2` folder inside your `node-homework` folder if it doesn't already exist.
 - Create an `assignment2` ```git branch``` before you start.
+- **Testing Tool:** For testing POST requests and API endpoints, use the **Postman VS Code Extension**. Install it from the VS Code Extensions marketplace if you haven't already. This extension allows you to test localhost requests directly from VS Code without needing the desktop agent. For installation instructions, see the [Postman VS Code Extension documentation](https://learning.postman.com/docs/developer/vs-code-extension/install/).
 
 ### Task 1: Practice With An Event Emitter and Listener
 - Create a file called `events.js`.
 - Create an emitter. Use an `emitter.on()` statement to listen to this emitter for the 'time' event. Whenever the listener receives the event, it should print out "Time received: " followed by the string it receives. Then, call `setInterval(callback, 5000)`. Your callback for the `setInterval` should emit a 'time' message with the current time as a string. Try it out. You use `Ctrl-C` to end the program.
-
+- **Important:** Make sure to export your emitter using `module.exports` so it can be accessed by tests and other files.
 ### Task 2: Practice with the HTTP Server
 Modify your `sampleHTTP.js`. First, add the following to the top of your file:
 
@@ -177,7 +178,7 @@ Your server will start and automatically restart whenever you change your code. 
 
 You don't want all your Express code in `app.js`. That would be a mess.  
 There are standard ways to organize it.  
-The error handler is middleware. So, create a middleware folder inside node-homework. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
+The error handler is middleware. So, create a middleware folder inside `node-homework`. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
 Put this code in `error-handler.js`
 
 ```js
@@ -286,7 +287,7 @@ process.on('unhandledRejection', (reason) => {
 ### Task 4: Add a Post Route Handler
 Modify your `app.js`.  
 Add an `app.post()` for `"/testpost"`.  
-Send something back. Then test this new route handler using Postman. You do not need to put anything in the body.
+Send something back. Then test this new route handler using the Postman VS Code Extension. You do not need to put anything in the body.
 
 ### Task 5: Add Logging Middleware
 Modify your Express `app.js`.  

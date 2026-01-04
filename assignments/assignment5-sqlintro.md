@@ -9,6 +9,8 @@ First, create a new branch for this week's homework and name it `assignment5`.
 
 Start `sqlcommand` as you did for the lesson. For each of the following tasks, you should get your SQL statements running in `sqlcommand` first, and then add them to your homework file. It may be helpful to have two terminal sessions open in VSCode - one for `sqlcommand`, and another to run your homework.  Next, create a file named `assignment5-sql.txt` within the `assignment5` directory. Each line in this file should be an SQL command, as described in the tasks.  Lines beginning with `#` are treated as comments.  As you add SQL statements to this file, you can test them using the following command:
 
+**💡 Tip:** When typing SQL commands in the `sqlcommand` terminal, add a space at the end of each line. Without trailing spaces, lines get concatenated together (e.g., `GROUP BY orders.order_idORDER BY` becomes invalid SQL).
+
 ```bash
 npm run tdd assignment5a
 ```
@@ -310,7 +312,7 @@ Right now, you do a find() on the array in the memory store to see if the user i
   }
   return next(e); // all other errors get passed to the error handler
 }
-// othewise newUser now contains the new user.  You can return a 201 and the appropriate
+// otherwise user now contains the new user.  You can return a 201 and the appropriate
 // object.  Be sure to also set global.user_id with the id of the user record you just created. 
 ```
 
@@ -349,7 +351,7 @@ Of course, this operation could throw an error, for example if the database is d
 In each of these task operations, the WHERE cause must filter on th `user_id`, so that a given user can't access a different user's task entries.  For `index()` you need:
 
 ```javascript
-const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1 RETURNING id, title, is_completed",
+const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
   [global.user_id]
 )
 ```
@@ -362,16 +364,17 @@ This one's a little tricky.  You might update the title, or the is_completed, or
 
 Note also: The WHERE clause for the update statement has to filter on both req.params.id (the task record to be updated) and also on global.user_id.  If you don't include global.user_id in the filter, one user could update another user's task records.
 
-Let's assume that you have run req.body through Joi, and that taskChange is the object containing the updates you want.  Lets see: taskChange.keys() would contain the columns to update.  For the VALUES, we can build something up like this:
+Let's assume that you have run req.body through Joi, and that taskChange is the object containing the updates you want.  The keys in taskChange will be in camelCase (like `isCompleted`), but the database columns use snake_case (like `is_completed`).  You need to map the keys to the database column names.  For the VALUES, we can build something up like this:
 
 ```javascript
-const keys = taskChange.keys(updates);
+let keys = Object.keys(taskChange);
+keys = keys.map((key) => key === "isCompleted" ? "is_completed" : key);
 const setClauses = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
 const idParm = `$${keys.length + 1}`;
 const userParm = `$${keys.length + 2}`;
-const updatedTask = await pool.query(`UPDATE tasks ${setClauses} 
+const updatedTask = await pool.query(`UPDATE tasks SET ${setClauses} 
   WHERE id = ${idParm} AND user_id = ${userParm} RETURNING id, title, is_completed`, 
-  [...taskChange.values(), req.params.id, global.user_id]);
+  [...Object.values(taskChange), req.params.id, global.user_id]);
 ```
 
 This looks a little complicated, and there are other ways to do it if you only have two fields that might change, but if you have many fields, you'd need to do something like this. In the case of success, you want to return the updated object -- but not including the user_id.
