@@ -6,11 +6,11 @@
 - **Testing Tool:** For testing POST requests and API endpoints, use the **Postman VS Code Extension**. Install it from the VS Code Extensions marketplace if you haven't already. This extension allows you to test localhost requests directly from VS Code without needing the desktop agent. For installation instructions, see the [Postman VS Code Extension documentation](https://learning.postman.com/docs/developer/vs-code-extension/install/).
 
 ### Task 1: Practice With An Event Emitter and Listener
-- Create a file called `events.js`.
+- Inside your `assignment2` folder, create a file called `events.js`.
 - Create an emitter. Use an `emitter.on()` statement to listen to this emitter for the 'time' event. Whenever the listener receives the event, it should print out "Time received: " followed by the string it receives. Then, call `setInterval(callback, 5000)`. Your callback for the `setInterval` should emit a 'time' message with the current time as a string. Try it out. You use `Ctrl-C` to end the program.
 - **Important:** Make sure to export your emitter using `module.exports` so it can be accessed by tests and other files.
 ### Task 2: Practice with the HTTP Server
-Modify your `sampleHTTP.js`. First, add the following to the top of your file:
+Inside your `assignment2` folder, modify your `sampleHTTP.js` file. First, add the following to the top of your file:
 
 ```js
 const htmlString = `
