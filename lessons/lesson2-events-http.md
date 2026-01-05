@@ -2,7 +2,7 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will gain familiarity with event emitters and listeners.  Students will use the Node http package to create an HTTP server that handles a few routes and responds with JSON.  Students will create a POST route in the http server and test it using Postman.  Students will learn the elements of Express and will create a basic Express server.  
+**Learning objective**: Students will gain familiarity with event emitters and listeners.  Students will use the Node http package to create an HTTP server that handles a few routes and responds with JSON.  Students will create a POST route in the http server and test it using the Postman VS Code Extension.  Students will learn the elements of Express and will create a basic Express server.  
 
 **Topics**:
 
@@ -141,9 +141,11 @@ If the server is running, stop it with a Ctrl-C, put in the code above, and rest
 
 ## **2.3 Testing with Postman**
 
-But, you also need to test the POST request.  For that you use Postman.  Browsers only send POST requests when a form is submitted.
+But, you also need to test the POST request.  For that you use the **Postman VS Code Extension**.  Browsers only send POST requests when a form is submitted.
 
-Start Postman, and click on the New button on the upper right.  Select New Http Request.  You will see a pulldown that defaults to "GET".  Switch it to "POST".  Then, where it says "Enter Request URL", put in `http://localhost:8000`.  Then click on the "Body" tab, and select "raw".  Then, in the pulldown that defaults to "Text", choose "JSON".  Then paste the following into the body:
+**Note:** Install the Postman VS Code Extension from the VS Code Extensions marketplace. This extension allows you to test localhost requests directly from VS Code without needing the desktop agent or web version. For installation instructions, see the [Postman VS Code Extension documentation](https://learning.postman.com/docs/developer/vs-code-extension/install/).
+
+Open the Postman VS Code Extension, and click on the New button.  Select New Http Request.  You will see a pulldown that defaults to "GET".  Switch it to "POST".  Then, where it says "Enter Request URL", put in `http://localhost:8000`.  Then click on the "Body" tab, and select "raw".  Then, in the pulldown that defaults to "Text", choose "JSON".  Then paste the following into the body:
 
 ```JSON
 {

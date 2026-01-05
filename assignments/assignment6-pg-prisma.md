@@ -8,9 +8,9 @@
 - Implement advanced Prisma features like relationships and transactions
 
 ## Assignment Overview
-In this assignment, you will transform your existing PostgreSQL application (from Assignment 6a) to use Prisma ORM instead of raw SQL queries. You'll gain better type safety, autocomplete, and maintainability while keeping the same functionality.
+In this assignment, you will transform your existing PostgreSQL application (from Assignment 5) to use Prisma ORM instead of raw SQL queries. You'll gain better type safety, autocomplete, and maintainability while keeping the same functionality.
 
-Be sure to create an assignment6b branch before you make any new changes.  This branch should build on top of assignment6a, so you create the assignment6b branch when assignment6a is the active branch.
+Be sure to create an assignment6 branch before you make any new changes. This branch should build on top of assignment5, so you create the assignment6 branch when assignment5 is the active branch.
 
 **Prologue:**
 Right now you are using raw SQL queries with the `pg` library to interact with your PostgreSQL database. For this assignment, you want to replace all raw SQL queries with Prisma ORM methods, while maintaining the same functionality including password hashing and global user_id storage. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
@@ -156,7 +156,7 @@ There is plenty one can learn about this -- but you have enough information for 
 As you may make schema changes in the future, you also want Prisma to manage the schema of the test database.  So do the following:
 
 ```bash
-DATABASE_URL=<TEST_DATABASE_URL> prisma migrate deploy
+DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy
 ```
 
 Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable from your `.env` file.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
@@ -165,7 +165,7 @@ Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable
 
 **Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
 
-From this point on, if you make a schema change, you change the model, do a `prisma migrate dev`, and then, for the test database, do the corresponding `migrate deploy`.  You do not change the schema with ordinary SQL.
+From this point on, if you make a schema change, you change the model, do a `npx prisma migrate dev`, and then, for the test database, do the corresponding `npx prisma migrate deploy`.  You do not change the schema with ordinary SQL.
 
 ### 2. Create Prisma Database Connection
 
@@ -174,11 +174,14 @@ Create `db/prisma.js`.  This is going to be the substitute for the `pg` pool.  T
 
 ```js
 const { PrismaClient } = require("@prisma/client");
-if (!process.env.NODE_ENV || process.env.NODE_ENV == "development") {
-  opts = {log: ["query"]};
+
+let opts;
+if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
+  opts = { log: ["query"] };
 } else {
   opts = {};
 }
+
 const prisma = new PrismaClient(opts);
 
 module.exports = prisma;
@@ -210,7 +213,7 @@ Change your health check so that it uses Prisma:
 ```js
 app.get('/health', async (req, res) => {
   try {
-    await prisma.$queryRaw('SELECT 1');
+    await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', db: 'connected' });
   } catch (err) {
     res.status(500).json({ status: 'error', db: 'not connected', error: err.message });
@@ -222,7 +225,7 @@ Also, you want to catch connection errors in your error handler, perhaps adding 
 
 ```js
 if (err.name === "PrismaClientInitializationError") {
-  console.error("Couldn't connect to the database. Is It running?")
+  console.error("Couldn't connect to the database. Is it running?")
 }
 ```
 
@@ -259,10 +262,10 @@ try {
     select: { name: true, email: true, id: true} // specify the column values to return
   });
 } catch (err) {
-    if (err.name === "PrismaClientKnownRequestError" && err.code == "P2002") {
+    if (err.name === "PrismaClientKnownRequestError" && err.code === "P2002") {
       // send the appropriate error back -- the email was already registered
     } else {
-      return next(err); // the error handler takes care of other erors
+      return next(err); // the error handler takes care of other errors
     }
 }
 // otherwise register succeeded, so set global.user_id with user.id, and do the
@@ -290,12 +293,14 @@ This one's kind of like register.  You want to create the task with a userId of 
 // assuming that value contains the validated change coming back from Joi, and that
 // you have a valid req.params.id:
 try {
-const task = await prisma.task.update( data: value,
+  const task = await prisma.task.update({
+    data: value,
     where: {
       id,
       userId: global.user_id,
     },
-    select: { title: true, isCompleted: true, id: true });
+    select: { title: true, isCompleted: true, id: true }
+  });
 } catch (err) {
   if (err.code === "P2025" ) {
     return res.status(404).json({ message: "The task was not found."})
@@ -324,7 +329,7 @@ You no longer need the pool, as all operations now use Prisma.
 
 ### 4. Testing Your Prisma Integration
 
-Test using Postman.  Everything should still work -- but remember that the migrate step delected all the data, so you have to create each entry again.
+Test using Postman.  Everything should still work -- but remember that the migrate step deleted all the data, so you have to create each entry again.
 
 Make sure all operations work as before.  They are:
 
@@ -340,7 +345,7 @@ Make sure all operations work as before.  They are:
 
 As you did for pg, conduct a test to verify that one user can't read, modify, or delete another's tasks.
 
-Then, run `npm tdd assignment6` and make sure it completes without test failure.
+Then, run `npm run tdd assignment6` and make sure it completes without test failure.
 
 #### a. Database Testing
 
@@ -352,13 +357,6 @@ Then, run `npm tdd assignment6` and make sure it completes without test failure.
 
 #### b. API Testing
 Test your endpoints using Postman or curl:
-
-**Required Tests:**
-- All user operations (register, login) with password hashing
-- Global user_id storage after login/registration
-- All task operations (create, read, update, delete) using global user_id
-- Relationship queries (user with tasks, tasks with user)
-- Error handling scenarios
 
 **Required Tests:**
 - All user operations (register, login) with password hashing
@@ -428,25 +426,23 @@ Test all endpoints with Postman or curl:
 
 ## Submission Instructions
 
-You now create the 
-
 ### 1️⃣ Add, Commit, and Push Your Changes
-Within your `node-homework` folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment6b` branch.
+Within your `node-homework` folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment6` branch.
 
 ```bash
 git add .
-git commit -m "Complete Assignment 6b: Prisma ORM Integration"
-git push origin assignment6b
+git commit -m "Complete Assignment 6: Prisma ORM Integration"
+git push origin assignment6
 ```
 
 ### 2️⃣ Create a Pull Request
 1. Log on to your GitHub account
 2. Open your `node-homework` repository
-3. Select your `assignment6b` branch. It should be one or several commits ahead of your main branch
-4. Create a pull request with a descriptive title like "Assignment 6b: Prisma ORM Integration"
+3. Select your `assignment6` branch. It should be one or several commits ahead of your main branch
+4. Create a pull request with a descriptive title like "Assignment 6: Prisma ORM Integration"
 
 ### 3️⃣ Submit Your GitHub Link
-Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  Include also a link to the pull request for assignment 6a.
+Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  Include also a link to the pull request for assignment 5.
 
 **Important:** Make sure your pull request includes:
 - All the modified files with Prisma integration
@@ -505,5 +501,5 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 - Test each endpoint individually
 - Ask for help if you get stuck on specific concepts
 
-**Remember:** This assignment builds on Assignment 6a. Make sure you have a working PostgreSQL application before adding Prisma ORM!
+**Remember:** This assignment builds on Assignment 5. Make sure you have a working PostgreSQL application before adding Prisma ORM!
 
