@@ -153,19 +153,19 @@ From this point on, you can make your schema changes with Prisma.  The sequence 
 
 There is plenty one can learn about this -- but you have enough information for now.
 
-As you may make schema changes in the future, you also want Prisma to manage the schema of the test database.  So do the following:
+As you may make schema changes in the future, you also want Prisma to manage the schema of the test database.  This time, do the following:
 
 ```bash
-DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy
+DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate reset
 ```
 
-Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable from your `.env` file.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
+Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable from your `.env` file.  Because you are doing a reset, all the data in the test database is deleted with this command, but that's ok. It brings the test database into sync with the models and with the migration history of the dev database.
 
 ---
 
 **Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
 
-From this point on, if you make a schema change, you change the model, do a `npx prisma migrate dev`, and then, for the test database, do the corresponding `npx prisma migrate deploy`.  You do not change the schema with ordinary SQL.
+From this point on, if you make a schema change, you change the model, do an `npx prisma migrate dev`, and then, for the test database, do the corresponding `npx prisma migrate deploy`.  You do not change the schema with ordinary SQL.  You'll use the `deploy` also with the production database you create for Internet deployment of your app in lesson 10.  You never use a schema `reset` with the production database, for the obvious reason that it deletes all the data.
 
 ### 2. Create Prisma Database Connection
 
