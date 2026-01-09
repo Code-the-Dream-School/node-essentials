@@ -6,13 +6,12 @@ This assignment is to be created in the `node-homework` folder.  As usual, creat
 Then, install the following packages using npm:
 
 ```bash
-npm install jsonwebtoken cookie-parser cors express-xss-sanitizer express-rate-limit helmet
+npm install jsonwebtoken cookie-parser express-xss-sanitizer express-rate-limit helmet
 ```
 
 **Package Descriptions:**
 - `jsonwebtoken` - For creating and verifying JWT tokens
 - `cookie-parser` - For parsing cookies from HTTP requests
-- `cors` - For handling Cross-Origin Resource Sharing
 - `express-xss-sanitizer` - For protecting against XSS attacks
 - `express-rate-limit` - For rate limiting API requests
 - `helmet` - For setting security-related HTTP headers
@@ -78,10 +77,9 @@ const jwt = require("jsonwebtoken");
 
 const cookieFlags = (req) => {
   return {
-    ...(process.env.NODE_ENV === "production" && { domain: req.hostname }), // add domain into cookie for production only
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    secure: process.env.NODE_ENV === "production", // only when HTTPS is available
+    sameSite: "Strict",
   };
 };
 
@@ -223,7 +221,6 @@ Add the following statements near the top of your `app.js`:
 ```js
 app.set("trust proxy", 1);
 const helmet = require("helmet");
-const cors = require("cors");
 const { xss } = require("express-xss-sanitizer");
 const rateLimiter = require("express-rate-limit");
 ```
@@ -253,27 +250,6 @@ ill behaved client.
 ```js
 app.use(helmet());
 ```
-
-### Next comes CORS:
-
-```js
-const origins = ["http://localhost:3001"];
-
-app.use(
-  cors({
-    origin: origins,
-    credentials: true,
-    methods: "GET,POST,PATCH,DELETE",
-    allowedHeaders: "CONTENT-TYPE, X-CSRF-TOKEN",
-  }),
-);
-```
-
-The default CORS configuration accepts all origins.  That won't work with `credentials: true`.  You have to specify the 
-list of origins that are allowed.  Postman doesn't care about origins, but in lesson 10, you'll test your code with a 
-React front end, running at `http://localhost:3001`, so that's the one you'll need.  In the more general case,  you might 
-want to allow other origins after deploying to the Internet, so you could put the supported list of origins in an 
-environment variable — but we don't need that for now.  The origin is the `URL` of the browser front end application.
 
 ### Next, the XSS protection:
 

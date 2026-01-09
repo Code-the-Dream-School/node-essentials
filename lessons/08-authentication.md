@@ -53,16 +53,17 @@ Once the user is authenticated, they will want to send requests for protected re
 
 Once the user has proven who they are to the back end, the back end sends a Set-Cookie header for an HttpOnly cookie to the front end.  This is stored by the browser, and the front end sends this cookie as a credential with each subsequent request.  Because it is an HttpOnly cookie, front end JavaScript code has no access to it.  That's a good thing.  If there is a security hole in the front end, as is often the case, and if the credential is accessible from JavaScript, any attacker could capture the credential and do as they please, with all the authorization that the user has.
 
-Typically the front end and back end are running on different hosts, so the authentication cookie is a cross-site cookie.  Modern browsers restrict cross-site cookies.   They are only permitted if all of the following conditions hold:
+The front end and back end are sometimes on different hosts.  This makes cookie based security tricky.  The front end won't send a cookie to the back end unless the domain of the cookie matches the domain of the back end. There's a right way and a wrong way to make this happen.
 
-1. The connection between front end and back end is HTTPS.
-2. The connection between the browser and the front end is HTTPS.
-3. The cookie has the "secure" flag.
-4. The cookie has the `SameSite: "None"` flag.
-5. The cookie has the domain set to the domain of the back end host.
-6. The Set-Cookie is sent in response to a fetch request with `credentials: 'include'`.
+The wrong way: The back end sends a cookie, and sets the domain of the cookie to be the back end's domain.  It also sets the `sameSite: "None"` flag on the cookie.  That makes it a cross-site cookie, and the front end will send it on each subsequent request to the back end domain.  Why is this the wrong way? Cross site cookies cause problems.  In particular, they provide advertisers a way to track the user.  So, people disable this feature of the browser, and over time, browsers will drop support for cress-site cookies altogther.
 
-Setting up HTTPS connections in a development environment is a little bit complicated, so we don't bother.  Instead, the front end communicates with the back end via a proxy in the middle.  The proxy intercepts each request to the back end, and, when it sends the back end response to the user's browser, it makes it look as if it came from the same host that the front end is running on.  In this case, when the Set-Cookie header is received, it doesn't appear to be a cross-site cookie to the browser.  In the development environment, the cookie is sent without `secure` flag, without any domain, and with `SameSite: "Lax"`.  In our project, the Vite proxy will handle cross-origin requests in development.
+The right way: You register a domain, say `something.tech`.  Then, you configure the front end and back end to run on subdomains of this domain, say `todos.something.tech` and `api.something.tech`.  The back end sets a cookie for the `something.tech` domain, and also sets `sameSite: "Strict"`.  Because the front end and back end are both in `something.tech`, this is not a cross site cookie, and everything works.  Note that you can't use `onrender.com`, even if both the front end and back end are deployed to Render.com, because that domain is spoken for.
+
+Our way: Registering a domain is impractical for this class. So we're going to use a workaround.  When the front end makes a REST request to the back end, it will do it via a relative URL, something like `/remote-api/api/users/register`.  Then we'll configure the front end so this request is re-routed to the back end.  For the development environment, we'll use the Vite proxy for this.  For Internet deployment of the front end, we can configure rewrite rules.  With this approach, the browser things that this is a local call.  The back end sets no domain in the cookie, so that it is a host-only cookie, but the browser still forwards it, again because it thinks the call is local.
+
+Still another way: You don't have to have the back end and front end running on different hosts.  You can have your React build process deliver code to the `./public` directory of the Express application, and configure Express to host those files.  A cookie is still used for authentication, and you still need CSRF protection.
+
+We use the cookie flag `sameSite: "Strict"` to limit the access other application components might have to the cookie.  If https is used, we also set `secure: true`.  You typically don't configure https for your back end while you are running it on localhost.
 
 An HttpOnly cookie is the **only** general purpose secure approach for maintaining the authenticated session in a browser application.  An all too common practice is for the back end to send a session token to the front end in the body of a REST request.  The token is then stored in localStorage or sessionStorage for transmission with subsequent requests.  **Such an approach is bad for security.** If there is a security hole anywhere in front end code, the session token could be captured by an attacker and reused.  Despite the risk, storing the credential in localStorage or sessionStorage is not an uncommon practice for existing applications, and there are some measures one can take to reduce the risk, though none of them are bulletproof. Our recommendation is: Do not do it this way.
 
@@ -76,9 +77,13 @@ The approach described above can leave a back door open.  Once the cookie is set
 
 ### **Cross Origin Resource Sharing**
 
-The first line of defense against the CSRF attack is the CORS (Cross Origin Resource Sharing) configuration.  The browser observes that the front and back end URLs are not the same, for either the request from the banking front end or the request from the attacker front end.  The front end URL is its "origin", and the back end has a different origin.  So, before the browser sends a request to the back end, it sends a "pre-flight" request, making sure that the front end URL is allowed to access the back end, and making sure not to send any cookies or headers to that back end unless they are permitted by the back end.  The back end CORS configuration includes only certain allowed origins.  
+Because we are using the Vite proxy in development, and the Vercel rewrite approach when deploying, we aren't doing Cross Origin requests.  This is not typical in actual production applications.  The example given above, where the front end is at todos.something.tech and the back end is at api.something.tech, requires cross origin requests, as the front end and back end don't have the same origin.  Browsers don't trust cross origin requests.  The browser first sends a "pre-flight" request to the back end, to see if the back end will accept the request.
 
-Unfortunately, CORS is not enough.  Some requests can bypass CORS.  One example is a GET request.  This is why you never want to make data changes on the back end in response to a GET!  CSRF attacks are blind -- the attacker has no access to the response -- so this doesn't matter so much, but even some POST requests can bypass CORS.  Some back ends, if they only accept the "application/json" content type, may rely on CORS to protect against CSRF, and technically that should suffice, but it's best to add the protection described below.  If the back end accepts data that has been posted in a form, the content type is "application/x-www-form-urlencoded", and in this case CSRF protections are essential, as such requests can bypass CORS.
+The first line of defense against the CSRF attack is the CORS (Cross Origin Resource Sharing) configuration.  The back end would need the npm CORS package, activated by an app.use() statement, The CORS configuration would include only certain allowed origins and perhaps only certain allowed operations.  While we won't use CORS, you need to learn how it works.
+
+Unfortunately, CORS is not enough.  Some requests can bypass CORS.  One example is a GET request.  This is why you never want to make data changes on the back end in response to a GET!  CSRF attacks are blind -- the attacker has no access to the response -- so GET requests don't matter so much, but even some POST requests can bypass CORS.  Some back ends, if they only accept the "application/json" content type, may rely on CORS to protect against CSRF, and technically that should suffice, but it's best to add the protection described below.  If the back end accepts data that has been posted in a form, the content type is "application/x-www-form-urlencoded", and in this case CSRF protections are essential, as such requests can bypass CORS.
+
+In any case, we are using the proxy configuration.  That means we don't do CORS, and we have none of the protections that CORS would provide.
 
 ### **Preventing CSRF Attacks with a Token**
 
@@ -98,7 +103,6 @@ You will use five packages in this lesson:
 
 - jsonwebtoken
 - cookie-parser
-- cors
 - express-xss-sanitizer
 - express-rate-limit
 - helmet
@@ -123,14 +127,12 @@ Authentication is not the only security issue to worry about.  You also need to 
 
 2. Denial of service attacks (DOS).  This is where a bot sends a flood of requests to overload the server.  There are also distributed denial of service (DDOS) attacks, where the flood of requests originate from a collection of bots.
 
-3. Cross origin attacks: These are when requests come from a hostile front end.  We have mentioned CORS.  If Express is run without the CORS package, all browser requests that use the CORS protocol fail.  The CORS package grants limited access to a limited number of front end origins.
+3. Cross origin attacks: These are when requests come from a hostile front end.  We have mentioned CORS.  If Express is run without the CORS package, all browser requests that use the CORS protocol fail.  The CORS package grants limited access to a limited number of front end origins.  In our case, we rely on the CSRF protection we are implementing, as we are not using CORS.
 
 4. Attacks on the front end: Security is the business of the front end developer too.  Many, in fact the majority, of security attacks on the Internet involve the front end.  React offers some level of protection, but not enough.  This course doesn't cover front end issues, but [here is a reference](https://relevant.software/blog/react-js-security-guide/) you may want to bookmark on React security.
 
 For injection attacks, you will use middleware from the `express-xss-sanitizer` package.  This package sanitizes the URL and the body of the request, putting escape characters in to disable scripts.
 
 For denial of service, you will use middleware from the `express-rate-limit` package, which puts the brakes on if too many packets come too fast from a particular source.
-
-You'll use the `cors` package, not to provide additional protection, but to grant limited access.  Your front end and back end will run on different origins, so this package is necessary to make things work.
 
 You'll also use the `helmet` package. Helmet provides subtle protections for back end servers, including some defense against cross-origin attacks. The helmet package provides a lot of protection for a front end server, which is not what we're building.  When you deploy your React application to the Internet, you can configure your Internet service with protections like what helmet provides.  We won't do that in this class.
