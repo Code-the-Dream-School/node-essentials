@@ -15,20 +15,21 @@
 \[ \] Implementation of security measures, including: 
 - Protection for all task operations and for logoff.
 - Passwords stored as hashes.
-- Standard security protections for authentication, access control, protection against cross site request forgery, secure handling of the session credential, protection against injection attacks, and others according to the best practices described in the class.
+- Standard security protections for authentication and access control, protection against cross-site request forgery, secure handling of JWT authentication tokens (e.g., HTTP-only cookies or authorization headers), protection against injection attacks, and other best practices described in the class.
 - Appropriate handling of application secrets.
 
 \[ \] Validation of all user input before data storage.
 
 \[ \] Appropriate handling of error conditions.
 
-\[ \] Automated test cases for all the operations on task records listed above.  Testing of REST requests using Jest, to include user registration, logon, retrieval of task records, and logoff, with appropriate validation of each result.
+\[ \] Automated test cases for all task record operations listed above. Testing of REST requests using Jest and Supertest, including user registration, logon, retrieval of task records, protected routes, and logoff, with appropriate validation of each result.
 
 \[ \] Deployment of the Express back end application to Render.com, where it uses a Neon.tech Postgres database.
 
 \[ \] Validation that the deployed back end application works as expected.
 
 \[ \] Follow best practice on the organization of Express code modules and use of Eslint and Prettier.
+  - For ESLint and Prettier setup guidance, see: [ESLint/Prettier Setup Video](https://www.youtube.com/watch?v=IRdPRIPd9FM)
 
 \[ \] Extra function: One or several additions to make your project stand out.  Here are some suggestions.  Just a couple of these would suffice.  Please choose something that doesn't involve a front end change.  You can test and demonstrate these changes with Postman.
 
@@ -38,8 +39,8 @@
 - Organizing tasks into folders.
 - An update many tasks operation, where a user could mark many tasks completed with one REST request.
 - A delete many tasks operation, where a user could delete a collection of tasks with one REST request.
-- Pagination of the task list.
-- Filtering of the task list, e.g. to show only uncompleted tasks, or the tasks where the name matches a given regular expression.
+- Pagination of the task list (part of Lesson 7)
+- Filtering of the task list, e.g. to show only uncompleted tasks, or the tasks where the name matches a given regular expression. (part of Lesson 7)
 - Log records, so that a user can log a series of status records for any given task, to indicate progress.
 - Use your imagination!
 
