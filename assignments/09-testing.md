@@ -126,33 +126,33 @@ Now, run `npm run test`.  The test should succeed.
 
 Create the following additional tests within the first describe() block, each in its own it() block:
 
-2. The user schema requires that an email be specified.
+`2.` The user schema requires that an email be specified.`
 
-3. The user schema does not accept an invalid email.
+`3.` The user schema does not accept an invalid email.
 
-4. The user schema requires a password.
+`4.` The user schema requires a password.
 
-5. The user schema requires name.
+`5.` The user schema requires name.
 
-6. The name must be valid (3 to 30 characters).
+`6.` The name must be valid (3 to 30 characters).
 
-7. If validation is performed on a valid user object, error comes back falsy.
+`7.` If validation is performed on a valid user object, error comes back falsy.
 
 Create another describe stanza for taskSchema, with the following tests:
 
-8. The task schema requires a title.
+`8.` The task schema requires a title.
 
-9. If an `isCompleted` value is specified, it must be valid.
+`9.` If an `isCompleted` value is specified, it must be valid.
 
-10. If an `isCompleted` value is not specified but the rest of the object is valid, a default of `false` is provided by validation.
+`10.` If an `isCompleted` value is not specified but the rest of the object is valid, a default of `false` is provided by validation.
 
-11. If `isCompleted` in the provided object has the value `true`, it remains `true` after validation.
+`11.` If `isCompleted` in the provided object has the value `true`, it remains `true` after validation.
 
 Create another describe() stanza for the patchTaskSchema.
 
-12. The patchTaskSchema does not require a title.
+`12.` The patchTaskSchema does not require a title.
 
-13. If no value is provided for `isCompleted` this remains undefined in the returned value.
+`13.` If no value is provided for `isCompleted` this remains undefined in the returned value.
 
 Do another `npm run test`.  All tests should succeed.  If a test fails, the error might be in the code you are testing, and it might be in the test.
 
@@ -257,8 +257,8 @@ const waitForRouteHandlerCompletion = async (func, req, res) => {
   const promise = new Promise((resolve, reject) => {
     next = jest.fn((error) => {
       if (error) return reject(error);
-      resolve());
-    }
+      resolve();
+    });
     res.on("finish", () => {
       resolve();
     });
@@ -332,21 +332,21 @@ Now you know that for the create() call to succeed, you need to have `req.user =
 
 Create more controller tests:
 
-15. You can't create a task with a bogus user id.
+`15.` You can't create a task with a bogus user id.
 
 In this case, you trigger a database constraint violation, because the foreign key is invalid.  The error thrown has a name of `PrismaClientKnownRequestError`.
 
-16. If you have a valid user id, create() succeeds (res.statusCode should be 201).
+`16.` If you have a valid user id, create() succeeds (res.statusCode should be 201).
 
 The res object you create for test 16 should be saved in saveRes, so that you can do subsequent tests on what is stored.
 
-17. The object returned from the create() call has the expected title.  
+`17.` The object returned from the create() call has the expected title.  
 
 To do this, you need to do `saveData = saveRes._getJSONData()`.  Then you can test what saveData contains.
 
-18. The object has the right value for `isCompleted`.
+`18.` The object has the right value for `isCompleted`.
 
-19. The object does not have any value for userId.
+`19.` The object does not have any value for userId.
 
 Save the id value from the object in saveTaskId.  You'll need it below.
 
@@ -354,9 +354,9 @@ Save the id value from the object in saveTaskId.  You'll need it below.
 
 Create a new describe stanza called "test getting created tasks" and test the following.
 
-20. You can't get a list of tasks without a user id.
+`20.` You can't get a list of tasks without a user id.
 
-21. If you use user1's id, the call returns a 200 status.
+`21.` If you use user1's id, the call returns a 200 status.
 
 Here's some code for this:
 
@@ -371,7 +371,7 @@ Here's some code for this:
   });
 ```
 
-22. The returned object has a tasks array of length 1.
+`22.` The returned object has a tasks array of length 1.
 
 Here's some code for this:
 ```js
@@ -381,17 +381,17 @@ Here's some code for this:
   });
 ```
 
-23. The title in the first array object is as expected.
+`23.` The title in the first array object is as expected.
 
 You are checking `saveData.tasks[0].title`.
 
-24. The first array object does not contain a userId.
+`24.` The first array object does not contain a userId.
 
-25. If you get the list of tasks using the userId from user2, you get a 404.  
+`25.` If you get the list of tasks using the userId from user2, you get a 404.  
 
 (This is a security test for access control!  You do not want Alice to access Bob's data!)
 
-26. You can retrieve the created task using show().
+`26.` You can retrieve the created task using show().
 
 Hint: You have to set req.params.  You want req.params.id to be a string representation of saveTaskId:
 ```js 
@@ -399,21 +399,21 @@ req.params = { id: saveTaskId.toString() }
 ```
 You can just check for a 200 result code.
 
-27. User2 can't retrieve this task entry. You should get a 404.
+`27.` User2 can't retrieve this task entry. You should get a 404.
 
 (Why test this? We don't use this operation in the app -- but we have to test it, as it could be a back door.)
 
 Create another stanza for testing the update and delete of tasks.
 
-28. User1 can set the task corresponding to saveTaskId to `isCompleted: true`.
+`28.` User1 can set the task corresponding to saveTaskId to `isCompleted: true`.
 
-29. User2 can't do this.
+`29.` User2 can't do this.
 
-30. User2 can't delete this task.
+`30.` User2 can't delete this task.
 
-31. User1 can delete this task.
+`31.` User1 can delete this task.
 
-32. Retrieving user1's tasks now returns a 404.
+`32.` Retrieving user1's tasks now returns a 404.
 
 Lots of tests, eh?  A complicated project will often have a test suite of thousands of test cases.  This example is to show you all the things you need to test in a typical test suite.
 
@@ -502,31 +502,31 @@ const setCookieArray = saveRes.get("Set-Cookie")
 
 Add the following tests:  
 
-35. A string in the cookie array starts with "jwt=".
+`35.` A string in the cookie array starts with "jwt=".
 
-36. That string contains "HttpOnly;".  (This is a security test!)
+`36.` That string contains "HttpOnly;".  (This is a security test!)
 
-37. The returned data from the register has the expected name.
+`37.` The returned data from the register has the expected name.
 
-38. The returned data contains a csrfToken.
+`38.` The returned data contains a csrfToken.
 
-43. You can now logoff.
+`39.` You can now logoff.
 
-45. The logoff clears the cookie.
+`40.` The logoff clears the cookie.
 
-Here's how you check: After the logoff in 43, the `setCookieArray` in `saveRes` should contain a string starting with "jwt=", and that string should contain "Jan 1970".  Cookies are cleared by setting the expiration date to some time in the past.  The code you need is:
+Here's how you check: After the logoff in 40, the `setCookieArray` in `saveRes` should contain a string starting with "jwt=", and that string should contain "Jan 1970".  Cookies are cleared by setting the expiration date to some time in the past.  The code you need is:
 
 ```js
-  it("41. The logoff clears the cookie.", () => {
+  it("40. The logoff clears the cookie.", () => {
     const setCookieArray = saveRes.get("Set-Cookie");
     jwtCookie = setCookieArray.find((str) => str.startsWith("jwt="));
     expect(jwtCookie).toContain("Jan 1970");
   });
 ```
 
-39. A logon attempt with a bad password returns a 401.
+`41.` A logon attempt with a bad password returns a 401.
 
-40. You can't register with an email address that is already registered.
+`42.` You can't register with an email address that is already registered.
 
 The following tests should be in a a new stanza, that starts as follows:
 
@@ -539,11 +539,11 @@ Although you are testing middleware, and not a route handler, you test the same 
 await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
 ```
 
-61. jwtMiddleware Returns a 401 if the JWT cookie is not present in the req.
+`61.` jwtMiddleware Returns a 401 if the JWT cookie is not present in the req.
 
 If you don't put in a cookie, in, you should get the 401.
 
-62. Returns a 401 if the JWT is invalid.
+`62.` Returns a 401 if the JWT is invalid.
 
 Here's the code you need:
 ```js
@@ -560,7 +560,7 @@ Here's the code you need:
 ```
 The `req.cookies` object may have various cookies.  The code above puts the jwt cookie in, but you see that is signed with "badSecret", so it isn't valid.
 
-63. Returns a 401 if the JWT is valid but the CSRF token isn't.
+`63.` Returns a 401 if the JWT is valid but the CSRF token isn't.
 
 Here, you create a good cookie, signed with `process.env.JWT_SECRET`.  You put a `csrfToken` in the payload, with value "badToken", as well as `id: 5`, which represents the id of some (imagined) user record.  Then, you do the following:
 
@@ -573,7 +573,7 @@ Here, you create a good cookie, signed with `process.env.JWT_SECRET`.  You put a
 
 So, the CSRF token in the header doesn't match the one in the cookie.  Do a POST operation, so that the middleware will check the CSRF values -- and reject them because they don't match.
 
-64. Calls next() if both the token and the jwt are good.
+`64.` Calls next() if both the token and the jwt are good.
 
 You want to do the same as for 63, but make the CSRF token values in the header and the cookie match this time.  Do a POST as before.  Then:
 
@@ -582,7 +582,7 @@ const next = await waitForRouteHandlerCompletion(jwtMiddleware, req, saveRes);
 expect(next).toHaveBeenCalled();
 ```
 
-65. If both the token and the jwt are good, req.user.id has the appropriate value.
+`65.` If both the token and the jwt are good, req.user.id has the appropriate value.
 
 You use the `req` object from 64 -- no need to send a new request.  Your `expect()` statement should check that `req.user.id` is 5.
 
@@ -672,15 +672,15 @@ npx jest test/user.function.test.js
 
 Then, add the following additional tests:
 
-47. Registration returns an object with the expected name.
+`47.` Registration returns an object with the expected name.
 
 In this case, that's in saveRes.body.
 
-48. Test that the returned object includes a csrfToken.
+`48.` Test that the returned object includes a csrfToken.
 
-49. You can logon as the newly registered user.
+`49.` You can logon as the newly registered user.
 
-50. You can logoff.
+`50.` You can logoff.
 
 Hint: The logoff route is protected.  What do you need to put in the request header?  Where can you get the needed value? Why didn't you have to do this for the controller test?
 
