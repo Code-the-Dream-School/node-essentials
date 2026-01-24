@@ -76,16 +76,7 @@ describe("testing logon, register, and logoff", () => {
   it("38. returns a csrfToken", () => {
     expect(saveData.csrfToken).toBeDefined();
   });
-  it("39. A logon attempt with a bad password returns a 401", async () => {
-    const req = httpMocks.createRequest({
-      method: "POST",
-      body: { email: "bob@sample.com", password: "bad password" },
-    });
-    saveRes = MockResponseWithCookies();
-    await waitForRouteHandlerCompletion(logon,req,saveRes);
-    expect(saveRes.statusCode).toBe(401);
-  });
-    it("40. You can now logoff.", async () => {
+  it("39. You can now logoff.", async () => {
     const req = httpMocks.createRequest({
       method: "POST",
     });
@@ -93,10 +84,19 @@ describe("testing logon, register, and logoff", () => {
     await waitForRouteHandlerCompletion(logoff, req, saveRes);
     expect(saveRes.statusCode).toBe(200);
   });
-  it("41. The logoff clears the cookie.", () => {
+  it("40. The logoff clears the cookie.", () => {
     const setCookieArray = saveRes.get("Set-Cookie");
     jwtCookie = setCookieArray.find((str) => str.startsWith("jwt="));
     expect(jwtCookie).toContain("Jan 1970");
+  });
+  it("41. A logon attempt with a bad password returns a 401", async () => {
+    const req = httpMocks.createRequest({
+      method: "POST",
+      body: { email: "bob@sample.com", password: "bad password" },
+    });
+    saveRes = MockResponseWithCookies();
+    await waitForRouteHandlerCompletion(logon,req,saveRes);
+    expect(saveRes.statusCode).toBe(401);
   });
   it("42. You can't register with an email address that is already registered.", async () => {
     const req = httpMocks.createRequest({
