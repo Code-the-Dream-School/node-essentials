@@ -442,9 +442,11 @@ let saveRes = null;
 let saveData = null;
 
 const cookie = require("cookie");
-function MockResponseWithCookies({eventEmitter: EventEmitter}) {
-  const res = httpMocks.createResponse();
-  res.cookie = (name, value, options = {}) => { // this adds the function to the res, so that it stores cookies
+function MockResponseWithCookies() {
+  const res = httpMocks.createResponse({
+    eventEmitter: EventEmitter,
+  });
+  res.cookie = (name, value, options = {}) => {
     const serialized = cookie.serialize(name, String(value), options);
     let currentHeader = res.getHeader("Set-Cookie");
     if (currentHeader === undefined) {
@@ -680,7 +682,11 @@ In this case, that's in saveRes.body.
 
 `49.` You can logon as the newly registered user.
 
-`50.` You can logoff.
+`50.` Verify that you are logged in: /api/tasks should not return a 401
+
+`51.` Verify that you can log out.
+
+`52.` Make sure that you are really logged out: /api/tasks should now return a 401
 
 Hint: The logoff route is protected.  What do you need to put in the request header?  Where can you get the needed value? Why didn't you have to do this for the controller test?
 
