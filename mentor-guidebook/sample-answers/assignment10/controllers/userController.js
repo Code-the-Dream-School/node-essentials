@@ -8,12 +8,13 @@ const {
   generateUserPassword,
 } = require("../services/userService");
 
-const cookieFlags = (req) => {
+const cookieFlags = () => {
   return {
-    ...(process.env.NODE_ENV === "production" && { domain: req.hostname }), // add domain into cookie for production only
+    // ...(process.env.NODE_ENV === "production" && { domain: req.hostname }), // add domain into cookie for production only
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    // sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    sameSite: "Strict",
   };
 };
 
@@ -22,7 +23,7 @@ const setJwtCookie = (req, res, user) => {
   const payload = { id: user.id, csrfToken: randomUUID() };
   const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }); // 1 hour expiration
   // Set cookie.  Note that the cookie flags have to be different in production and in test.
-  res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
+  res.cookie("jwt", token, { ...cookieFlags(), maxAge: 3600000 }); // 1 hour expiration
   return payload.csrfToken; // this is needed in the body returned by logon() or register()
 };
 
@@ -175,7 +176,7 @@ exports.logon = async (req, res) => {
 
 exports.logoff = async (req, res) => {
   // Clear the global user ID for session management
-  res.clearCookie("jwt", cookieFlags(req));
+  res.clearCookie("jwt", cookieFlags());
   res.sendStatus(StatusCodes.OK);
 };
 
