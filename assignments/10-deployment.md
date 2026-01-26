@@ -82,12 +82,13 @@ For this step, create a new terminal session.  Make sure that your active direct
 
 1. Do a git clone for the following URL: `https://github.com/Code-the-Dream-School/node-essentials-front-end` .
 2. Change to the node-essentials-front-end folder.  Then do an `npm install` to get the packages you need.
-3. Create a `.env` file. It should have two lines:
+3. Create a `.env` file. It should have three lines:
    ```
-   VITE_BASE_URL=/api
+   VITE_BASE_URL=""
+   VITE_TARGET="http://localhost:3000"
    VITE_RECAPTCHA_SITE_KEY=gobbledygook
    ```
-   The site key is the one that you saved in a comment in your node-homework .env file.  Setting the base URL to "/api" causes operations to be redirected through the Vite proxy, which is configured to point to your back end running on http://localhost:3000.  
+   The site key is the one that you saved in a comment in your node-homework .env file.  Have a look at the `vite.config.js` file.  It reroutes all requests for "/api" to the address specified in `VITE_TARGET`.  `VITE_BASE_URL` is kind of an artifact.  You have to set it to `""`, but it will be eliminated in the future.  Note also that there is a sample back end on Digital Ocean.  You can access it using the values in `.env.local.sample`.
 4. You need one terminal session for the front end and one for the back end.  In the terminal session for the back end, go to the node-homework folder and start your app.  In the terminal session for the front end (the one where you are in node-essentials-front-end) type
    ```bash
    npm run dev
