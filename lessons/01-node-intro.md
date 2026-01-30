@@ -292,6 +292,105 @@ doFileOperations();
 
 This is the way you'll do file I/O for the most part.  Once you have the fileHandle, you can do `fileHandle.read()`, `fileHandle.write()`, and `fileHandle.close()`, all of them async functions you call with await.
 
+### **Streams for Large Files**
+
+When working with large files, reading the entire file into memory at once (using `fs.readFile()` or `fs.promises.readFile()`) can be problematic. If you try to read a 1GB file, your program will attempt to load all 1GB into memory, which can cause performance issues or even crash your application if there isn't enough memory available.
+
+**Streams** provide a solution to this problem. A stream allows you to read or write data in chunks, processing it piece by piece rather than loading everything into memory at once. Think of it like drinking from a water bottle: you can take small sips (chunks) rather than trying to gulp the entire bottle at once.
+
+#### **Reading Files with Streams**
+
+Node.js provides `fs.createReadStream()` to read files as streams. Here's a basic example:
+
+```js
+const fs = require('fs');
+
+const readStream = fs.createReadStream('./largefile.txt', { encoding: 'utf8' });
+
+readStream.on('data', (chunk) => {
+  // This callback is called for each chunk of data
+  console.log('Received chunk:', chunk.length, 'characters');
+  // Process the chunk here (e.g., parse, transform, or write to another file)
+});
+
+readStream.on('end', () => {
+  console.log('Finished reading the file');
+});
+
+readStream.on('error', (err) => {
+  console.error('Error reading file:', err);
+});
+```
+
+#### **Controlling Chunk Size with highWaterMark**
+
+The `highWaterMark` option controls the size of each chunk. By default, it's set to 64KB (65536 bytes), but you can adjust it based on your needs:
+
+```js
+const fs = require('fs');
+
+// Read in 1KB chunks (1024 bytes)
+const readStream = fs.createReadStream('./largefile.txt', { 
+  encoding: 'utf8',
+  highWaterMark: 1024  // 1KB chunks
+});
+
+readStream.on('data', (chunk) => {
+  console.log('Chunk size:', chunk.length, 'characters');
+  // Log first 40 characters of each chunk as an example
+  console.log('First 40 chars:', chunk.slice(0, 40));
+});
+
+readStream.on('end', () => {
+  console.log('Finished reading large file with streams.');
+});
+```
+
+**Why use different `highWaterMark` values?**
+- **Smaller chunks (e.g., 1KB)**: More frequent callbacks, better for processing data incrementally, but more overhead
+- **Larger chunks (e.g., 64KB or 1MB)**: Fewer callbacks, less overhead, but requires more memory per chunk
+
+#### **Writing Files with Streams**
+
+You can also write to files using streams:
+
+```js
+const fs = require('fs');
+
+const writeStream = fs.createWriteStream('./output.txt');
+
+// Write data in chunks
+writeStream.write('First chunk of data\n');
+writeStream.write('Second chunk of data\n');
+writeStream.write('Third chunk of data\n');
+
+// Always close the stream when done
+writeStream.end();
+
+writeStream.on('finish', () => {
+  console.log('Finished writing to file');
+});
+
+writeStream.on('error', (err) => {
+  console.error('Error writing file:', err);
+});
+```
+
+#### **When to Use Streams**
+
+Use streams when:
+- **Large files**: Files that are too large to fit comfortably in memory
+- **Real-time processing**: When you need to process data as it arrives (e.g., processing log files line by line)
+- **Network operations**: When transferring data over networks
+- **Memory efficiency**: When you want to minimize memory usage
+
+Use `fs.readFile()` or `fs.promises.readFile()` when:
+- **Small files**: Files that are known to be small (e.g., configuration files, small data files)
+- **Simple operations**: When you need the entire file content at once
+- **Convenience**: When the simplicity of reading the whole file outweighs memory concerns
+
+Streams are a powerful feature of Node.js that enable efficient handling of large amounts of data. As you progress in the course, you'll see streams used in many contexts, including HTTP requests/responses, database operations, and file processing.
+
 ### **util.promisify()**
 
 In the `util` package, which is part of the node base, there is a slick way to wrapper functions that use callbacks to convert it to a function that returns a promise.  Many functions have a signature like:

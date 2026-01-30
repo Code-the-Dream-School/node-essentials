@@ -755,6 +755,58 @@ Start with a base `whereClause` and add each filter conditionally. Each filter c
 - **User Experience**: Users see only relevant data
 - **Composability**: Multiple filters can be combined
 
+#### 6. Sorting with Query Parameters
+
+You can add sorting capabilities to your index endpoints by reading `sortBy` and `sortDirection` query parameters and building dynamic `orderBy` clauses. This allows users to control how their data is ordered.
+
+**Example URLs:**
+- `GET /api/tasks?sortBy=title&sortDirection=asc` - Sort by title ascending
+- `GET /api/tasks?sortBy=priority&sortDirection=desc` - Sort by priority descending
+- `GET /api/tasks?sortBy=createdAt` - Sort by createdAt descending (default direction)
+
+**Code Implementation:**
+```javascript
+const getOrderBy = (query) => {
+  const validSortFields = ["title", "priority", "createdAt", "id", "isCompleted"];
+  const sortBy = query.sortBy || "createdAt";
+  const sortDirection = query.sortDirection === "asc" ? "asc" : "desc";
+  
+  if (validSortFields.includes(sortBy)) {
+    return { [sortBy]: sortDirection };
+  }
+  return { createdAt: "desc" }; // default fallback
+};
+
+// Use in your findMany query
+const tasks = await prisma.task.findMany({
+  where: whereClause,
+  select: { /* ... */ },
+  skip: skip,
+  take: limit,
+  orderBy: getOrderBy(req.query),
+});
+```
+
+**Important points:**
+- The `sortBy` parameter specifies which field to sort by (defaults to "createdAt" if not provided or invalid)
+- The `sortDirection` parameter can be "asc" or "desc" (defaults to "desc" if not provided)
+- Validate `sortBy` against a whitelist of allowed fields to prevent errors
+- Sorting works together with pagination and filtering
+- The `orderBy` clause is only used in `findMany()` queries, not in `count()` queries (which only return a number)
+
+**Combining Sorting with Filtering:**
+You can combine sorting with all the filters mentioned above:
+
+**Example URL:** `GET /api/tasks?find=project&isCompleted=false&sortBy=priority&sortDirection=desc&page=1&limit=10`
+
+This returns incomplete tasks with "project" in the title, sorted by priority descending, with pagination.
+
+**Sorting Benefits:**
+- **Flexibility**: Users can order data based on their needs
+- **Performance**: Database does the sorting efficiently using indexes
+- **User Experience**: Users can view data in their preferred order
+- **Composability**: Sorting works seamlessly with filtering and pagination
+
 ### d. Query Optimization
 
 ```javascript
