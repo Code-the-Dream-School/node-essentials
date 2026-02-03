@@ -279,6 +279,47 @@ const totalTasks = await prisma.task.count({
 
 **Optional:** You may also optionally implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials, but the `find` filter is required.
 
+#### c. Add Sorting Support (Optional)
+
+The task index endpoint can support sorting by different fields using `sortBy` and `sortDirection` query parameters. This allows users to control how their tasks are ordered.
+
+**Example URLs:**
+- `GET /api/tasks?sortBy=title&sortDirection=asc` - Sort by title ascending
+- `GET /api/tasks?sortBy=priority&sortDirection=desc` - Sort by priority descending
+- `GET /api/tasks?sortBy=createdAt` - Sort by createdAt descending (default direction)
+
+**Implementation:**
+You need to create a helper function that builds the `orderBy` object based on query parameters:
+
+```js
+const getOrderBy = (query) => {
+  const validSortFields = ["title", "priority", "createdAt", "id", "isCompleted"];
+  const sortBy = query.sortBy || "createdAt";
+  const sortDirection = query.sortDirection === "asc" ? "asc" : "desc";
+  
+  if (validSortFields.includes(sortBy)) {
+    return { [sortBy]: sortDirection };
+  }
+  return { createdAt: "desc" }; // default fallback
+};
+
+// Use in your findMany query
+const tasks = await prisma.task.findMany({
+  where: whereClause,
+  // ... other options
+  orderBy: getOrderBy(req.query),
+});
+```
+
+**Important points:**
+- The `sortBy` parameter specifies which field to sort by (defaults to "createdAt" if not provided or invalid)
+- The `sortDirection` parameter can be "asc" or "desc" (defaults to "desc" if not provided)
+- Only allow sorting by valid fields to prevent errors
+- Sorting should work together with pagination and filtering
+- The `orderBy` is only used in `findMany()` queries, not in `count()` queries
+
+**Note:** This is optional functionality. The default behavior (sorting by `createdAt` descending) should work if sorting parameters are not provided.
+
 ### 4. Implement GroupBy Operations
 
 #### a. Create Analytics Controller

@@ -32,6 +32,17 @@ const whereClause = (query) => {
   return filters.length ? { AND: filters } : {};
 };
 
+const getOrderBy = (query) => {
+  const validSortFields = ["title", "priority", "createdAt", "id", "isCompleted"];
+  const sortBy = query.sortBy || "createdAt";
+  const sortDirection = query.sortDirection === "asc" ? "asc" : "desc";
+  
+  if (validSortFields.includes(sortBy)) {
+    return { [sortBy]: sortDirection };
+  }
+  return { createdAt: "desc" }; // default fallback
+};
+
 const getFields = (fields) => {
   const fieldList = fields.split(",");
   const taskAttributes = ["title", "priority", "createdAt", "id"];
@@ -96,7 +107,7 @@ exports.index = async (req, res) => {
     select,
     skip: skip,
     take: limit,
-    orderBy: { createdAt: "desc" },
+    orderBy: getOrderBy(req.query),
   });
   if (tasks.length === 0) {
     return res.status(StatusCodes.NOT_FOUND).json({ error: "No tasks found for user" });
