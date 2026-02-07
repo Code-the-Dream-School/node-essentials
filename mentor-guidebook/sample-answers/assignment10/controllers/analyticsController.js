@@ -1,5 +1,5 @@
-const prisma = require("../db/prisma");
 const { StatusCodes } = require("http-status-codes");
+const prisma = require("../db/prisma");
 exports.getUserAnalytics = async (req, res) => {
   // Parse and validate user ID
   const userId = parseInt(req.params.id);
@@ -8,6 +8,14 @@ exports.getUserAnalytics = async (req, res) => {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .json({ error: "Invalid userId passed in request to userStats" });
+  }
+
+  // Check if user exists
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
   }
 
   // Use groupBy to count tasks by completion status
@@ -117,7 +125,7 @@ exports.getUsersWithStats = async (req, res) => {
   };
 
   // Return users and pagination
-  res.json({
+  res.status(200).json({
     // ... you need to return users and pagination
     users,
     pagination,

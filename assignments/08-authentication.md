@@ -6,13 +6,12 @@ This assignment is to be created in the `node-homework` folder.  As usual, creat
 Then, install the following packages using npm:
 
 ```bash
-npm install jsonwebtoken cookie-parser cors express-xss-sanitizer express-rate-limit helmet
+npm install jsonwebtoken cookie-parser express-xss-sanitizer express-rate-limit helmet
 ```
 
 **Package Descriptions:**
 - `jsonwebtoken` - For creating and verifying JWT tokens
 - `cookie-parser` - For parsing cookies from HTTP requests
-- `cors` - For handling Cross-Origin Resource Sharing
 - `express-xss-sanitizer` - For protecting against XSS attacks
 - `express-rate-limit` - For rate limiting API requests
 - `helmet` - For setting security-related HTTP headers
@@ -78,19 +77,16 @@ const jwt = require("jsonwebtoken");
 
 const cookieFlags = (req) => {
   return {
-    ...(process.env.NODE_ENV === "production" && { domain: req.hostname }), // add domain into cookie for production only
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    secure: process.env.NODE_ENV === "production", // only when HTTPS is available
+    sameSite: "Strict",
   };
 };
 
 const setJwtCookie = (req, res, user) => {
   // Sign JWT
   const payload = { id: user.id, csrfToken: randomUUID() };
-  req.user = payload; // this is a convenient way to return the csrf token to the caller.
   const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }); // 1 hour expiration
-
   // Set cookie.  Note that the cookie flags have to be different in production and in test.
   res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
   return payload.csrfToken; // this is needed in the body returned by logon() or register()
@@ -99,12 +95,14 @@ const setJwtCookie = (req, res, user) => {
 
 You see that the JWT has the elements we said we needed, and that the cookie has different flags for production and test.
 
-An aside:  The `jwt.sign()` method can be invoked synchronously (as above), or you can pass an optional callback, 
+Sometimes additional information is stored in the JWT so that the back end can make additional security checks.  (Of course, the front end has no access to the JWT.)  For example, in role based access control (RBAC), the user role might be stored in the JWT.
+
+The `jwt.sign()` method can be invoked synchronously (as above), or you can pass an optional callback, 
 in which case it occurs asynchronously.  All other things being equal, asynchronous calls are better, because they allow
 other requests to proceed while this one is being handled.  For your project, the synchronous call is good enough.
 
 You can now modify `logon()` and `register()` so that they use this routine and so that each return an appropriate body with 
-a name and csrfToken, and so that they no longer reference a global user ID.  
+a name, an email, and the csrfToken, and so that they no longer reference a global user ID.  
 You can also modify logoff to clear the 
 cookie using `res.clearCookie("jwt", cookieFlags(req))`.  
 #### **Be careful:**
@@ -129,28 +127,24 @@ const send401 = (res) => {
 module.exports = async (req, res, next) => {
   const token = req?.cookies?.jwt;
   if (!token) {
-    send401(res);
-  } else {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        send401(res);
-      } else {
-        req.user = { id: decoded.id };
-        if (
-          ["POST", "PATCH", "PUT", "DELETE", "CONNECT"].includes(req.method)
-        ) {
-          // for these operations we have to check for cross site request forgery
-          if (req.get("X-CSRF-TOKEN") == decoded.csrfToken) {
-            next();
-          } else {
-            send401(res);
-          }
-        } else {
-          next();
-        }
+    return send401(res);
+  } 
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    // using the callback here.  Of course, we could promisify instead.
+    if (err) {
+      return send401(res);
+    }
+    req.user = { id: decoded.id }; 
+    // this is where the id is kept for subsequent use in access control.  We
+    // don't use global.user_id any more!  
+    if ( ["POST", "PATCH", "PUT", "DELETE", "CONNECT"].includes(req.method)) {
+    // for these operations we have to check for cross site request forgery
+      if (req.get("X-CSRF-TOKEN") != decoded.csrfToken) {
+        return send401(res);
       }
-    });
-  }
+    }
+    next(); // if the token is good
+  });
 };
 ```
 
@@ -159,10 +153,25 @@ This handles three 401 cases:
 2. Invalid JWT
 3. Invalid or missing CSRF token (for write operations).  
   
-You want this middleware to protect all task routes as well as logoff.  So a little utility routine sends the 401. 
+You want this middleware to protect all task routes as well as logoff.  A little utility routine sends the 401. 
 Here we are using `jwt.verify()` with a callback.  You see that every path through the middleware either sends the 401 or calls `next()`,
 but there is no path where both happen.
 
+You have seen one way to protect the task routes:
+
+```js
+app.use("/api/tasks", authMiddleware, taskRouter);
+```
+
+Another approach is to put the following statement into the taskRouter, before any of the defined routes.
+
+```js
+router.use(jwtMiddleware);
+```
+
+## **Fixing Your Task Routes**
+
+You wrote the task routes to use `global.user_id` for access control, so that only the tasks belonging to the logged on user could be accessed.  You now change all references in the task routes so that instead of `global.user_id`, they use `req.user.id`.  Because this is request specific, this fixes the problem where any user could access the logged on user's tasks.  Also, each user's browser has a separate cookie, each containing a different JWT.  So, you have also solved the problem that only one user could be logged on at one time.
 
 ## **Other Changes to Make Authentication Work**
  
@@ -179,12 +188,12 @@ Place this early in the middleware chain so cookies are available when needed.
 
 ## **Testing with Postman**
 
-Test `/user/register` and `/user/logon` with Postman.  
+Test `/api/users` (register) and `/api/users/logon` with Postman.  
 You should see:  
 1. The `csrfToken` returned in the response body.  
 2. The `jwt` cookie being set.  
 
-However, none of your task routes or `user/logoff` route will function properly, because the `csrfToken` isn’t being sent 
+However, none of your Postman tests for task routes or `/api/users/logoff` route will function properly, because the `csrfToken` isn’t being sent 
 in the `X-CSRF-TOKEN` header. Try testing them to confirm this issue.
 
 You want to catch `csrfToken` when it is returned from a `register` or `logon`.  Open up the `logon` request in Postman 
@@ -212,7 +221,6 @@ Add the following statements near the top of your `app.js`:
 ```js
 app.set("trust proxy", 1);
 const helmet = require("helmet");
-const cors = require("cors");
 const { xss } = require("express-xss-sanitizer");
 const rateLimiter = require("express-rate-limit");
 ```
@@ -242,27 +250,6 @@ ill behaved client.
 ```js
 app.use(helmet());
 ```
-
-### Next comes CORS:
-
-```js
-const origins = ["http://localhost:3001"];
-
-app.use(
-  cors({
-    origin: origins,
-    credentials: true,
-    methods: "GET,POST,PATCH,DELETE",
-    allowedHeaders: "CONTENT-TYPE, X-CSRF-TOKEN",
-  }),
-);
-```
-
-The default CORS configuration accepts all origins.  That won't work with `credentials: true`.  You have to specify the 
-list of origins that are allowed.  Postman doesn't care about origins, but in lesson 10, you'll test your code with a 
-React front end, running at `http://localhost:3001`, so that's the one you'll need.  In the more general case,  you might 
-want to allow other origins after deploying to the Internet, so you could put the supported list of origins in an 
-environment variable — but we don't need that for now.  The origin is the `URL` of the browser front end application.
 
 ### Next, the XSS protection:
 
@@ -297,7 +284,7 @@ git commit
 
 for the files you have created, so that they are added to the `assignment8` branch.
 - Push that branch to GitHub  
-```git push origin assignmment8```
+```git push origin assignment8```
 
 #### **2️⃣ Create a Pull Request**
 

@@ -45,7 +45,7 @@ if (process.env.ALLOWED_ORIGINS) {
 
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
-
+app.use(xss());
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);

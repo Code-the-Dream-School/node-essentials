@@ -118,7 +118,7 @@ const express = require("express");
 const router = express.Router();
 const { register } = require("../controllers/userController");
 
-router.route("/").post(register);
+router.route("/register").post(register);
 
 module.exports = router;
 ```
@@ -547,6 +547,31 @@ Test all your new middleware features:
 ### Checking Your Work
 
 You start the server for this exercise with `npm run week3`.  You stop it with a Ctrl-C.  You run `npm run tdd assignment3b` to run the test for this exercise.  Also use Postman to test.  Confirm the responses in Postman and the logs in your server terminal match the expectations in the deliverables.
+
+### **💡 Tips for Passing the TDD Tests (Part B)**
+
+If your Postman tests are working but the TDD tests are failing, here's a troubleshooting approach:
+
+1. **Examine the Test File:**
+   - Open `tdd/assignment3b.test.js` in your repository
+   - Read through the test cases to understand exactly what the tests expect
+   - Pay attention to the exact error messages, status codes, and response body formats
+
+2. **Check Test Error Messages:**
+   - When a test fails, read the error message carefully
+   - The test error messages will tell you exactly what the test expects:
+     - The exact status code
+     - The exact error message text in the response body
+     - The exact format of the response (JSON structure)
+     - The exact log message format
+   - Compare your implementation with these expectations and adjust accordingly
+
+3. **Review the Main Instructions:**
+   - Make sure you've implemented all requirements from **Task 4: Advanced Error Handling**:
+     - Custom error classes (ValidationError, NotFoundError, UnauthorizedError)
+     - Error handling middleware with proper logging (console.warn for 4xx, console.error for 5xx with "WARN:" and "ERROR:" prefixes)
+     - Validation for dog existence in `routes/dogs.js` (see Task 4, section 2)
+   - Verify that error messages match the exact patterns specified in Task 4
 
 ## Video Submission
 

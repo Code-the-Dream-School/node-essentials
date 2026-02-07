@@ -61,6 +61,14 @@ exports.index = async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
   let select;
+  let sortBy = "createdAt";
+  if (req.query.sortBy && ["title","isCompleted","priority","createdAt"].includes(req.query.sortBy)) {
+    sortBy = req.query.sortBy;
+  }
+  let sortOrder = "desc"
+  if (req.query.sortDirection === "asc") {
+    sortOrder = "asc";
+  }
   if (req.query.fields) {
     select = getFields(req.query.fields);
     if (!select) {
@@ -90,20 +98,21 @@ exports.index = async (req, res) => {
 
   const tasks = await prisma.task.findMany({
     where: {
-      userId: req.user.id, 
+      userId: global.user_id, // using global.user_id from auth
       ...whereClause(req.query),
     },
     select,
     skip: skip,
     take: limit,
-    orderBy: { createdAt: "desc" },
+    // orderBy: { createdAt: "desc" },
+    orderBy: {[sortBy]: sortOrder },
   });
   if (tasks.length === 0) {
     return res.status(StatusCodes.NOT_FOUND).json({ error: "No tasks found for user" });
   }
   const totalTasks = await prisma.task.count({
     where: {
-      userId: req.user.id,
+      userId: global.user_id,
       ...whereClause(req.query),
     },
   });

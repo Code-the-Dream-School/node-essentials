@@ -1,5 +1,7 @@
 # Assignment 7: Advanced Prisma ORM Features
 
+> **⚠️ Warning: This is a long assignment that requires implementing multiple advanced Prisma features. Please set aside plenty of time to complete it thoroughly. The tasks build on each other, so make sure you understand each section before moving on.**
+
 ## Learning Objectives
 - Implement eager loading to optimize database queries and eliminate N+1 problems
 - Use groupBy operations for data aggregation and analytics
@@ -47,22 +49,7 @@ model Task {
 }
 ```
 
-**Note on Prisma Enums:** While the example above uses a `String` field for priority, you can also use a Prisma enum for better type safety and database-level validation. If you want to use an enum instead, define it in your schema:
-
-```prisma
-enum Priority {
-  low
-  medium
-  high
-}
-
-model Task {
-  // ... other fields remain the same ...
-  priority    Priority @default(medium) // Use enum instead of String
-  // ... rest of your model fields ...
-}
-```
-Use enums when you have a fixed set of values that are unlikely to change frequently. Enums provide type safety, database-level validation, and better developer experience with autocomplete. **Note:** The tests only verify that priority values are returned as strings ("low", "medium", "high") in JSON responses, and Prisma enums serialize as strings in JSON, so both String and enum approaches will work with the tests. Using enums also helps the frontend know the exact possible values for dropdowns, filters, or validation.
+**Hint on Priority Values:** The priority field should accept one of three values: `"low"`, `"medium"`, or `"high"`. You can handle validation on the backend using simple conditions in your validation schema (e.g., using Joi's `.valid()` method to restrict values to these three options). The default value should be `"medium"` when no priority is specified.
 
 #### b. Run Migration
 
@@ -120,7 +107,7 @@ const tasks = await prisma.task.findMany({
 
 #### b. Optional: Add User Show Method
 
-**Note:** This is completely optional and not required. There was no user show method in Assignment 6, and `assignment7.test.js` does not test for it. The test file only imports `login`, `register`, and `logoff` from `userController` (line 16), and there are no tests that call a user show method. However, if you want to practice eager loading with user-to-task relationships, you can optionally add this method as an extra exercise.
+**Note:** This is completely optional and not required. There was no user show method in Assignment 6, and `assignment7.test.js` does not test for it. The test file only imports `logon`, `register`, and `logoff` from `userController` (line 16), and there are no tests that call a user show method. However, if you want to practice eager loading with user-to-task relationships, you can optionally add this method as an extra exercise.
 
 If you choose to implement it, create a user show method that includes tasks using eager loading. You want to include incomplete tasks, limit to 5, and order by creation date descending:
 
@@ -162,13 +149,178 @@ exports.show = async (req, res) => {
 };
 ```
 
-### 3. Implement GroupBy Operations
+### 3. Implement Pagination
 
-For the following programming tasks, you will assemble statistics and do pagination on user tasks.  To test your work, you need a bunch of task entries in the database with various `createdAt` values.  We provide a utility for the purpose.  You can run:
-```bash
-node class-utils/create-many <email>
+#### a. Add Pagination to Task Index
+
+Update your task index method to support pagination. You need to:
+
+1. Parse page and limit from query parameters (default to 1 and 10)
+2. Calculate skip value for pagination (skip = (page - 1) * limit)
+3. Use `skip` and `take` in your `findMany` query
+4. Get total count using `count()` for pagination metadata
+5. Build pagination object with `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
+6. Return tasks and pagination information
+
+**What is pagination?** Instead of loading all tasks at once, pagination lets you load them in smaller chunks (pages). This improves performance and user experience.
+
+**Important points:**
+- The test expects `tasks` array and `pagination` object in the response
+- The test expects pagination to have: `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
+- Keep the eager loading you added earlier (User information with name and email)
+- Default to page 1 and limit 10 if not provided
+
+**Here's the complete implementation:**
+```js
+// Parse pagination parameters
+const page = parseInt(req.query.page) || 1;
+const limit = parseInt(req.query.limit) || 10;
+const skip = (page - 1) * limit;
+
+// Get tasks with pagination and eager loading
+const tasks = await prisma.task.findMany({
+  where: { userId: global.user_id },
+  select: { 
+    id: true,
+    title: true, 
+    isCompleted: true,
+    priority: true,
+    createdAt: true,
+    User: {
+      select: {
+        name: true,
+        email: true
+      }
+    }
+  },
+  skip: skip,
+  take: limit,
+  orderBy: { createdAt: 'desc' }
+});
+
+// Get total count for pagination metadata
+const totalTasks = await prisma.task.count({
+  where: { userId: global.user_id }
+});
+
+// Build pagination object with complete metadata
+// Hint: The test expects page, limit, total, pages, hasNext, hasPrev
+// Use Math.ceil() to calculate pages, and compare page * limit with total for hasNext
+const pagination = {
+  // ... you need to build this object
+};
+
+// Return tasks with pagination information
+res.status(200).json({
+  // ... you need to return tasks and pagination
+});
 ```
-where the email is one for a user that is already registered in your database.  This creates 100 task entries for that user, with random data.  The `createdAt` values are spread out over the last 5 weeks, to make the statistics work well.  The titles are created with the `@faker-js/faker` package, which is useful for creating mock data for testing purposes.  They are in an imaginary language called Lorem Ipsum, which Google Translate does not support.
+
+**Expected Response:**
+```json
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Sample Task",
+      "isCompleted": false,
+      "priority": "medium",
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 48,
+    "pages": 5,
+    "hasNext": true,
+    "hasPrev": false
+  }
+}
+```
+
+#### b. Add Search Filter (Required)
+
+The task index endpoint must support searching by title using a `find` query parameter. This is part of the API contract for the React frontend.
+
+**Example URL:** `GET /api/tasks?find=meeting&page=1&limit=10`
+
+**Implementation:**
+You need to add filtering to your task index method. Build a `whereClause` object that includes the search filter when the `find` parameter is provided:
+
+```js
+// Build where clause with optional search filter
+const whereClause = { userId: global.user_id };
+
+if (req.query.find) {
+  whereClause.title = {
+    contains: req.query.find,        // Matches %find% pattern
+    mode: 'insensitive'              // Case-insensitive search (ILIKE in PostgreSQL)
+  };
+}
+
+// Use whereClause in your findMany query
+const tasks = await prisma.task.findMany({
+  where: whereClause,
+  // ... rest of your query
+});
+
+// Also use whereClause in your count query
+const totalTasks = await prisma.task.count({
+  where: whereClause
+});
+```
+
+**Important points:**
+- The `find` parameter searches for tasks containing the search term in the title (case-insensitive)
+- The filter should work together with pagination
+- If `find` is not provided, return all tasks (with pagination)
+- The `contains` operator with `mode: 'insensitive'` translates to `ILIKE '%searchTerm%'` in PostgreSQL
+
+**Optional:** You may also optionally implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials, but the `find` filter is required.
+
+#### c. Add Sorting Support (Optional)
+
+The task index endpoint can support sorting by different fields using `sortBy` and `sortDirection` query parameters. This allows users to control how their tasks are ordered.
+
+**Example URLs:**
+- `GET /api/tasks?sortBy=title&sortDirection=asc` - Sort by title ascending
+- `GET /api/tasks?sortBy=priority&sortDirection=desc` - Sort by priority descending
+- `GET /api/tasks?sortBy=createdAt` - Sort by createdAt descending (default direction)
+
+**Implementation:**
+You need to create a helper function that builds the `orderBy` object based on query parameters:
+
+```js
+const getOrderBy = (query) => {
+  const validSortFields = ["title", "priority", "createdAt", "id", "isCompleted"];
+  const sortBy = query.sortBy || "createdAt";
+  const sortDirection = query.sortDirection === "asc" ? "asc" : "desc";
+  
+  if (validSortFields.includes(sortBy)) {
+    return { [sortBy]: sortDirection };
+  }
+  return { createdAt: "desc" }; // default fallback
+};
+
+// Use in your findMany query
+const tasks = await prisma.task.findMany({
+  where: whereClause,
+  // ... other options
+  orderBy: getOrderBy(req.query),
+});
+```
+
+**Important points:**
+- The `sortBy` parameter specifies which field to sort by (defaults to "createdAt" if not provided or invalid)
+- The `sortDirection` parameter can be "asc" or "desc" (defaults to "desc" if not provided)
+- Only allow sorting by valid fields to prevent errors
+- Sorting should work together with pagination and filtering
+- The `orderBy` is only used in `findMany()` queries, not in `count()` queries
+
+**Note:** This is optional functionality. The default behavior (sorting by `createdAt` descending) should work if sorting parameters are not provided.
+
+### 4. Implement GroupBy Operations
 
 #### a. Create Analytics Controller
 
@@ -194,6 +346,7 @@ Create a method for `GET /api/analytics/users/:id` that provides comprehensive u
 - The test expects `recentTasks` to include user information (name)
 - The test expects `weeklyProgress` to be an array of groupBy results
 - For weekly progress, calculate a date 7 days ago using JavaScript's `Date` object
+- **404 Check Required:** After validating the user ID, you should check if the user exists in the database. If the user doesn't exist, return a 404 status with an appropriate error message. You can use `prisma.user.findUnique()` to check if the user exists before querying their tasks.
 
 ```js
 // Parse and validate user ID
@@ -299,7 +452,7 @@ Create a method for `GET /api/analytics/users` that shows all users with their t
 
 
 ```js
-// Parse pagination parameters (similar to how you did in the task index method above)
+// Parse pagination parameters (similar to how you did in the task index method in section 3 above)
 // Hint: Parse page and limit from req.query, calculate skip
 
 // Get users with task counts using _count aggregation
@@ -373,7 +526,7 @@ res.status(200).json({
 }
 ```
 
-### 4. Implement Database Transactions
+### 5. Implement Database Transactions
 
 #### a. Enhance User Registration with Welcome Tasks
 
@@ -487,7 +640,6 @@ try {
 
 Add a method to your `taskController.js` for `POST /api/tasks/bulk`. You need to:
 
-
 **What is bulk create?** Instead of creating tasks one at a time, you can create multiple tasks in a single database operation using `createMany`. 
 
 **Important points:**
@@ -496,33 +648,54 @@ Add a method to your `taskController.js` for `POST /api/tasks/bulk`. You need to
 - The test expects status 201 on success, 400 for invalid data
 - You must validate each task using your taskSchema before inserting
 
+When creating multiple records from user input, always validate each record:
+
 ```js
-// Validate the tasks array
-if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
-  return res.status(400).json({ 
-    error: "Invalid request data. Expected an array of tasks." 
-  });
-}
+// Bulk create with validation
+exports.bulkCreate = async (req, res, next) => {
+  const { tasks } = req.body;
 
-// Map tasks to include userId and set defaults
-const validTasks = tasks.map(task => ({
-  title: task.title,
-  isCompleted: task.isCompleted || false,
-  priority: task.priority || 'medium',
-  userId: userId
-}));
+  // Validate the tasks array
+  if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
+    return res.status(400).json({ 
+      error: "Invalid request data. Expected an array of tasks." 
+    });
+  }
 
-// Use createMany for batch insertion
-const result = await prisma.task.createMany({
-  data: validTasks,
-  skipDuplicates: false
-});
+  // Validate all tasks before insertion
+  const validTasks = [];
+  for (const task of tasks) {
+    const { error, value } = taskSchema.validate(task);
+    if (error) {
+      return res.status(400).json({
+        error: "Validation failed",
+        details: error.details,
+      });
+    }
+    validTasks.push({
+      title: value.title,
+      isCompleted: value.isCompleted || false,
+      priority: value.priority || 'medium',
+      userId: global.user_id
+    });
+  }
 
-// Return success message with counts
-// Hint: The test expects message, tasksCreated, and totalRequested
-res.status(201).json({
-  // ... you need to return the response object
-});
+  // Use createMany for batch insertion
+  try {
+    const result = await prisma.task.createMany({
+      data: validTasks,
+      skipDuplicates: false
+    });
+
+    res.status(201).json({
+      message: "success!",
+      tasksCreated: result.count,
+      totalRequested: validTasks.length
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
 ```
 
 **Expected Response:**
@@ -534,7 +707,7 @@ res.status(201).json({
 }
 ```
 
-### 5. Implement Raw SQL with $queryRaw
+### 6. Implement Raw SQL with $queryRaw
 
 #### a. Task Search with Raw SQL
 
@@ -628,96 +801,6 @@ res.status(200).json({
 
 **Important:** Notice how we use template literals with `$queryRaw` to ensure parameterized queries. This prevents SQL injection attacks. Never concatenate user input directly into SQL strings.
 
-### 6. Implement Pagination
-
-#### a. Add Pagination to Task Index
-
-Update your task index method to support pagination. You need to:
-
-1. Parse page and limit from query parameters (default to 1 and 10)
-2. Calculate skip value for pagination (skip = (page - 1) * limit)
-3. Use `skip` and `take` in your `findMany` query
-4. Get total count using `count()` for pagination metadata
-5. Build pagination object with `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
-6. Return tasks and pagination information
-
-**What is pagination?** Instead of loading all tasks at once, pagination lets you load them in smaller chunks (pages). This improves performance and user experience.
-
-**Important points:**
-- The test expects `tasks` array and `pagination` object in the response
-- The test expects pagination to have: `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
-- Keep the eager loading you added earlier (User information with name and email)
-- Default to page 1 and limit 10 if not provided
-
-**Here's the complete implementation:**
-```js
-// Parse pagination parameters
-const page = parseInt(req.query.page) || 1;
-const limit = parseInt(req.query.limit) || 10;
-const skip = (page - 1) * limit;
-
-// Get tasks with pagination and eager loading
-const tasks = await prisma.task.findMany({
-  where: { userId: global.user_id },
-  select: { 
-    id: true,
-    title: true, 
-    isCompleted: true,
-    priority: true,
-    createdAt: true,
-    User: {
-      select: {
-        name: true,
-        email: true
-      }
-    }
-  },
-  skip: skip,
-  take: limit,
-  orderBy: { createdAt: 'desc' }
-});
-
-// Get total count for pagination metadata
-const totalTasks = await prisma.task.count({
-  where: { userId: global.user_id }
-});
-
-// Build pagination object with complete metadata
-// Hint: The test expects page, limit, total, pages, hasNext, hasPrev
-// Use Math.ceil() to calculate pages, and compare page * limit with total for hasNext
-const pagination = {
-  // ... you need to build this object
-};
-
-// Return tasks with pagination information
-res.status(200).json({
-  // ... you need to return tasks and pagination
-});
-```
-
-**Expected Response:**
-```json
-{
-  "tasks": [
-    {
-      "id": 1,
-      "title": "Sample Task",
-      "isCompleted": false,
-      "priority": "medium",
-      "createdAt": "2024-01-15T10:30:00Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 48,
-    "pages": 5,
-    "hasNext": true,
-    "hasPrev": false
-  }
-}
-```
-
 ### 7. Implement Selective Field Loading
 
 #### a. Update User Methods to Exclude Sensitive Data
@@ -744,7 +827,17 @@ You can enhance endpoints to allow clients to specify which fields they need. Th
 
 ### 8. Enhanced Error Handling
 
-#### a. Update Error Handling in Controllers
+#### a. Missing 404 Checks
+
+Review your endpoints and ensure they return appropriate 404 (Not Found) responses when resources don't exist:
+
+- **User Analytics Endpoint (`GET /api/analytics/users/:id`)**: After validating that the user ID is a valid number, check if the user exists in the database. If the user doesn't exist, return a 404 status with an appropriate error message (e.g., "User not found"). You can use `prisma.user.findUnique()` to verify the user exists before querying their tasks.
+
+- **Task Show Endpoint (`GET /api/tasks/:id`)**: This should already have a 404 check from Assignment 6, but verify that it returns 404 when a task is not found or doesn't belong to the current user.
+
+**Why 404 checks matter:** Returning 404 for non-existent resources is a REST API best practice. It provides clear feedback to clients and helps distinguish between "resource doesn't exist" (404) and "empty results" (200 with empty array).
+
+#### b. Update Error Handling in Controllers
 
 As you did in Assignment 6, make sure you're catching Prisma-specific error codes appropriately. For update and delete operations, catch P2025 errors, similar to how you handled them in Assignment 6:
 
@@ -753,7 +846,7 @@ try {
   const task = await prisma.task.update({
     where: {
       id: parseInt(req.params.id),
-      userId: req.userId
+      userId: global.user_id
     },
     data: value,
     select: { title: true, isCompleted: true, id: true, priority: true }
@@ -772,23 +865,61 @@ try {
 
 Add validation for pagination and search parameters. Validate that page is >= 1 and limit is between 1 and 100. You can use Joi validation similar to how you did it in Assignment 6, or simple checks.
 
-### 9. Create Routes
+### 9. Setting Up Routes
+
+You already know how to create routes from previous assignments. Here are the hints for setting up the new routes needed for this assignment:
 
 #### a. Create Analytics Routes
 
-Create `routes/analyticsRoutes.js` with routes for:
-- `GET /users/:id` - user analytics
-- `GET /users` - users with stats
-- `GET /tasks/search` - task search
+Create a new file `routes/analyticsRoutes.js` following the same pattern you used for `taskRoutes.js` and `userRoutes.js`:
+
+- Import your analytics controller methods: `getUserAnalytics`, `getUsersWithStats`, and `searchTasks`
+- Set up routes:
+  - `GET /users/:id` → `getUserAnalytics`
+  - `GET /users` → `getUsersWithStats`
+  - `GET /tasks/search` → `searchTasks`
 
 #### b. Update Task Routes
 
-Add the bulk endpoint to `routes/taskRoutes.js`:
-- `POST /bulk` - bulk task creation
+In your existing `routes/taskRoutes.js`:
 
-#### c. Update app.js
+- Import `bulkCreate` from your task controller
+- Add a new route: `POST /bulk` → `bulkCreate`
+- **Important:** Place the `/bulk` route **before** the `/:id` route, because Express matches routes in order. If `/:id` comes first, it will match `/bulk` as an ID parameter.
 
-Add the analytics routes to `app.js` using the auth middleware.
+#### c. Wire Routes in app.js
+
+In your `app.js` file:
+
+- Import the new `analyticsRoutes`
+- Add a route: `app.use("/api/analytics", authMiddleware, analyticsRoutes)`
+- Make sure the analytics routes use the `authMiddleware` (same as task routes)
+
+#### d. Route Structure Summary
+
+Your complete route structure should look like this:
+
+```
+/api/users
+  POST /register          - User registration with welcome tasks (transaction)
+  POST /logon            - User logon
+  POST /logoff           - User logoff
+
+/api/tasks (requires auth)
+  GET  /                 - List tasks with pagination, eager loading, and search filter
+  GET  /:id              - Show task with user info (eager loading)
+  POST /                 - Create single task
+  POST /bulk             - Bulk create tasks (createMany)
+  PATCH /:id             - Update task
+  DELETE /:id            - Delete task
+
+/api/analytics (requires auth)
+  GET  /users/:id        - User analytics with groupBy operations
+  GET  /users            - Users with stats and pagination
+  GET  /tasks/search     - Task search with raw SQL
+```
+
+**Note:** All `/api/tasks` and `/api/analytics` routes require authentication middleware, which sets `global.user_id` for session management.
 
 ### 10. Testing Your Advanced Prisma Features
 
@@ -816,7 +947,7 @@ Make sure all operations work as before. They are:
 
 As you did for Assignment 6, conduct a test to verify that one user can't read, modify, or delete another's tasks.
 
-Then, run `npm tdd assignment7` and make sure it completes without test failure.
+Then, run `npm run tdd assignment7` and make sure it completes without test failure.
 
 #### a. Database Testing
 

@@ -28,6 +28,12 @@ For this task, you have to have a Google gmail account. Then do the following:
 
 8. Add additional logic to your `userController.js` for the register method.  You need to check if you received a reCaptcha token, and if so, whether it is valid.  The front end has a Google widget with the "I'm not a robot." prompt.  That widget tracks mouse movement and click speeds and the like, and builds up information in a token.  Then the front end sends the token to the back end in the body of the post. If the back end receives this token, you need to see if it is good.  This is done using a `fetch()` to a Google back end.  Hmm, we haven't used `fetch()` on the Node side yet, but it works there just as it does in browser side JavaScript.  (You can also use libraries like Axios, but we'll use `fetch()`.)  The fetch might fail, in which case the error is thrown to the error handler.  If the fetch succeeds, it will tell you whether the token is good.
 
+    You must also change `app.js`.  The line for the json parser currently reads:
+    ```js
+    app.use(express.json({ limit: "1kb" }));
+    ```
+    and you need to change that to "1mb" or something -- the recapcha token is bigger than 1k.
+
 9. In the test environment (Postman or Jest) you can't run the Google widget, so you can't generate a real token.  When testing in Postman or Jest you instead put the RECAPTCHA_BYPASS value in the "X-Recaptcha-Test" header.  If you don't receive a token in the body of the request, you check whether the RECAPTCHA_BYPASS environment variable is set.  If it is and it matches what is in the header, you proceed as if you got a good token.
 
 Here's the code you'll need to add to the register method, just before userSchema.validate:
@@ -82,12 +88,14 @@ For this step, create a new terminal session.  Make sure that your active direct
 
 1. Do a git clone for the following URL: `https://github.com/Code-the-Dream-School/node-essentials-front-end` .
 2. Change to the node-essentials-front-end folder.  Then do an `npm install` to get the packages you need.
-3. Create a `.env` file. It should have two lines:
+3. Create a `.env` file. It should have four lines:
    ```
-   VITE_BASE_URL=/api
+   VITE_BASE_URL=""
+   VITE_TARGET="http://localhost:3000"
    VITE_RECAPTCHA_SITE_KEY=gobbledygook
+   VITE_GOOGLE_CLIENT_ID="174295933149-09i1it2go1ssjpqtqam9vdm1pj257aqu.apps.googleusercontent.com"
    ```
-   The site key is the one that you saved in a comment in your node-homework .env file.  Setting the base URL to "/api" causes operations to be redirected through the Vite proxy, which is configured to point to your back end running on http://localhost:3000.  
+   The site key is the one that you saved in a comment in your node-homework .env file.  Have a look at the `vite.config.js` file.  It reroutes all requests for "/api" to the address specified in `VITE_TARGET`.  `VITE_BASE_URL` is kind of an artifact.  You have to set it to `""`, but it will be eliminated in the future.  VITE_GOOGLE_CLIENT_ID is also an artifact.  You have to set it in order for the React front end to come up, but Google logon won't work as it is not enabled on your back end app.  Note also that there is a sample back end on Digital Ocean.  You can access it using the values in `.env.local.sample`.
 4. You need one terminal session for the front end and one for the back end.  In the terminal session for the back end, go to the node-homework folder and start your app.  In the terminal session for the front end (the one where you are in node-essentials-front-end) type
    ```bash
    npm run dev
@@ -154,7 +162,7 @@ Each of your Postman tests references the `urlBase` Postman environment variable
 
 ## **Task 6: Testing Your Deployed Back End with the Front End**
 
-Change the `.env` file for your front end.  For the VITE_BASE_URL, put in the URL of your service on Render.  Then try out the front end to see that everything still works.
+Change the `.env` file for your front end.  For the VITE_TARGET, put in the URL of your service on Render.  Then try out the front end to see that everything still works.
 
 **You need to tell your reviewer about the URL for your deployed application on Render.**  Create a file called project-summary.txt in the root of the node-homework folder, and put the URL in that file.
 

@@ -1,4 +1,5 @@
 const prisma = require("../db/prisma");
+const { StatusCodes } = require("http-status-codes");
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 
 const whereClause = (query) => {
@@ -13,12 +14,33 @@ const whereClause = (query) => {
   if (query.priority) {
     filters.push({ priority: query.priority });
   }
-  if (query.max_date) {
-    filters.push({ createdAt: { lte: new Date(query.max_date) } });
+  function validDate(dateString) {
+    const dateObj = new Date(dateString); // Attempt to create a Date object
+    // Check if the time value is NaN
+    if (isNaN(dateObj.getTime())) return null;
+    return dateObj;
   }
-  if (query.min_date) {
-    filters.push({ createdAt: { gte: new Date(query.min_date) } });
+  const max_date = validDate(query.max_date);
+  const min_date = validDate(query.min_date);
+  if (max_date && min_date) {
+    filters.push({ createdAt: { lte: max_date, gte: min_date } });
+  } else if (min_date) {
+    filters.push({ createdAt: { gte: min_date } });
+  } else if (max_date) {
+    filters.push({ createdAt: { lte: max_date } });
   }
+  return filters.length ? { AND: filters } : {};
+};
+
+const getOrderBy = (query) => {
+  const validSortFields = ["title", "priority", "createdAt", "id", "isCompleted"];
+  const sortBy = query.sortBy || "createdAt";
+  const sortDirection = query.sortDirection === "asc" ? "asc" : "desc";
+  
+  if (validSortFields.includes(sortBy)) {
+    return { [sortBy]: sortDirection };
+  }
+  return { createdAt: "desc" }; // default fallback
 };
 
 const getFields = (fields) => {
@@ -55,9 +77,9 @@ exports.index = async (req, res) => {
     if (!select) {
       // no task fields specified, not allowed
       return res
-        .status(400)
+        .status(StatusCodes.BAD_REQUEST)
         .json({
-          message:
+          error:
             "When specifying fields, at least one task field must be included.",
         });
     }
@@ -85,13 +107,16 @@ exports.index = async (req, res) => {
     select,
     skip: skip,
     take: limit,
-    orderBy: { createdAt: "desc" },
+    orderBy: getOrderBy(req.query),
   });
   if (tasks.length === 0) {
-    return res.status(404).json({ message: "No tasks found for user" });
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "No tasks found for user" });
   }
   const totalTasks = await prisma.task.count({
-    where: { userId: global.user_id },
+    where: {
+      userId: global.user_id,
+      ...whereClause(req.query),
+    },
   });
   const pagination = {
     page,
@@ -103,7 +128,7 @@ exports.index = async (req, res) => {
   };
 
   // Return tasks with pagination information
-  res.status(200).json({
+  res.json({
     tasks,
     pagination,
   });
@@ -112,7 +137,7 @@ exports.index = async (req, res) => {
 exports.show = async (req, res) => {
   const id = parseInt(req.params?.id);
   if (!id) {
-    return res.status(400).json({ message: "Invalid task id." });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid task id." });
   }
 
   // Use global user_id (set during login/registration)
@@ -137,15 +162,15 @@ exports.show = async (req, res) => {
   });
 
   if (!task) {
-    return res.status(404).json({ message: "Task not found" });
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "Task not found" });
   }
 
-  res.status(200).json(task);
+  res.json(task);
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   // Use global user_id (set during login/registration)
-  const { error, value } = taskSchema.validate(req.body);
+  const { error, value } = taskSchema.validate(req.body, { abortEarly: false });
 
   if (error) return next(error);
 
@@ -162,18 +187,18 @@ exports.create = async (req, res) => {
       createdAt: true,
     },
   });
-  res.status(201).json(newTask);
+  res.status(StatusCodes.CREATED).json(newTask);
 };
 
 exports.update = async (req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id) {
-    return res.status(400).json({ message: "Invalid task id." });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid task id." });
   }
   if (!req.body) {
     req.body = {};
   }
-  const { error, value } = patchTaskSchema.validate(req.body);
+  const { error, value } = patchTaskSchema.validate(req.body, { abortEarly: false });
   if (error) return next(error);
   let task;
   try {
@@ -190,17 +215,17 @@ exports.update = async (req, res, next) => {
     });
   } catch (err) {
     if (err.code === "P2025") {
-      return res.status(404).json({ message: "The task was not found." });
+      return res.status(StatusCodes.NOT_FOUND).json({ error: "The task was not found." });
     }
     return next(err);
   }
-  res.status(200).json(task);
+  res.json(task);
 };
 
 exports.deleteTask = async (req, res, next) => {
   const id = parseInt(req.params?.id);
   if (!id) {
-    return res.status(400).json({ message: "Invalid task id." });
+    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid task id." });
   }
   let task;
   try {
@@ -216,18 +241,18 @@ exports.deleteTask = async (req, res, next) => {
     });
   } catch (err) {
     if (err.code === "P2025") {
-      return res.status(404).json({ message: "The task was not found." });
+      return res.status(StatusCodes.NOT_FOUND).json({ error: "The task was not found." });
     }
     return next(err);
   }
-  res.status(200).json(task);
+  res.json(task);
 };
 
 exports.bulkCreate = async (req, res, next) => {
   // Validate the tasks array
   const tasks = req.body?.tasks;
   if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
-    return res.status(400).json({
+    return res.status(StatusCodes.BAD_REQUEST).json({
       error: "Invalid request data. Expected an array of tasks.",
     });
   }
@@ -235,7 +260,7 @@ exports.bulkCreate = async (req, res, next) => {
   // Validate all tasks before insertion
   const validTasks = [];
   for (const task of tasks) {
-    const { error, value } = taskSchema.validate(task);
+    const { error, value } = taskSchema.validate(task, { abortEarly: false });
     if (error) return next(error);
     validTasks.push({
       title: value.title,
@@ -253,7 +278,7 @@ exports.bulkCreate = async (req, res, next) => {
 
   // Return success message with counts
   // Hint: The test expects message, tasksCreated, and totalRequested
-  res.status(201).json({
+  res.status(StatusCodes.CREATED).json({
     // ... you need to return the response object
     message: "success!",
     tasksCreated: result.count,
