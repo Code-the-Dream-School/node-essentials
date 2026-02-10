@@ -161,6 +161,15 @@ Node provides a REPL, which stands for Read Evaluate Print Loop.  It is just a t
 
 You have used npm to do package management for your React project.  We will also use npm to do package management for your Node project.
 
+### Check Your Understanding With AI
+
+You just learned about several things that exist in Node but not in browser JavaScript, and vice versa. Without scrolling back up:
+
+1. Open your preferred AI chatbot (CTD's AI Reviewer is always a good choice!).
+2. In your own words, explain at least 3 things you can do in Node that you cannot do in browser JavaScript, and why that difference exists.
+3. Ask the AI to evaluate your explanation: "I just learned about the differences between Node.js and browser JavaScript. Here's my understanding of what Node can do that browsers can't: [your explanation]. What did I get right, and what should I refine?"
+4. Revise your understanding based on the feedback.
+
 ## **1.6 Node.js Documentation and Libraries**
 
 Node.js provides extensive online documentation that is essential for developers. The primary resource is the official Node.js API documentation available at [https://nodejs.org/api/](https://nodejs.org/api/). This site contains comprehensive guides, reference materials, and examples for all built-in modules and APIs.
@@ -248,7 +257,31 @@ fs.open("./tmp/file.txt", "w", (err, fileHandle) => {
 console.log("last statement");
 ```
 
-What order do you think the logged lines will appear when you run this program?  The answer is that you will see "last statement" printed first, followed by "file open succeeded."  The asynchronous fs.open() call just tells the Node event loop to do the open and continues on to output "last statement".  Then the event loop completes the file open and does the callback.  And then you see the other message.
+What order do you think the logged lines will appear when you run this program? Test your skills using this activity:
+
+### Predict Before You Run
+
+Study this code before running it:
+
+```js
+fs.open("./tmp/file.txt", "w", (err, fileHandle) => {
+  if (err) {
+    console.log("file open failed: ", err.message);
+  } else {
+    console.log("file open succeeded.  The file handle is: ", fileHandle);
+  }
+});
+console.log("last statement");
+```
+
+1. Predict: Which console.log will appear first — "last statement" or the one inside the callback? Why?
+2. Open an AI chatbot (CTD's AI Assignment Reviewer is always a good choice!) and explain your reasoning. For example: "I'm looking at this Node.js code that uses `fs.open` with a callback, followed by a `console.log('last statement')`. I think [your prediction] will print first because [your reasoning about the event loop]. Am I right? If not, what am I misunderstanding about how async callbacks work in Node?"
+3. Run the code and check your prediction.
+4. If you were wrong, ask the AI to walk you through the event loop's role step by step.
+
+#### Result
+
+The answer is that you will see "last statement" printed first, followed by "file open succeeded."  The asynchronous fs.open() call just tells the Node event loop to do the open and continues on to output "last statement".  Then the event loop completes the file open and does the callback.  And then you see the other message.
 
 Now, clearly, if you were to write a line to this file, you'd have to do it in the callback, so that you have access to the file handle.  That call would also be asynchronous, with a callback.  If you want to write a second line, you'd have to do that write in the second callback.  And so on, to "callback hell".  You could keep your file legible through clever use of recursion, but it's still messy.  Now, as you know, we have promises in JavaScript.  So, one choice would be to wrap the async call in a promise, as follows:
 
@@ -452,7 +485,18 @@ r.then(resolvesTo => {
 console.log("Finished.")
 ```
 
-See if you can guess which order the statements will appear in the log.  Then run the program.  Were you right?
+Use the following activity to see if you can guess which order the statements will appear in the log.  
+
+### Predict Before You Run
+
+Look at the callsync.js program above. Before running it:
+
+1. Write down the order you think the console.log statements will appear.
+2. Share your predicted order with an AI chatbot and explain your reasoning: "Here's a Node.js program that calls a synchronous function from inside an async function using await, then uses `.then()` to get the resolved value. I predict the console output will appear in this order: [your order] because [your reasoning about when async functions return to the caller and when the event loop picks up]. Am I right?"
+3. Run the program and compare.
+4. Then look at `callsync2.js` (which removes the await). Predict how the output order will change, check with the AI, then run it.Then run the program.  Were you right?
+
+### Result
 
 The asyncCaller() method calls syncFunc(), which is a synchronous function, with an await.  This is valid, and the await statement returns the value that syncFunc() returns.  But asyncCaller() is an async function, so it returns to the mainline code at the time of the first await statement, and what it returns is a promise.  Processing continues in asyncCaller only after the `Finished` statement appears, because that is the point at which the event loop gets a chance to return from await.  The subsequent `return` statement in asyncCaller is different from a `return` in a synchronous function.  A return statement in an async function does something extra: It resolves the promise returned by the async function to a value.  
 
