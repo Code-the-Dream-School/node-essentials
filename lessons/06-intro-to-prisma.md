@@ -2,13 +2,13 @@
 
 ## **Lesson Overview**
 
-You have learned to use SQL for CRUD operations in your app.  Often, though, that's not how apps are built.  This lesson will describe an alternative. You use an SQL database, but you access the database with an Object-Relational Mapper -- an ORM.  The lesson explains why this approach can speed development, but also its limitations.  The lessons also explain the steps needed to convert your app to the use of the Prisma ORM.  You'll do that conversion in the assignment.
+You have learned to use SQL for CRUD operations in your app.  Often, though, that's not how apps are built.  This lesson will describe an alternative. You use an SQL database, but you access the database with an Object-Relational Mapper -- an ORM.  The lesson explains why this approach can speed development, but also its limitations.  The lesson also explains the steps needed to convert your app to use the Prisma ORM.  You'll do that conversion in the assignment.
 
 ## **Learning Objectives**
 
 You will learn:
 - What object-relational mappings (ORMs) are
-- Why ORMs are used.
+- Why ORMs are used
 - Characteristics of the Prisma ORM
 - How to set up Prisma in your project
 - How to use Prisma to manage the schema
@@ -25,7 +25,7 @@ You will learn:
 6. Prisma methods for database operations
 7. Testing and debugging
 
-## **1. What is an ORM, and why are they used?**
+## 1. What is an ORM, and why are they used?
 
 SQL is a powerful language, but it isn't pretty.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With an ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programming assistance.
 
@@ -33,7 +33,7 @@ In addition, ORMs have certain inherent advantages:
 
 1. You have learned the `pg` package, but it only talks to PostgreSQL.  Suppose you are converting to MySQL, or for that matter, to MongoDB? You'd have to learn an entirely different package, with different syntax.  An ORM can handle the differences more or less transparently, so that it is not necessary to make big changes to the code.  (Converting from SQL to MongoDB is not transparent, but the ORM you will use supports both.)
 
-2. Database schema management is complicated, especially with team projects.  As you add and modify tables, how do you keep track of what has been done to the production database and to the various test and development database instances?  You more or less have to write a special program for the SQL operations involved, and then you have to keep track of the steps in a separate table.  The ORM can do this for you.
+2. Database schema management is complicated, especially with team projects.  As you add and modify tables, how do you keep track of what has been done to the production database and to the various test and development database instances?  You more or less need to write a special program for the SQL operations involved, and then you have to keep track of the steps in a separate table.  The ORM can do this for you.
 
 3. The Prisma ORM brings special advantages to a TypeScript environment.  We don't do TypeScript in this class, but with Prisma, one gets strong typing and type safety.
 
@@ -45,7 +45,7 @@ On the other hand:
 
 2. Sometimes the ORM won't do the SQL you want.  There's an escape route: You can tell it to emit raw SQL, as if you were using the `pg` package.  Sometimes you'll need to do that -- so you still need to know SQL.
 
-## **2. Characteristics of the Prisma ORM**
+## 2. Characteristics of the Prisma ORM
 
 The Prisma ORM:
 - has an elegant way of managing schema.
@@ -55,9 +55,9 @@ The Prisma ORM:
 - has significant limitations for GROUP BY and HAVING support.
 - won't do subqueries.
 
-We could have used Sequelize, another ORM for Node, but it's harder to learn, and schema management with Sequelize requires an additional package.  As you'll see, the transition from `pg` to Prisma is pretty easy.
+We could have used Sequelize, another ORM for Node, but it's harder to learn, and schema management with Sequelize requires an additional package.  As you'll see, the transition from using the `pg` dependency to Prisma is pretty easy.
 
-### **How it Works**
+## 3. How it Works
 
 Instead of writing:
 ```js
@@ -66,12 +66,12 @@ const results = await pool.query(`SELECT * FROM users WHERE email = 'john@exampl
 
 You write:
 ```javascript
-const user = await prisma.user.findUnique({
+const user = await prisma.users.findUnique({
   where: { email: 'john@example.com' }
 });
 ```
 
-Under the covers, Prisma makes the SQL call.  In fact, if you are using PostgreSQL, it uses the pg package and a pg pool.
+Under the covers, Prisma makes the SQL call.  In fact, if you are using PostgreSQL, it uses the `pg` package and a `pg` pool.
 
 Prisma consists of three main tools:
 
@@ -79,7 +79,7 @@ Prisma consists of three main tools:
 2. **Prisma Client**: An auto-generated, type-safe database client
 3. **Prisma Migrate**: Database migration and schema management
 
-## **3. Workflow for adding Prisma support to your app**
+## 4. Workflow for adding Prisma support to your app
 
 ```
 1. Define Schema → 2. Generate Client → 3. Use in Code → 4. Database Operations
@@ -101,7 +101,7 @@ Prisma consists of three main tools:
 - Prisma translates your method calls to optimized SQL
 - Handles connections, transactions, and error handling
 
-## **4. Managing the database schema with Prisma**
+## 5. Managing the database schema with Prisma
 
 ### **Elements of the Prisma Schema**
 
@@ -134,7 +134,7 @@ model User {
 }
 ```
 
-Each model has a name, a collection of fields, perhaps one or several indexes, and perhaps a `@@map` clause.  By convention, the model is given a capitalized singular name.  As we typically use lowercase table names, the `@@map` clause mapes the model name to the table name.
+Each model has a name, a collection of fields, and may include one or more indexes or a `@@map` clause.  By convention, the model is given a capitalized singular name.  As we typically use lowercase table names, the `@@map` clause maps the model name to the table name.
 
 The `@@unique` line declares an index.  It is saying that the id and the userId comprise a unique composite key.
 
@@ -172,9 +172,9 @@ The Prisma schema describes the database schema.  There are two cases to conside
 
 In the assignment, you will do each of these.
 
-Once the Prisma and database schemas have been created by one of the processes above, it may be necessary to modify the schema, perhaps to add tables or to add or remove columns from tables.  In this case, the Prisma schema is changed, and the migration step is performed again.  Every change to the Prisma schema requires that you run migration again.  As the Prisma schema is just a file, it can be shared within a development team via Github, and it can be propagated from Github to the production deployment.
+Once the Prisma and database schemas have been created by one of the processes above, it may be necessary to modify the schema, perhaps to add tables or to add or remove columns from tables.  In this case, the Prisma schema is changed, and the migration step is performed again.  Every change to the Prisma schema requires that you run the migration again.  As the Prisma schema is just a file, it can be shared within a development team via Github, and it can be propagated from Github to the production deployment.
 
-## **5. Error Handling with Prisma**
+## 6. Error Handling with Prisma
 
 ### **Prisma Error Types**
 
@@ -195,33 +195,33 @@ The code below is an example.  More frequently, you will only catch a small subs
 
 ```javascript
 try {
-  const user = await prisma.user.create({
+  const user = await prisma.users.create({
     data: { email, name, password } // password should be hashed with scrypt
   });
   res.json(user);
 } catch (error) {
   if (error.code === 'P2002') {
-    return res.status(400).json({ 
-      error: "User with this email already exists" 
+    return res.status(400).json({
+      error: "User with this email already exists"
     });
   }
-  
-  if (error.code === 'P2025') { 
-    return res.status(404).json({ 
-      error: "Record not found" 
+
+  if (error.code === 'P2025') {
+    return res.status(404).json({
+      error: "Record not found"
     });
   }
-  
+
   if (error.code === 'P2003') { // might happen if you tried to create a task with
   // no corresponding user
-    return res.status(400).json({ 
-      error: "Invalid reference - related record does not exist" 
+    return res.status(400).json({
+      error: "Invalid reference - related record does not exist"
     });
   }
-  
+
   console.error('Prisma error:', error);
-  res.status(500).json({ 
-    error: "Internal server error" 
+  res.status(500).json({
+    error: "Internal server error"
   });
 }
 ```
@@ -233,7 +233,7 @@ Prisma throws a `PrismaClientInitializationError` when it cannot connect to the 
 ```javascript
 app.use((err, req, res, next) => {
   console.error('Error occurred:', err.message);
-  
+
   // Handle database connection failures
   if (err.name === "PrismaClientInitializationError") {
     console.log("Couldn't connect to the database. Is it running?");
@@ -256,7 +256,7 @@ app.use((err, req, res, next) => {
 ```javascript
 let updatedUser = null;
 try {
-  updatedUser = await prisma.user.update({
+  updatedUser = await prisma.users.update({
     where: { id: parseInt(userId) },
     data: { name: newName }
   });
@@ -270,15 +270,13 @@ try {
 else ... // it succeeded!
 ```
 
-As previously mentioned, not all errors should be handled in the context of the controllers.  That would be redundant.  Some the errors should be handled in context, though.  For example, if a user is registering, and the `P2002` error occurs, that is best handled in context, so that good feedback can be returned to the caller.
+As previously mentioned, not all errors should be handled in the context of the controllers.  That would be redundant.  Some errors should be handled in context, though.  For example, if a user is registering, and the `P2002` error occurs, that is best handled in context, so that good feedback can be returned to the caller.
 
----
-
-## 6. Performance and Best Practices
+## 7. Performance and Best Practices
 
 ### Connection Management
 
-All connection management within your app should be centralized, just as it was with the pg package.  You create a shared module within your `db` folder to establish the client, and the resulting client is imported by other modules in your app.  This ensures that all connections can be ended at server shutdown, and also optimizes connection sharing.
+All connection management within your app should be centralized, just as it was with the `pg` package.  You create a shared module within your `db` folder to establish the client, and the resulting client is imported by other modules in your app.  This ensures that all connections can be ended at server shutdown, and also optimizes connection sharing.
 
 ```javascript
 const prisma = new PrismaClient();
@@ -294,7 +292,7 @@ Specific instructions on the location of these lines will be given during your a
 
 **Important:** Always call `await prisma.$disconnect()` when shutting down your application or in tests to close database connections cleanly and prevent connection leaks.
 
-## **7. Prisma Methods for Database Operations**
+## 8. Prisma Methods for Database Operations
 
 In your assignment, you will substitute Prisma methods for methods from the pg package.  The following link shows the syntax of the Prisma methods for [CRUD operations](https://www.prisma.io/docs/orm/prisma-client/queries/crud).  You see the following correspondence with SQL statements:
 
@@ -303,27 +301,27 @@ In your assignment, you will substitute Prisma methods for methods from the pg p
 - UPDATE: `prisma.model.update()`, `prisma.model.updateMany()`
 - DELETE: `prisma.model.delete()`, `prisma.model.deleteMany()`
 
-This is not an exhaustive list.  If the model is User, which is mapped to a users table, you can do `prisma.user.create({data: {name: "Jack"}})` to create an entry.  Of course, this example wouldn't be schema compliant.  Many of these methods have a `where` attribute to specify which entries in teh database are to be read or modified or deleted.  Methods for creating and modifying records have a `data` attribute to specify the attribute names and values.  When retrieving data, you can specify the columns you want with a `select` attribute.  There are various other choices such as `orderBy` and `groupBy`, which correspond to SQL features you have seen before.
+This is not an exhaustive list.  If the model is User, which is mapped to a users table, you can do `prisma.users.create({data: {name: "Jack"}})` to create an entry.  Of course, this example wouldn't be schema compliant.  Many of these methods have a `where` attribute to specify which entries in the database are to be read or modified or deleted.  Methods for creating and modifying records have a `data` attribute to specify the attribute names and values.  When retrieving data, you can specify the columns you want with a `select` attribute.  There are various other choices such as `orderBy` and `groupBy`, which correspond to SQL features you have seen before.
 
-In your assignment, you are given specific guidance and examples to complete the conversion from pg to Prisma.  Refer to the link above as needed.
+In your assignment, you are given specific guidance and examples to complete the conversion from using the `pg` dependency to Prisma.  Refer to the link above as needed.
 
-All of these methods are asynchronous, returning a promise.  You must do an `await` to get the return value.
+All of these methods are asynchronous and return a promise.  You must do an `await` to get the return value.
 
 ### **Query Optimization**
 
 **Select Only Needed Fields:**
 ```javascript
 // Instead of fetching all fields
-const user = await prisma.user.findUnique({ where: { id: 1 } });
+const user = await prisma.users.findUnique({ where: { id: 1 } });
 
 // Select only what you need
-const user = await prisma.user.findUnique({
+const user = await prisma.users.findUnique({
   where: { id: 1 },
   select: {
     id: true,
     name: true,
     email: true
-    // password is excluded.  You could also do omit: { hashed_password : true}
+    // password is excluded.  You could also do `omit: { hashed_password : true}`
   }
 });
 ```
@@ -331,38 +329,36 @@ const user = await prisma.user.findUnique({
 **Use Appropriate Methods:**
 ```javascript
 // For single records
-const user = await prisma.user.findUnique({ where: { email } }); 
-// This only works if the schema specifies that emails are unique.
+const user = await prisma.users.findUnique({ where: { email } });
+// This method only works if the schema specifies that emails are unique.
 
 // For multiple records
-const users = await prisma.user.findMany({ where: { active: true } });
+const users = await prisma.users.findMany({ where: { active: true } });
 
 // For existence checks
-const exists = await prisma.user.findFirst({ where: { email } });
+const exists = await prisma.users.findFirst({ where: { email } });
 ```
 
 ### Transaction Support
 ```javascript
 // Multiple operations in a single transaction
 const result = await prisma.$transaction(async (tx) => {
-  const user = await tx.user.create({
+  const user = await tx.users.create({
     data: { email, name, password } // password should be hashed with scrypt
   });
-  
-  const task = await tx.task.create({
+
+  const task = await tx.tasks.create({
     data: {
       title: "Welcome task",
-      userId: user.id
+      userId: users.id
     }
   });
-  
+
   return { user, task };
 });
 ```
 
----
-
-## 7. Testing and Debugging
+## 9. Testing and Debugging
 
 ### Prisma Studio
 Prisma provides a visual database browser:

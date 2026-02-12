@@ -24,177 +24,54 @@ Two files are used for the 6th lesson/assignment. Meaning I'll be looking at
 
 The lesson file is well written - upon first read I didn't notice anything that should change. It flowed and appeared to be comprehensive.
 
-<!-- TODO: migrate the thoughts below in the "Proposed text changes" section to the "./lessons/lesson6-pg-prisma.md" file. -->
+## Questions to address
 
-## Proposed text changes
+1. [Here](https://github.com/Code-the-Dream-School/node-essentials/blob/efd3026e9b84fa7578d3c74b26d8486444307c04/assignments/06-intro-to-prisma.md?plain=1#L204) it says `Then, change the shutdown so that as well as ending the pg pool, it also does the following:`.
 
-Original
-From this point on, if you make a schema change, you change the model, do an npx prisma migrate dev, and then, for the test database, do the corresponding npx prisma migrate deploy.
+   What exactly is "it also does the following:" referring to? Because immediately after that statement there are two lines of code and no explanation.
 
-Proposed
-From this point on, if you make a schema change, first change the model, next do an npx prisma migrate dev, last, do the corresponding npx prisma migrate deploy for the test database.
+   The code that follows the quoted statement above:
 
-Original
+   ```javascript
+   await prisma.$disconnect();
+   console.log("Prisma disconnected");
+   ```
 
-You do not change the schema with ordinary SQL. You'll use the deploy also with the production database you create for Internet deployment of your app in lesson 10. You never use a schema reset with the production database, for the obvious reason that it deletes all the data.
+## Notes to raise
 
-TODO: make these suggestions in the node-homework repo.
+1. I updated the instructions pertaining to "Update the Show Method"
 
-TODO: Use commands rather than "You" all the time.
+   prisma.tasks.findUnique() does not throw a P2025 error when no record is found. It simply returns null.
 
-```
-..., it also does the following:
+   The P2025 error only occurs with operations that modify data (update, delete, updateMany, etc.) when no matching record exists.
 
-await prisma.$disconnect();
-    console.log("Prisma disconnected");
-```
+   Per the Prisma [documentation](https://www.prisma.io/docs/orm/reference/prisma-client-reference#findunique), "By default, both operations return null if the record is not found."
 
-It does what??? These are commands, not an explanation.
+   It is also already addressed in the curriculum [lesson](https://github.com/Code-the-Dream-School/node-essentials/blob/0f0a113e0d7bd61bc17e96cf912b8ffa4be61358/lessons/06-intro-to-prisma.md?plain=1#L189).
 
----
+2. Multiple times I had to use `user_id` in place of `userId`. And `is_completed` in place of `isCompleted`.
 
-For the register method in usercontroller: "b. Fix Register"
+   I THINK this is contrary to the instructions in the [assignment](https://github.com/Code-the-Dream-School/node-essentials/blob/main/assignments/06-intro-to-prisma.md).
 
-Your schema: model users → Prisma client: prisma.users
+   I was able to successfully use the app via Postman. See my [controllers/taskController.js](https://github.com/JamieBort/node-homework/blob/assignment6/controllers/taskController.js) file.
 
-Current code: prisma.user → undefined → TypeError
+3. Every time we're instructed to use `await prisma.task.<some_method>` in the [assignment](https://github.com/Code-the-Dream-School/node-essentials/blob/main/assignments/06-intro-to-prisma.md), I had to use `await prisma.tasks.<some_method>` instead.
 
-Fix: replace all prisma.user references with prisma.users
+   On account of my schema.prisma file had `tasks` rather than `task`:
 
-and
+   ```
+   model tasks {
+     id           Int      @id @default(autoincrement())
+     title        String   @db.VarChar(255)
+     is_completed Boolean  @default(false)
+     user_id      Int
+     created_at   DateTime @default(now()) @db.Timestamp(6)
+     users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-replace
-res
-.status(201)
-.json({ name: result.rows[0].name, email: result.rows[0].email });
+     @@unique([id, user_id], map: "task_id_user_id_unique")
+   }
+   ```
 
-with
-res.status(201).json({ name: user.name, email: user.email, id: user.id });
+   Likewise for `const user = await prisma.users.findUnique(` for the same reason.
 
----
-
-for "Fix the Task Index Method"
-
-`const tasks = await prisma.task.findMany({` should be `const tasks = await prisma.tasks.findMany({` instead
-
----
-
-for "Fix Task Update"
-
-rather than
-
-```
-try {
-  const task = await prisma.task.update({
-    data: value,
-    where: {
-      id,
-      userId: global.user_id,
-    },
-    select: { title: true, isCompleted: true, id: true }
-  });
-} catch (err) {
-  if (err.code === "P2025" ) {
-    return res.status(404).json({ message: "The task was not found."})
-  } else {
-    return next(err); // pass other errors to the global error handler
-  }
-}
-```
-
----
-
-For "Update the Show Method"
-
-prisma.task.findUnique() does not throw a P2025 error when no record is found. It simply returns null. The P2025 error only occurs with operations that modify data (update, delete, updateMany, etc.) when no matching record exists.
-
-Per https://www.prisma.io/docs/orm/reference/prisma-client-reference#findunique, "By default, both operations return null if the record is not found."
-
-<!-- TODO: remove the "Actions I took, in order" section below. -->
-
-### Actions I took, in order
-
-1. First command
-
-```
-node-homework % npm install prisma @prisma/client
-
-added 24 packages, removed 1 package, changed 8 packages, and audited 575 packages in 41s
-
-106 packages are looking for funding
-  run `npm fund` for details
-
-found 0 vulnerabilities
-```
-
-2. Second command
-
-```
-node-homework % npx prisma init
-Fetching latest updates for this subcommand...
-
-Initialized Prisma in your project
-
-  prisma/
-    schema.prisma
-  prisma.config.ts
-
-warn Prisma would have added DATABASE_URL but it already exists in .env
-warn You already have a .gitignore file. Don't forget to add .env in it to not commit any private information.
-
-Next, choose how you want to set up your database:
-CONNECT EXISTING DATABASE:
-  1. Configure your DATABASE_URL in prisma.config.ts
-  2. Run prisma db pull to introspect your database.
-CREATE NEW DATABASE:
-  Local: npx prisma dev (runs Postgres locally in your terminal)
-  Cloud: npx create-db (creates a free Prisma Postgres database)
-
-Then, define your models in prisma/schema.prisma and run prisma migrate dev to apply your schema.
-Learn more: https://pris.ly/getting-started
-```
-
-3. Third command `rm prisma.config.ts `
-
-4. Fourth command `npx prisma generate`
-
-5. Fifth command
-
-```
-node-homework % npx prisma generate
-Environment variables loaded from .env
-Prisma schema loaded from prisma/schema.prisma
-
-✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 139ms
-
-Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
-```
-
-6. Sixth command
-
-`npx prisma db pull`
-
-```
-node-homework % npx prisma db pull
-Environment variables loaded from .env
-Prisma schema loaded from prisma/schema.prisma
-Datasource "db": PostgreSQL database "tasklist", schema "public" at "localhost"
-
-✔ Introspected 2 models and wrote them into prisma/schema.prisma in 229ms
-
-Run prisma generate to generate Prisma Client.
-┌─────────────────────────────────────────────────────────┐
-│  Update available 6.19.2 -> 7.3.0                       │
-│                                                         │
-│  This is a major update - please follow the guide at    │
-│  https://pris.ly/d/major-version-upgrade                │
-│                                                         │
-│  Run the following to update                            │
-│    npm i --save-dev prisma@latest                       │
-│    npm i @prisma/client@latest                          │
-└─────────────────────────────────────────────────────────┘
-
-zeus@MacBook-Air-de-Jamie node-homework %
-```
+   For what it is worth, the instructions to create the SQL database is found [here](https://github.com/Code-the-Dream-School/node-essentials/blob/0f0a113e0d7bd61bc17e96cf912b8ffa4be61358/assignments/05-intro-to-sql-and-postgresql.md?plain=1#L158) in the repo (in Assignment 5). There the tables `users` and `tasks`.
