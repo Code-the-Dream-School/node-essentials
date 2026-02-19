@@ -34,7 +34,11 @@ npm install prisma @prisma/client
 npx prisma init
 ```
 
-The prisma init command above creates the prisma folder, and within it the shell of a `schema.prisma` file.  It also creates a `.env` file if you don't have one.  You need to fix `schema.prisma`.  The init generates:
+The prisma init command above creates the prisma folder, and within it the shell of a `schema.prisma` file.  It also creates a `.env` file if you don't have one.  Two things need to be addressed at this point.
+
+First, `.env` file should never be pushed to the remote repo. If it was created when the `npx prisma init` command was run, make sure to add it to the `.gitignore` file BEFORE pushing any changes to the remove repo.
+
+Second, you need to fix `schema.prisma`.  The init generates:
 
 ```
 generator client {
@@ -136,6 +140,8 @@ model Task {
   @@map("tasks")
 }
 ```
+
+Note, any time the schema changes, you must regenerate it using the `npx prisma generate` command.
 
 #### c. Migration
 
