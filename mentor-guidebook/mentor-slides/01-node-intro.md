@@ -190,6 +190,25 @@ Nested callbacks → messy code.
 
 ---
 
+# Converting Callbacks to Promises
+
+What if a library only supports callbacks?  
+Use Node’s built-in **Utility** module:
+
+```js
+const util = require("util");
+const fs = require("fs");
+
+// Converts callback-style to Promise-style
+const readFile = util.promisify(fs.readFile);
+
+async function run() {
+  const data = await readFile("test.txt", "utf8");
+  console.log(data);
+}
+```
+---
+
 # Promise Example
 
 ```js
@@ -280,6 +299,24 @@ Streams:
 Think:
 Small sips, not whole bottle.
 
+---
+
+# Stream Controls: highWaterMark
+
+By default, Node buffers **64KB** for a stream.  
+We can control the "sip size" using `highWaterMark`.
+
+```js
+const fs = require("fs");
+
+const stream = fs.createReadStream("large_file.txt", {
+  highWaterMark: 1024 // Limits chunk size to 1KB
+});
+
+stream.on("data", (chunk) => {
+  console.log("Received a 1KB chunk of data");
+});
+```
 ---
 
 # Assignment Preview
