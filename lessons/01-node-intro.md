@@ -494,7 +494,7 @@ Look at the callsync.js program above. Before running it:
 1. Write down the order you think the console.log statements will appear.
 2. Share your predicted order with an AI chatbot and explain your reasoning: "Here's a Node.js program that calls a synchronous function from inside an async function using await, then uses `.then()` to get the resolved value. I predict the console output will appear in this order: [your order] because [your reasoning about when async functions return to the caller and when the event loop picks up]. Am I right?"
 3. Run the program and compare.
-4. Then look at `callsync2.js` (which removes the await). Predict how the output order will change, check with the AI, then run it.Then run the program.  Were you right?
+4. Then look at `callsync2.js` (which removes the await). Predict how the output order will change, check with the AI, then run it.  Were you right?
 
 ### Result
 
