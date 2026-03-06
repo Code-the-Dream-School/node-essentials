@@ -68,7 +68,13 @@ Callback read: Hello, async world!
 Promise read: Hello, async world!
 Async/Await read: Hello, async world!
 ```
+#### If You Get Stuck
 
+Converting between callbacks, Promises, and async/await can be tricky. If you hit an error or your output doesn't match what's expected, try this prompt with an AI chatbot instead of asking for the full solution:
+
+> "I'm converting a Node.js fs.readFile callback into a Promise-based version, then to async/await. Here's my current code: [paste your code]. I'm getting this error: [paste your error]. Can you ask me 3 questions that will help me figure out what's wrong on my own?"
+
+This keeps you in the driver's seat. The AI helps you debug, you do the fixing.
 
 ### 4. Node Core Modules
 - Create a script (`core-modules-demo.js`) that:
