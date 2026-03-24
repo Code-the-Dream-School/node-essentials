@@ -2,6 +2,8 @@
 
 This guide explains how to run the Test-Driven Development (TDD) tests for each assignment and how to read and understand the test files in the `tdd/` folder.
 
+NOTE: The AI review tool (known as AirHub) can check code and structure, but it does not run your code in a server environment to verify that aspect runs properly.  We will have human reviewers checking this aspect, so you may receive a passing assignment from AirHub that could still need revisions after a human has checked that your work runs properly in the correct environment. If your AI and human reviewer feedbacks don't match, trust the human review.
+
 ## What are TDD Tests?
 
 The TDD (Test-Driven Development) tests are automated tests provided by the course to verify that your assignment solutions are correct. These tests are located in the `tdd/` folder and check that your code:
