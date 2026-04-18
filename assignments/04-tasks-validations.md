@@ -101,9 +101,10 @@ if (taskIndex === -1) { // if no such task
   return res.status(StatusCodes.NOT_FOUND).json({message: "That task was not found"}); 
   // else it's a 404.
 }
-const task = { userId, ...global.tasks[taskIndex] }; // make a copy without userId
+const { userId, ...task } = global.tasks[taskIndex];
+// pull userId out and keep a copy of everything else, so the response is sanitized
 global.tasks.splice(taskIndex, 1); // do the delete
-return res.json(task); // return the entry just deleted.  The default status code, OK, is returned
+return res.json(task); // return the deleted entry without its userId. The default status code, OK, is returned
 ```
 
 Now, write the remaining methods.
