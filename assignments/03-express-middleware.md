@@ -36,7 +36,7 @@ Then try the Postman request again.  You see the body in your server log, but yo
 What you should do for this request is store the user record.  Eventually you'll store it in a database, but we haven't learned how to do that yet.  So, for the moment, you can just store it in memory.  Use the following globals:
 
 ```js 
-global.user_id // The logged on user.  This will be undefined or null if no user is logged on.
+global.user_id // Stores the currently logged-on user object, or null if no user is logged on.
 global.users // an array of user objects, initially empty.
 global.tasks   // an array of task object, initially empty.
 ```
@@ -84,7 +84,7 @@ Well ... we'll fix all of that, over time.
 
 ### **Keeping Your Code Organized: Creating a Controller**
 
-You are going to have to create a couple more post routes.  Also, you are going to have to add a lot of logic, to solve problems 1 through 5 above.  You don't want all of that in app.js.  So, create a directory called controllers. Within it, create a file called userController.js.  Within that, create a function called register.  The register() function takes a req and a res, and the body is just as above.  You can move the require() statement for the memoryStore over there (but you have to use a relative path).  You should also do a require for http-status-codes, and instead of using 201, you use StatusCodes.CREATED.  Then, you put register inside the module.exports object for this module.
+You are going to have to create a couple more post routes.  Also, you are going to have to add a lot of logic, to solve problems 1 through 5 above.  You don't want all of that in app.js.  So, create a directory called controllers. Within it, create a file called userController.js.  Within that, create a function called register.  The register() function takes a req and a res, and the body is just as above.  Continue using the in-memory globals from earlier in the assignment (`global.users`, `global.user_id`, and `global.tasks`); there is no separate `memoryStore` module to require.  You should also do a require for http-status-codes, and instead of using 201, you use StatusCodes.CREATED.  Then, you put register inside the module.exports object for this module.
 
 ### **On Naming**
 
@@ -103,7 +103,7 @@ Change the code for the route as follows:
 
 ```js
 const { register } = require("./controllers/userController");
-app.post("/api/user/register", register);
+app.post("/api/users/register", register);
 ```
 
 Test again with Postman to make sure it works.
