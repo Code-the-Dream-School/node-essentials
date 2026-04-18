@@ -70,3 +70,8 @@ jspm_packages/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# My Personal Files and Directories
+issue96-files/
+.prettierignore
+node-essentials.code-workspace
