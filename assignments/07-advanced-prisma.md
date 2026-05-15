@@ -1065,7 +1065,8 @@ git push origin assignment7
 4. Create a pull request with a descriptive title like "Assignment 7: Advanced Prisma ORM Features"
 
 ### 3️⃣ Submit Your GitHub Link
-Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  Include also a link to the pull request for assignment 6.
+- Your browser now has the link to your pull request. Copy that link.
+- Paste the `URL` into the **assignment submission form**.
 
 **Important:** Make sure your pull request includes:
 - All the modified files with advanced Prisma features
