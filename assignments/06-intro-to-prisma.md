@@ -462,7 +462,7 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 **Video Content**: Short demos based on Lesson 6:
 
 1. **How do you connect Node.js to PostgreSQL and what are the benefits over in-memory storage?**
-   - Show your database connection setup in `db.js`
+   - Show your database connection setup in `db/prisma.js`
    - Explain connection pooling and why it's important
    - Walk through your database schema and explain foreign key relationships
 
