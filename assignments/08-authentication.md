@@ -314,7 +314,6 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 2. **What security vulnerabilities does your authentication system prevent?**
    - Explain CSRF protection and show your CSRF token implementation
    - Demonstrate how HttpOnly cookies work vs localStorage
-   - Show your CORS configuration and explain why it's important
    - Walk through your rate limiting and input sanitization
 
 3. **How do you handle user sessions and maintain security across requests?**
