@@ -60,7 +60,9 @@ Databases store data on disk (or in the cloud), so your data persists even when 
 
 ## **5.1 What SQL is, and Why it is Used**
 
-SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL, Microsoft SQL Server, Oracle Database, and others. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. The relational database schema can seem like a straitjacket, but it is really more like a set of rails, organizing data into a structured form. It's a good idea to learn MongoDB as well, of course, as it is widely used - but MongoDB is pretty easy to learn. SQL is a deeper topic.
+SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL, Microsoft SQL Server, Oracle Database, and others. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. Instead of viewing a strict database schema as a limitation, it is helpful to think of it as a strong foundation. It enforces clear rules that keep your data organized and reliable, even when dealing with massive amounts of information.
+
+MongoDB is a widely used database that pairs naturally with JavaScript applications, often allowing for a smoother introduction to database concepts. SQL involves a deeper dive into relational data structures and strict schemas, representing a broader topic with more complex logic to learn.
 
 Read the following introduction: <https://www.theodinproject.com/lessons/databases-databases-and-sql>. Or, if you know this stuff, jump to the bottom of that page and do the Knowledge Check. Be sure that you understand the concepts of Primary Key and Foreign Key.
 
@@ -101,7 +103,7 @@ When a table is defined in the schema, one or several **constraints** on the val
 
 If you try to create a record that doesn't comply with constraints, or update one in violation of constraints, you get an error.
 
-### **Different Relational Databases
+### **Different Relational Databases**
 
 There are a variety of different implementations of relational databases.  All support SQL, but each is optimized for a particular use case.  For very large data volumes and transaction rates, you might use Amazon Aurora, BigQuery, or various others.  Be aware that SQL implementations vary.  SQL statments that work for one implementation may not work unchanged in a different one.  In this class, you use PostgreSQL, in part because it is freely available and runs both on your local laptop and in the cloud.
 
@@ -359,7 +361,7 @@ SELECT * FROM line_items WHERE order_id = 252;
 
 ### **Why Start the Transaction Before the Selects?**
 
-Actually, in this case, you don't need to. But suppose you are doing a bank transfer. You want to be sure that when you do the transfer, there is enough money in the source account, so you do a SELECT to check, within the transaction. If the isolation level for the transaction is SERIALIZABLE, that locks the record in the table, so that it can't change before the transfer occurs. If there isn't enough money, the right step is to rollback the transaction and tell the user tough luck. But, in the case above, the customer_id, the product_id, and the employee_id aren't going to change.
+Actually, in this case, you don't need to. But suppose you are doing a bank transfer. You want to be sure that when you do the transfer, there is enough money in the source account, so you do a SELECT to check, within the transaction. If the isolation level for the transaction is SERIALIZABLE, that locks the record in the table, so that it can't change before the transfer occurs. If there isn't enough money, the right step is to rollback the transaction and tell the user that the transaction can't be completed. But, in the case above, the customer_id, the product_id, and the employee_id aren't going to change.
 
 ### **Advanced Topic: Locking and Database Isolation Levels**
 
@@ -368,7 +370,7 @@ The actual behavior of the database during the transaction depends on the config
 <details>
 <summary style="font-size: 1.3em;">Understanding Isolation Levels</summary>
 
-While a transaction is in progress, the records it touches in the database may be locked. This can be important to maintain consistency, for example for the bank transfer case above. But, there is a downside. If you hold a lock, other concurrent processes that attempt to access the relevant records have to wait. Eventually either your transaction times out or those other processes do. So, if you have a transaction in process, you don't want to diddle about. Get the work done and COMMIT or ROLLBACK.
+While a transaction is in progress, the records it touches in the database may be locked. This can be important to maintain consistency, for example for the bank transfer case above. But, there is a downside. If you hold a lock, other concurrent processes that attempt to access the relevant records have to wait. Eventually either your transaction times out or those other processes do. So, if you have a transaction in process, you don't want to delay. Get the work done and COMMIT or ROLLBACK.
 
 There are four standard isolation levels for relational databases:
 
@@ -438,7 +440,7 @@ There are several ways to do SQL in Node. You can use the `node-postgres` (pg) p
 
 Have a look at each of these programs, so that you can see how the node-postgres package (pg) works to perform SQL operations.
 
- Spend a little time with this. It's a good idea to learn how to use the pg package. It is also common for Node application development to use an Object-Relational Mapper (ORM). The ORM makes the schema management and data manipulation a lot easier.  You don't need to write SQL statements for much of the ORM access.  ON the other hand, you can't learn SQL if you only use the ORM.
+ Spend a little time with this. It's a good idea to learn how to use the pg package. It is also common for Node application development to use an Object-Relational Mapper (ORM). The ORM makes the schema management and data manipulation a lot easier.  You don't need to write SQL statements for much of the ORM access.  Conversely, you can't learn SQL if you only use the ORM.
 
 **At this point, please proceed to your assignment.  Do the exercises in Assignment 5a.  When those are complete, resume reading this lesson.
 
@@ -652,7 +654,7 @@ if (result.rows.length === 0) {
 ```
 
 **Important Security Note:**
-YOu are going using a globally stored user_id.  This is a temporary makeshift.  The global user_id approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
+You are going to use a globally stored user_id.  This is a temporary approach.  The global user_id approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
 
 ---
 
