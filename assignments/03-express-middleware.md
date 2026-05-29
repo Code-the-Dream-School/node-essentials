@@ -2,7 +2,7 @@
 
 This assignment is to be done in the node-homework folder.  Within that folder, create an `assignment3` ```git branch``` for your work.  As you work on this assignment, add and commit your work to this branch periodically.
 
-> REMEMBER: Commit messages should be meaningful. `Week 3 assignment` is not a meaningful commit message.
+> REMEMBER: Commit messages should be meaningful. `Week 3 assignment` is not a meaningful commit message because it does not clearly state changes. Read [this article](https://medium.com/@iambonitheuri/the-art-of-writing-meaningful-git-commit-messages-a56887a4cb49) on how to write a meaningful commit message.
 
 ## **Task 1: A Route Handler for User Registration, Logon, and Logoff**
 
