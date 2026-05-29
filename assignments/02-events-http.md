@@ -42,7 +42,8 @@ document.getElementById('getTimeBtn').addEventListener('click', async () => {
 `;
 ```
 
-This, of course, is a web page.  
+This is a web page.
+
 Then change your logic so that you handle requests for the URL `'/time'`. A JSON document should be returned with an attribute `'time'` that has a value of the current time as a string.
 
 Once you've got that code in place, restart your server and test the new URL from your browser. Then, add logic to handle requests for `'/timePage'`. It should return the page above.  
@@ -85,8 +86,7 @@ Start this app from your VSCode terminal with:
 node app
 ```
 
-Go to your browser, and go to the URL http://localhost:3000.  
-Ah, ok, Hello World. It's a start.
+Go to your browser, and go to the URL http://localhost:3000. You should see the classic start "Hello, World!"
 
 This file, `app.js`, is the first file for your final project. You'll keep adding on to this file and creating modules that it calls.
 
@@ -105,7 +105,7 @@ The `module.exports` statement looks a little odd.  Why export these values?  Th
 
 **Be Careful of the Following**
 
-Make sure that your route handlers respond to each request exactly once.  
+Confirm that your route handlers respond to each request exactly once.  
 Stop the server with a `Ctrl-C`. Make the following change, and then restart the server:
 
 ```js
@@ -184,7 +184,7 @@ Your server will start and automatically restart whenever you change your code. 
 
 **Staying Organized**
 
-You don't want all your Express code in `app.js`. That would be a mess.  
+You don't want all your Express code in `app.js`. Splitting your code across files keeps it easier to manage.  
 There are standard ways to organize it.  
 The error handler is middleware. So, create a middleware folder inside `node-homework`. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
 Put this code in `error-handler.js`
@@ -223,7 +223,7 @@ Suppose a user tries to register with an email address that has already been reg
 However, the database might give an unexpected error — for example, if it is down. In this case, you may as well let the error handler take care of things.  
 An unexpected error might occur outside of a try block. In this case, it is passed to the error handler automatically. 
 
-An unexpected error might occur within a try block of your route handler. Within your catch block, you see that it is not one of the errors you expected. You can just throw the error, or better, call `next(err)` to pass it on to the error handler.
+An unexpected error might occur within a try block of your route handler. Within your catch block, you see that it is not one of the errors you expected. Call `next(err)` to pass it on to the error handler.
 
 ## More Middleware
 
