@@ -27,11 +27,11 @@ You will learn:
 
 ## **1. What is an ORM, and why are they used?**
 
-SQL is a powerful language, but it isn't pretty.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With an ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programming assistance.
+SQL is powerful, but verbose.  In modern languages, you have objects, which may belong to classes.  You can create new instances with `new` operations, you can pass the objects as arguments to methods, and you can modify their attributes.  With an ORM, you can operate on database entries as if they were objects, which can be more straightforward than writing SQL.  Within your programming environment, you get autocomplete support and other programming assistance.
 
 In addition, ORMs have certain inherent advantages:
 
-1. You have learned the `pg` package, but it only talks to PostgreSQL.  Suppose you are converting to MySQL, or for that matter, to MongoDB? You'd have to learn an entirely different package, with different syntax.  An ORM can handle the differences more or less transparently, so that it is not necessary to make big changes to the code.  (Converting from SQL to MongoDB is not transparent, but the ORM you will use supports both.)
+1. You have learned the `pg` package, but it only talks to PostgreSQL.  Suppose you are converting to MySQL, or for that matter, to MongoDB? You'd have to learn an entirely different package, with different syntax.  An ORM can handle the differences more or less transparently, so you won't need to make big changes to the code.  (Converting from SQL to MongoDB is not transparent, but the ORM you will use supports both.)
 
 2. Database schema management is complicated, especially with team projects.  As you add and modify tables, how do you keep track of what has been done to the production database and to the various test and development database instances?  You more or less have to write a special program for the SQL operations involved, and then you have to keep track of the steps in a separate table.  The ORM can do this for you.
 
@@ -41,7 +41,7 @@ In addition, ORMs have certain inherent advantages:
 
 On the other hand:
 
-1. The ORM can mask what you are really doing in the database.  Under the covers, it is doing SQL.  But what SQL?  Sometimes it's hard to guess.
+1. The ORM hides the actual SQL queries being executed in the database. Because this process happens automatically behind the scenes, it can be difficult to monitor, optimize, or debug the underlying SQL code.
 
 2. Sometimes the ORM won't do the SQL you want.  There's an escape route: You can tell it to emit raw SQL, as if you were using the `pg` package.  Sometimes you'll need to do that -- so you still need to know SQL.
 
@@ -71,7 +71,7 @@ const user = await prisma.user.findUnique({
 });
 ```
 
-Under the covers, Prisma makes the SQL call.  In fact, if you are using PostgreSQL, it uses the pg package and a pg pool.
+Internally, Prisma makes the SQL call.  In fact, if you are using PostgreSQL, it uses the pg package and a pg pool.
 
 Prisma consists of three main tools:
 
@@ -134,7 +134,7 @@ model User {
 }
 ```
 
-Each model has a name, a collection of fields, perhaps one or several indexes, and perhaps a `@@map` clause.  By convention, the model is given a capitalized singular name.  As we typically use lowercase table names, the `@@map` clause mapes the model name to the table name.
+Each model has a name, a collection of fields, perhaps one or several indexes, and perhaps a `@@map` clause.  By convention, the model is given a capitalized singular name.  As we typically use lowercase table names, the `@@map` clause maps the model name to the table name.
 
 The `@@unique` line declares an index.  It is saying that the id and the userId comprise a unique composite key.
 
@@ -172,7 +172,7 @@ The Prisma schema describes the database schema.  There are two cases to conside
 
 In the assignment, you will do each of these.
 
-Once the Prisma and database schemas have been created by one of the processes above, it may be necessary to modify the schema, perhaps to add tables or to add or remove columns from tables.  In this case, the Prisma schema is changed, and the migration step is performed again.  Every change to the Prisma schema requires that you run migration again.  As the Prisma schema is just a file, it can be shared within a development team via Github, and it can be propagated from Github to the production deployment.
+Once the Prisma and database schemas have been created by one of the processes above, it may be necessary to modify the schema, perhaps to add tables or to add or remove columns from tables.  In this case, the Prisma schema is changed, and the migration step is performed again.  Every change to the Prisma schema requires that you run migration again.  As the Prisma schema is just a file, you can share it with a development team via Github, and it can be propagated from Github to the production deployment.
 
 ## **5. Error Handling with Prisma**
 
@@ -303,7 +303,9 @@ In your assignment, you will substitute Prisma methods for methods from the pg p
 - UPDATE: `prisma.model.update()`, `prisma.model.updateMany()`
 - DELETE: `prisma.model.delete()`, `prisma.model.deleteMany()`
 
-This is not an exhaustive list.  If the model is User, which is mapped to a users table, you can do `prisma.user.create({data: {name: "Jack"}})` to create an entry.  Of course, this example wouldn't be schema compliant.  Many of these methods have a `where` attribute to specify which entries in teh database are to be read or modified or deleted.  Methods for creating and modifying records have a `data` attribute to specify the attribute names and values.  When retrieving data, you can specify the columns you want with a `select` attribute.  There are various other choices such as `orderBy` and `groupBy`, which correspond to SQL features you have seen before.
+This is not an exhaustive list.  If the model is User, which is mapped to a users table, you can do `prisma.user.create({data: {name: "Jack"}})` to create an entry.  
+
+*Note: this example wouldn't be schema-compliant.*  Many of these methods have a `where` attribute to specify which entries in the database are to be read or modified or deleted.  Methods for creating and modifying records have a `data` attribute to specify the attribute names and values.  When retrieving data, you can specify the columns you want with a `select` attribute.  There are various other choices such as `orderBy` and `groupBy`, which correspond to SQL features you have seen before.
 
 In your assignment, you are given specific guidance and examples to complete the conversion from pg to Prisma.  Refer to the link above as needed.
 
