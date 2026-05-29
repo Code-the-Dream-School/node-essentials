@@ -33,12 +33,16 @@ Replace `X` with the assignment number (e.g., `assignment1`, `assignment2`, etc.
 
 #### **Assignment 1** (Node.js Fundamentals)
 ```bash
-npm run tdd assignment1
+npm run tdd assignment1a    # Core tasks (required)
+npm run tdd assignment1b    # Advanced tasks (optional)
 ```
-Tests verify:
+Core tests (`assignment1a`) verify:
 - `globals-demo.js` outputs correct global variables
 - `async-demo.js` demonstrates async patterns correctly
-- `core-modules-demo.js` uses Node.js core modules properly
+- `core-modules-demo.js` uses the `os`, `path`, and `fs.promises` core modules properly
+
+Advanced tests (`assignment1b`, optional) verify:
+- `core-modules-demo.js` reads a large file with streams
 
 #### **Assignment 2** (Events, HTTP, Express)
 ```bash
@@ -129,11 +133,11 @@ Tests verify:
 When all tests pass, you'll see output like:
 
 ```
-PASS  tdd/assignment1.test.js
-  Week 1 Assignment Solution Tests
+PASS  tdd/assignment1a.test.js
+  Week 1 Assignment — Core Tests
     ✓ globals-demo.js outputs correct globals (245 ms)
-    ✓ async-demo.js demonstrates async patterns (312 ms)
-    ✓ core-modules-demo.js uses os, path, fs.promises, and streams (278 ms)
+    ✓ async-demo.js demonstrates async patterns and file operations (312 ms)
+    ✓ core-modules-demo.js uses os, path, and fs.promises (278 ms)
 
 Test Suites: 1 passed, 1 total
 Tests:       3 passed, 3 total
@@ -144,8 +148,8 @@ Tests:       3 passed, 3 total
 When tests fail, you'll see detailed error messages:
 
 ```
-FAIL  tdd/assignment1.test.js
-  Week 1 Assignment Solution Tests
+FAIL  tdd/assignment1a.test.js
+  Week 1 Assignment — Core Tests
     ✕ globals-demo.js outputs correct globals (123 ms)
     
     Expected: contain "__dirname: /path/to/assignment1"
@@ -230,7 +234,7 @@ expect(fileExists).toBe(true);
 - `.toBeTruthy()` / `.toBeFalsy()` check boolean values
 - Many other matchers are available (see Jest documentation)
 
-### Example: Reading assignment1.test.js
+### Example: Reading assignment1a.test.js
 
 Let's break down a real test:
 
