@@ -60,15 +60,21 @@ emitter.emit("tell", "second message");
 emitter.emit("tell", "all done");
 ```
 
-Try this program out.  We only have "tell" and "error" as event names in this case, but typically there would be more named events.  The listeners for a given event are called in the order they register, and the emitting of events is synchronous, although it can be made asynchronous.
+Try this program out.  We only have "tell" and "error" as event names in this case, but typically there would be more named events.  The listeners for a given event are called in the order they register, and the emitting of events is synchronous, although you can make event emission asynchronous.
 
-This may seem pretty simple, and it is -- but it enables you to write programs where one function communicates with many others, depending on the conditions.  The mainline code could have logic that says, if X happens, notify a, b, and c, but if Y happens, notify c and d.  This gives plugpoints where developers can add modules to listen for events.  This simple model is exploited extensively in the Node `http` package.
+This enables you to write programs where one function communicates with many others, depending on the conditions.  The mainline code could have logic that says, if X happens, notify a, b, and c, but if Y happens, notify c and d.  This gives plugpoints where developers can add modules to listen for events.  This simple model is exploited extensively in the Node `http` package.
 
 Another package you should know about in Node is the `net` package.  This allows you to create, for example, server processes for which the protocol is not HTTP.  Mail servers, Domain Name Servers, whatever you like.  We won't do that in this class.
 
 ## **2.2 A Simple HTTP Server**
 
-The HTTP package, which is built into the Node base, allows you to create a server process that listens on a port.  Each time an HTTP request is received, the http server calls the callback you specify, passing a req object, which contains information from the request, and a res object, which gives you a way to send a response to the request.  Here is a sample.  Create a file in your `node-homework/assignment2` folder called `sampleHttp.js` with the following content. Then start the program in Node.
+The HTTP package, which is built into the Node base, allows you to create a server process that listens on a port.  Each time an HTTP request is received, the http server:
+* Calls the callback you specify, passing a req object, which contains information from the request
+* A res object, which gives you a way to send a response to the request.
+
+Here is an example:
+
+Create a file in your `node-homework/assignment2` folder called `sampleHttp.js` with the following content. Then start the program in Node.
 
 ```js
 const http = require('http');
@@ -84,9 +90,9 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
 server.listen(8000);
 ```
 
-You can access the server in your browser at `http://localhost:8000`.  However, it doesn't do too much, in that, no matter what request you send to the server, all you get back is "Hello World".  The callback you provide for `(req, res)`  is called for every incoming request.  That callback, in this case, calls two methods of the res object: `res.writeHead()`, which puts the HTTP result code and a header into the response, and `res.end()`, which sends the actual data.  You note that your Node program keeps running.  In Node, if there is an open network operation, or a promise being waited on, or pending file I/O, the Node process keeps running.  You stop it with Ctrl-C.
+You can access the server in your browser at `http://localhost:8000`.  However, it doesn't do much: no matter what request you send to the server, all you get back is "Hello World".  The callback you provide for `(req, res)`  is called for every incoming request.  That callback, in this case, calls two methods of the res object: `res.writeHead()`, which puts the HTTP result code and a header into the response, and `res.end()`, which sends the actual data.  Your Node program keeps running.  In Node, if there is an open network operation, or a promise being waited on, or pending file I/O, the Node process keeps running.  You stop it with Ctrl-C.
 
-When the server gets an inbound HTTP request, it parses the basic information describing the request, including, in particular, the method, the url, the headers, and the cookies, and then issues the callback.  All of that information is in the req object -- but not the body of the request, if any body is present.  The data in the body is not available until you do another step.  Let's add some logic:
+When the server gets an inbound HTTP request, it parses the basic information describing the request, including the method, the url, the headers, and the cookies, and then issues the callback.  All of that information is in the req object -- but not the body of the request, if any body is present.  The data in the body is not available until you do another step.  Let's add some logic:
 
 ```js
 const http = require("http");
@@ -135,7 +141,7 @@ const server = http.createServer({ keepAliveTimeout: 60000 }, (req, res) => {
 server.listen(8000);
 ```
 
-The idea, which we'll pursue further when we get to Express, is that we have a look at the request, and depending on what is in it, we send the appropriate response.  Here, the logic checks the method, which is one of GET, POST, PATCH, PUT, or DELETE, and the url.  In this case, the HTTP server provides not full URL but the URL path.  Depending on the values of the method and the path, different responses are returned.
+The idea, which we'll pursue further when we get to Express, is that we have a look at the request, and depending on what is in it, we send the appropriate response.  Here, the logic checks the method, which is one of GET, POST, PATCH, PUT, or DELETE, and the url.  In this case, the HTTP server provides not full URL but the URL path.  The server returns a different response depending on the method and path.
 
 If the server is running, stop it with a Ctrl-C, put in the code above, and restart it.  You can then try `http://localhost:8000/testPath` and `http://localhost:8000/secret` from your browser.  
 
@@ -156,7 +162,7 @@ Open the Postman VS Code Extension, and click on the New button.  Select New Htt
 
 Then, click on the send button, and see what you get back.  You get a JSON response in this case.  If you change the URL to `http://localhost:8000/not-here`, you'll see you get back a 404.
 
-This is one perfectly valid way of creating a web application back end.  Your server could respond with any kind of data, including HTML, and could handle a variety of incoming requests.  As no doubt you have noticed, this is still pretty low level.  You have to add logic for each URL path and method.  You have to read the body.  You have to parse the body.  You have to handle errors if any.  For example, the code above will crash the server if the incoming JSON is invalid, because the parse will throw an error.  Fortunately, the Express package makes your development task much easier.
+This is one perfectly valid way of creating a web application back end.  Your server could respond with any kind of data, including HTML, and could handle a variety of incoming requests.  This is still low-level: you have to add logic for each URL path and method, read the body, parse the body, and handle any errors.  For example, the code above will crash the server if the incoming JSON is invalid, because the parse will throw an error.  Fortunately, the Express package makes your development task much easier.
 
 ## **2.4 Introducing Express**
 
@@ -170,7 +176,7 @@ In the previous section on REST and HTTP, you learned about the components of an
 
 2. A collection of route handlers.  A request for a particular HTTP method and path are sent to a route handler.  For example, a POST for /notices would have a route handler that handles this route.  A route handler is a function with the parameters req, res, and sometimes next.  The req parameter is a structure with comprehensive information about the request.  The res parameter is the way that the route handler sends the response.  The next parameter is needed in case the route handler needs to throw an error to an error handler.
 
-3. Middleware.  Middleware functions do some initial processing on the request.  Sometimes a middleware function checks to see if the request should be sent on to the next piece of middleware in the chain or the route handler.  If not, the middleware itself returns a response to the request.  In other cases, a middleware function may add additional information to the req object, and may also set headers, including sometimes set-cookie headers, in the res object.  Then it calls next(), which might call another middleware function, or might call a route handler. Middleware functions typically have three parameters, req, res, and next.  A standard piece of middleware you'll create is the not-found handler, which is invoked when no route handler could be found for the method and path.
+3. Middleware.  Middleware functions do some initial processing on the request.  Sometimes a middleware function checks to see if the request should be sent on to the next piece of middleware in the chain or the route handler.  If not, the middleware itself returns a response to the request.  In other cases, a middleware function may add additional information to the req object, and may also set headers, including sometimes set-cookie headers, in the res object.  Then it calls next(), which might call another middleware function, or might call a route handler. Middleware functions typically have three parameters, req, res, and next.  A standard piece of middleware you'll create is the not-found handler, which runs when no route handler matches.
 
 4. An error handler.  This is at the end of the chain, in case an error occurs.  There is only one error handler, and it takes four parameters, err, req, res, and next, which is how Express knows it is an error handler.
 
@@ -237,7 +243,7 @@ const server = app.listen(port, ()=>{
 });
 ```
 
-Of course, for a real app, the route handlers and middleware functions would not be declared inline.  Suppose one set of route handlers deals with customers, via GET/POST/PATCH/PUT/DELETE requests on all paths that start with `/customers`, and suppose you have another set for `/orders`.  Typically you would have a `./controllers` folder, with a `customerController.js` for all the route handlers for customers and an `orderController.js` for all the route handlers for orders.  Typically also, you would have a `./routes` folder, for modules that create express routers.  An express router is a way of associating a collection of routes with a collecton of route handlers.  You'd also have a middleware folder.  In the mainline code, you might have statements like:
+For a real app, the route handlers and middleware functions would not be declared inline.  Suppose one set of route handlers deals with customers, via GET/POST/PATCH/PUT/DELETE requests on all paths that start with `/customers`, and suppose you have another set for `/orders`.  Typically you would have a `./controllers` folder, with a `customerController.js` for all the route handlers for customers and an `orderController.js` for all the route handlers for orders.  Typically also, you would have a `./routes` folder, for modules that create express routers.  An express router is a way of associating a collection of routes with a collecton of route handlers.  You'd also have a middleware folder.  In the mainline code, you might have statements like:
 
 ```js
 const customerRouter = require("./routes/customer")
