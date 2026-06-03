@@ -2,7 +2,7 @@
 
 ## **Assignment Instructions**
 
-All of the work for this assignment goes into your project.  You will do not use the assignment4 folder.  Instead, you'll make changes to your app.js and to your controllers, routers, and middleware. Before you start, create a new branch called `assignment4` from the main branch.
+All of the work for this assignment goes into your project.  You will not use the assignment4 folder.  Instead, you'll make changes to your app.js and to your controllers, routers, and middleware. Before you start, create a new branch called `assignment4` from the main branch.
 
 ### **The Task Routes**
 
@@ -67,7 +67,7 @@ const taskCounter = (() => {
 })();
 ```
 
-This is a closure.  You are sometimes asked to write a closure in job interviews.  We can use this to generate a unique ID for each task -- but of course, restart the server and you start over.
+This is a closure.  You are sometimes asked to write a closure in job interviews.  We can use this to generate a unique ID for each task -- but restart the server and you start over.
 
 Each of the task objects needs a userId attribute, which records who owns that task.  For the time being, you'll put the user's email in that attribute.
 
@@ -126,13 +126,13 @@ const sanitizedTasks = userTasks.map((task) => {
 
 In the above, you are copying everything except the userId to the new sanitizedTask, and then returning an array of those.
 
-**Hint 2** When you do the update, you **DO** want to mutate the task object in place.  You are doing a patch.  You don't want a complete replacement of the task object.  You use all the values from the body, but you leave any attributes of the task that aren't in the new body unchanged.  There is a spiffy way to do this (after you find the right task object to mutate).
+**Hint 2** When you do the update, you **DO** want to mutate the task object in place.  You are doing a patch.  You don't want a complete replacement of the task object.  You use all the values from the body, but you leave any attributes of the task that aren't in the new body unchanged.  There is a concise way to do this (after you find the right task object to mutate).
 
 ```js
 Object.assign(currentTask, req.body)
 ```
 
-This is a good trick to remember.  But the database will handle this automatically for you when you call an update.  After you mutate the task as above, you **still** have to make a copy that doesn't include the userId, and send that back.
+This pattern is worth remembering.  But the database will handle this automatically for you when you call an update.  After you mutate the task as above, you **still** have to make a copy that doesn't include the userId, and send that back.
 
 ### **Postman Testing**
 
@@ -150,7 +150,7 @@ Run `npm run tdd assignment4` to see if your code works as expected.  Not all th
 
 ### **Validation of User Input**
 
-At present, your app stores whatever you throw at it with Postman.  There is no validation whatsoever.  Let's fix that.  There are various ways to validate user data.  We will eventually use a database access tool called Prisma, which has built-in runtime validation but is very TypeScript-oriented.  So we'll use a different library called Joi.  Install it now using `npm install joi` command. 
+At present, your app your app accepts any data sent to it with Postman.  There is no validation whatsoever.  Let's fix that.  There are various ways to validate user data.  We will eventually use a database access tool called Prisma, which has built-in runtime validation but is very TypeScript-oriented.  So we'll use a different library called Joi.  Install it now using `npm install joi` command. 
 
 Consider a user entry.  You need a name, an email, and a password.  You don't want any leading or trailing spaces.  You can't check whether the email is a real one, but you can check if it complies with the standards for email addresses.  You want to store the email address in lowercase, because you need it to be unique in your data store, so you don't want to deal with case variations.  You don't want trivial, easily guessed passwords.  All of these attributes are required.
 
@@ -180,7 +180,7 @@ const userSchema = Joi.object({
 module.exports = { userSchema };
 ```
 
-You can look at the code and guess what it does.  There are some nice convenience functions,  such as `.email()`, which checks for a syntactically valid email.  The only complicated one is the password.  This is a simple check for trivial passwords.  The password pattern uses a regular expression, and the customized error message explains what is wrong if the password doesn’t meet requirements.
+You can look at the code and to understand what it does.  There are some good convenience functions,  such as `.email()`, which checks for a syntactically valid email.  The only complicated one is the password.  This is a simple check for trivial passwords.  The password pattern uses a regular expression, and the customized error message explains what is wrong if the password doesn’t meet requirements.
 
 Here is the code for taskSchema.js:
 
@@ -218,9 +218,9 @@ Otherwise, validation won't work right.  You then validate `req.body`.  If you g
 
 ### **Storing Only a Hash of the Passwords**
 
-You should never store user passwords.  If your database were ever compromised, your users would be in big trouble, in part because a lot of people reuse passwords, and you would be in big trouble too.
+You should never store user passwords.  If your database were ever compromised, your users would face major security vulnerabilities, especially because many people reuse passwords.
 
-Instead, at user registration, you create a random salt, concatenate the password and the salt, and compute a cryptographically secure hash.  You store the hash plus the salt.  Each user's password has a different salt.  When the user logs on, you get the salt back out, concatenate the password the user provides with the salt, hash that, and compare that with what you've stored.  You need a cryptography routine to do the hashing.  The scrypt algorithm is a good one.   Although bcrypt is still common, it has known weaknesses and is considered now passé.  Scrypt is the old callback style, so you use util.promisify to convert it to promises.  Add the following code to userController.js:
+Instead, at user registration, you create a random salt, concatenate the password and the salt, and compute a cryptographically secure hash.  You store the hash plus the salt.  Each user's password has a different salt.  When the user logs on, you get the salt back out, concatenate the password the user provides with the salt, hash that, and compare that with what you've stored.  You need a cryptography routine to do the hashing.  The scrypt algorithm is a good one.   Although bcrypt is still common, it has known weaknesses and is considered now outdated.  Scrypt is the old callback style, so you use util.promisify to convert it to promises.  Add the following code to userController.js:
 
 ```js
 const crypto = require("crypto");

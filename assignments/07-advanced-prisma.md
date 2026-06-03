@@ -1,7 +1,5 @@
 # Assignment 7: Advanced Prisma ORM Features
 
-> **⚠️ Warning: This is a long assignment that requires implementing multiple advanced Prisma features. Please set aside plenty of time to complete it thoroughly. The tasks build on each other, so make sure you understand each section before moving on.**
-
 ## Learning Objectives
 - Implement eager loading to optimize database queries and eliminate N+1 problems
 - Use groupBy operations for data aggregation and analytics

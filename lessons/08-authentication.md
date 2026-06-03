@@ -2,23 +2,23 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will learn basic concepts underlying authentication in browser based applications.  Students will learn best practices and potential pitfalls for authentication.  Students will learn how to use the basic authentication with passwords and JSON web tokens in cookies for authentication.  Students will also learn how to mitigate other types of security risks.
+**Learning objective**: Students will learn basic concepts underlying authentication in browser based applications.  Students will learn best practices and potential challenges for authentication.  Students will learn how to use the basic authentication with passwords and JSON web tokens in cookies for authentication.  Students will also learn how to mitigate other types of security risks.
 
 **Topics**:
 
 1. What is user authentication, and why is it necessary?
 2. Authentication part 1: Establishing a browser session with a back end.
 3. Authentication part 2: Maintaining the browser session with the back end.
-4. Some potential pitfalls.
+4. Some potential challenges.
 5. NPM packages you need.
 6. Other security problems to address.
 
 
 ## **8.1 What is user authentication, and why is it necessary?**
 
-Often, web applications give access to resources, in particular read and/or write access to data.  Many resources must be protected to ensure that unauthorized entities do not gain access, sometimes to prevent read access of those unauthorized, and always to prevent write access from those unauthorized.  Before any protected operation can be performed, it is necessary to establish the identity of the person or server that is making the request, and to do so in a secure way.  Your application must be secure before you promote it to the Internet.
+Often, web applications give access to resources, in particular read and/or write access to data.  Many resources must be protected to ensure that unauthorized entities do not gain access, sometimes to prevent read access of those unauthorized, and always to prevent write access from those unauthorized.  Before any protected operation can be performed, establish the identity of the person or server that is making the request in a secure way.  Your application must be secure before you promote it to the Internet.
 
-As you know, you have two teensy weensy problems in your application in its current state.
+There are two problems in your application in its current state.
 
 1. Only one user can be logged on at a time.
 2. When one user is logged on, anyone else can get to that user's data.
@@ -49,13 +49,13 @@ We are only going to implement basic authentication. As time permits, you might 
 
 ## **8.3 Authentication part 2: Maintaining the browser session with the back end.**
 
-Once the user is authenticated, they will want to send requests for protected resources.  But, they don't want to enter an ID and password for every request, so they need an established session.  The initial authentication step is performed once per session, although the session typically times out after a while.  Still, each request after the initial authentication must also be authenticated, meaning that a credential must be sent with each and every request.  While multiple approaches exist for initial authentication, only one practical and secure method exists for maintaining browser sessions.
+Once the user is authenticated, they will want to send requests for protected resources.  But, they don't want to enter an ID and password for every request, so they need an established session.  You perform the initial authentication step once per session, although the session typically times out after a while.  Still, each request after the initial authentication must also be authenticated, meaning that a credential must be sent with each and every request.  While multiple approaches exist for initial authentication, only one practical and secure method exists for maintaining browser sessions.
 
 Once the user has proven who they are to the back end, the back end sends a Set-Cookie header for an HttpOnly cookie to the front end.  This is stored by the browser, and the front end sends this cookie as a credential with each subsequent request.  Because it is an HttpOnly cookie, front end JavaScript code has no access to it.  That's a good thing.  If there is a security hole in the front end, as is often the case, and if the credential is accessible from JavaScript, any attacker could capture the credential and do as they please, with all the authorization that the user has.
 
 The front end and back end are sometimes on different hosts.  This makes cookie based security tricky.  The front end won't send a cookie to the back end unless the domain of the cookie matches the domain of the back end. There's a right way and a wrong way to make this happen.
 
-The wrong way: The back end sends a cookie, and sets the domain of the cookie to be the back end's domain.  It also sets the `sameSite: "None"` flag on the cookie.  That makes it a cross-site cookie, and the front end will send it on each subsequent request to the back end domain.  Why is this the wrong way? Cross site cookies cause problems.  In particular, they provide advertisers a way to track the user.  So, people disable this feature of the browser, and over time, browsers will drop support for cress-site cookies altogther.
+The wrong way: The back end sends a cookie, and sets the domain of the cookie to be the back end's domain.  It also sets the `sameSite: "None"` flag on the cookie.  That makes it a cross-site cookie, and the front end will send it on each subsequent request to the back end domain.  Why is this the wrong way? Cross site cookies cause problems.  In particular, they provide advertisers a way to track the user.  So, people disable this feature of the browser, and over time, browsers will drop support for cross-site cookies altogether.
 
 The right way: You register a domain, say `something.tech`.  Then, you configure the front end and back end to run on subdomains of this domain, say `todos.something.tech` and `api.something.tech`.  The back end sets a cookie for the `something.tech` domain, and also sets `sameSite: "Strict"`.  Because the front end and back end are both in `something.tech`, this is not a cross site cookie, and everything works.  Note that you can't use `onrender.com`, even if both the front end and back end are deployed to Render.com, because that domain is spoken for.
 
@@ -65,11 +65,11 @@ Still another way: You don't have to have the back end and front end running on 
 
 We use the cookie flag `sameSite: "Strict"` to limit the access other application components might have to the cookie.  If https is used, we also set `secure: true`.  You typically don't configure https for your back end while you are running it on localhost.
 
-An HttpOnly cookie is the **only** general purpose secure approach for maintaining the authenticated session in a browser application.  An all too common practice is for the back end to send a session token to the front end in the body of a REST request.  The token is then stored in localStorage or sessionStorage for transmission with subsequent requests.  **Such an approach is bad for security.** If there is a security hole anywhere in front end code, the session token could be captured by an attacker and reused.  Despite the risk, storing the credential in localStorage or sessionStorage is not an uncommon practice for existing applications, and there are some measures one can take to reduce the risk, though none of them are bulletproof. Our recommendation is: Do not do it this way.
+An HttpOnly cookie is the **only** general purpose secure approach for maintaining the authenticated session in a browser application.  An all too common practice is for the back end to send a session token to the front end in the body of a REST request.  The token is then stored in localStorage or sessionStorage for transmission with subsequent requests.  **This approach creates security challenges.** If there is a security hole anywhere in front end code, the session token could be captured by an attacker and reused.  Despite the risk, storing the credential in localStorage or sessionStorage is not an uncommon practice for existing applications, and there are some measures one can take to reduce the risk, though none of them are bulletproof. Our recommendation is: Do not do it this way.
 
 How does this fit with distributed authentication?  If, for example, the user is doing sign on with Google, the front end receives the Google authentication token but does not store it.  That token is sent to the back end and the back end sets the HttpOnly cookie.
 
-## **8.4 Some potential pitfalls.**
+## **8.4 Common Challenges**
 
 ### **Cross Site Request Forgery**
 
@@ -81,7 +81,7 @@ Because we are using the Vite proxy in development, and the Vercel rewrite appro
 
 The first line of defense against the CSRF attack is the CORS (Cross Origin Resource Sharing) configuration.  The back end would need the npm CORS package, activated by an app.use() statement, The CORS configuration would include only certain allowed origins and perhaps only certain allowed operations.  While we won't use CORS, you need to learn how it works.
 
-Unfortunately, CORS is not enough.  Some requests can bypass CORS.  One example is a GET request.  This is why you never want to make data changes on the back end in response to a GET!  CSRF attacks are blind -- the attacker has no access to the response -- so GET requests don't matter so much, but even some POST requests can bypass CORS.  Some back ends, if they only accept the "application/json" content type, may rely on CORS to protect against CSRF, and technically that should suffice, but it's best to add the protection described below.  If the back end accepts data that has been posted in a form, the content type is "application/x-www-form-urlencoded", and in this case CSRF protections are essential, as such requests can bypass CORS.
+Unfortunately, CORS is not enough.  Some requests can bypass CORS.  One example is a GET request.  This is why you never want to make data changes on the back end in response to a GET!  CSRF attacks are blind -- the attacker has no access to the response -- so GET requests don't matter so much, but even some POST requests can bypass CORS.  Some back ends only accept the "application/json" content type and may rely on CORS to protect against CSRF. This is technically acceptable, but it's best to add the protection described below.  If the back end accepts data that has been posted in a form, the content type is "application/x-www-form-urlencoded", and in this case CSRF protections are essential, as such requests can bypass CORS.
 
 In any case, we are using the proxy configuration.  That means we don't do CORS, and we have none of the protections that CORS would provide.
 
@@ -89,13 +89,15 @@ In any case, we are using the proxy configuration.  That means we don't do CORS,
 
 The standard way to defeat CSRF attacks is to provide the front end with a securely generated random token, often in the response body returned for the logon.  A copy of this token is stored in the session cookie.  The front end stores this token in localStorage, and includes it in a header with each subsequent POST/PATCH/DELETE request.  When the request is received on the back end, it is checked to make sure the token is present in the header, and that the token in the header matches the one in the cookie.  Ok, wait ... we just said that localStorage is no place for a credential.  Why is this different?  The reason is this: a CSRF attack is external to your application code.  It can cause a cookie to be sent, but it can't get to your localStorage.  On the other hand, if a cross site scripting attack captures the token, it can't do anything with it without having the cookie as well.
 
-### **Pitfalls for the Naive**
+### **Security Challenges**
 
-Naive developers sometimes think that they can deviate from this pattern, using something they invent.  **Don't invent your security approach!** Security is hard.  It is very difficult to get it right.  Follow the best practices established by security experts.
+Some developers deviate from this pattern by creating their own security approach.  **Don't do this.** Security very difficult to get it right.  Follow the best practices established by security experts.
 
-One common naive idea is to configure the front end with some kind of secret that augments the security.  Maybe you want to store a credential in localStorage, so you'll encrypt it first, and you'll configure your front end with an encryption secret.  You know not to put the encryption secret into the code.  You'll put it in an environment variable.  Hah!  
+Another pitfall is configuring the front end with a secret that augments the security.  For example, imagine this insecure scenario:
 
-There is no secure place for the front end to store a secret.  If you have a front end that uses an environment variable, take a look at the sources tab in your browser developer tools.  The value of your environment variable is there for all to see.  **There is no secure place for the front end to store a secret.**
+> A developer wants to store a credential in localStorage, so they encrypt it first, and then configure the front end with an encryption secret. They know not to put the encryption secret into the code, so they put it in an environment variable. 
+
+The problem is that **there is no secure place for the front end to store a secret.**  If you have a front end that uses an environment variable, take a look at the sources tab in your browser developer tools.  The value of your environment variable is there for all to see.
 
 ## **8.5 The NPM Packages You Will Use**
 

@@ -14,7 +14,7 @@
 
 ## **10.1 A React Front End for the API**
 
-In the React course you recently completed, you implemented a todo list.  This application allowed the user to manage a list of todos, which were stored in Airtable.  The application was configured with an Airtable token and a table identifier.  In this class, you create a means for the user to store tasks, each of which could be a todo.  We have created a React front end for the back end you have created.  It is actually ported from a sample React todo list, but it is changed in important ways:
+In the React course you recently completed, you implemented a todo list.  This application allowed the user to manage a list of todos, which were stored in Airtable.  The application was configured with an Airtable token and a table identifier.  In this class, you create a means for the user to store tasks, each of which could be a todo.  We have created a React front end for the back end you have created.  We adapted this from a sample React todo list, with several important changes:
 
 1. Function is added for user registration, logon, and logoff.
 2. Each REST call to access tasks sends a credential, not as a token in the header (which is what happens with Airtable), but by using `credentials: "include"` as an option on the fetch().  This means that the cookie with the JWT that you set in your Node back end will propagate with each REST call for the tasks.
@@ -22,9 +22,9 @@ In the React course you recently completed, you implemented a todo list.  This a
 4. Local storage (see [here](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)) is used to keep track of whether a user is logged on, and the name of that user -- but not(!)  to store the security credential.
 5. Security protections are added, in particular to prevent cross site request forgery.  The CSRF token is stored in local storage when the user authenticates, and is sent as a header with each REST request for tasks.
 
-There are other changes too.  For all that, it still works a lot like the React application you created.  You'll get an opportunity to try out the combination in your assignment.
+Despite these changes, it still works a lot like the React application you created.  You'll get an opportunity to try out the combination in your assignment.
 
-If you were to take a peek, you'd see code like this.  The code below marks a task as complete -- and it's not that different from what you did in your React todo list.
+Here is an example of what the front end code looks like.  The code below marks a task as complete -- and it's not that different from what you did in your React todo list.
 
 ```javascript
       const payload = {
@@ -48,9 +48,7 @@ If you were to take a peek, you'd see code like this.  The code below marks a ta
       }
 ```
 
-Now, it may be tempting to make changes to the React front end, so that it looks nicer or does more stuff.  Well ... don't!  Not that this would be bad, but remember that you are now trying to learn Node.  If you spend time on the front end, as much fun as that is, you will get distracted from what you need to learn about the back end.
-
-In a future iteration of the React class, students will implement a front end that communicates with a Node based back end that is deployed on the Internet, and the React project will include items 1 through 5 above, instead of using Airtable.  Then, in the Node class, they'll build the Node back end for their own front end.
+It may be tempting to make changes to the React front end to make it more clean or complex.  Resist that temptation — for this lesson, the focus is on Node, and the front end will distract from that.
 
 ## **10.2 Issues in Internet Deployment**
 
@@ -66,7 +64,7 @@ You build an application (usually) so that others can use it.  What do you need?
 8. Automated logging and monitoring.
 9. The skills to maintain all of the above.
 
-Whew, a long list! These days, most businesses don't want to sign up for all of this, so they outsource the work to a "cloud" provider.  
+This is a significant set of requirements! Most businesses don't want to do this themselves, so they outsource the work to a "cloud" provider.  
 
 - You can request servers from some provider's data center.  Typically, instead of bare iron, you get a virtual server.  You can deliver a virtual machine image to it, using Docker, Kubernetes, and similar technologies.
 - You can request a service to host your data or to provide storage.
@@ -75,7 +73,7 @@ Whew, a long list! These days, most businesses don't want to sign up for all of 
 - Cloud providers also provide logging and monitoring services.
 - You can leverage a deployment pipeline.  Your build is deployed in a test environment and then propagated to production when the tests pass and/or when you elect to throw the switch.  Deployment pipeline technology includes tools like Jenkins, AWS CodePipeline, Azure Devops, and others.  These are good to learn!
 
-There is a downside to the cloud, which is that you are dependent on your cloud provider.  In particular, they can get to all your data, so you have to trust them.  Technologies exist to protect your data and code from abuse by vulnerabilities or bad actors at your cloud provider, but they are complicated, and require more hardware that you have to own.  Serious leaks have occurred because of security failures by cloud providers.
+There is a downside to the cloud: you are dependent on your cloud provider.  In particular, they can get to all your data, so you have to trust them.  Technologies exist to protect your data and code from abuse by vulnerabilities or bad actors at your cloud provider, but they are complicated, and require more hardware that you have to own.  Serious leaks have occurred because of security failures by cloud providers.
 
 ## **10.3 More Security for Internet Deployment**
 
@@ -97,7 +95,7 @@ This is just an outline.  Explicit steps will be provided in your assignment.
 
 3. You will then run a Prisma command to create the tables you need.
 
-4. You will then run your Node application.  You are trying to see if it works with the new database.  You will test it with Postman and then with the React front end we provide.  Of course, the user and task entries you previously created in your local database will have to be created again in the Neon database.
+4. You will then run your Node application.  You are trying to see if it works with the new database.  You will test it with Postman and then with the React front end we provide.  The user and task entries you previously created in your local database will have to be created again in the Neon database.
 
 5. You will then create a free account on Render.com.
 
@@ -120,15 +118,15 @@ This is just an outline.  Explicit steps will be provided in your assignment.
 
 9. You will then change the configuration of your React front end, and test with that as well.
 
-When you use the Render.com free plan, builds are slow.  Your application goes to sleep if it is idle for a while.  It takes a while for it to come back up.  Be patient ... and don't rely on Render.com for your class demo!
+When you use the Render.com free plan, builds are slow.  Your application goes to sleep if it is idle for a while.  It takes a while for it to come back up.  Note that Render's free plan has slow build times and will put your application to sleep during periods of inactivity. Don't rely on it for your class demo.
 
 ## **10.5 Extra Points to Cover**
 
-Of course, in this introduction to Express, we didn't cover everything.  Here are a few additions.
+In this introduction to Express, we didn't cover everything.  Here are a few additions.
 
 ### **Best Practices for Route Naming**
 
-The same Express server might serve up both a REST API and ordinarly HTML content.  For this reason, it's best to start your REST routes with `/api`.  As your back end evolves, it may be necessary to make changes to add additional capabilities.  Such changes might break the front end applicaitons that call these REST functions.  So, it's best to put a version number in the routes for the APIs.  Net:
+The same Express server might serve up both a REST API and ordinarily HTML content.  For this reason, it's best to start your REST routes with `/api`.  As your back end evolves, it may be necessary to make changes to add additional capabilities.  Such changes might break the front end applications that call these REST functions.  So, it's best to put a version number in the routes for the APIs.  Net:
 
 Instead of:  
 ```
@@ -146,7 +144,7 @@ Don't fix it now -- just be aware that there is a better approach.
 
 The app you have created for your project has a minimal user session, just enough to make authentication work.  In some cases, you need more than that.  For example, if you logon to an eCommerce site, you can assemble a shopping cart of stuff you might want to buy.  Where would that be kept?  This information is kept in the session.  A session identifier, some string that contains an identifier for the user and some random nonce for the current session, is stored in an HttpOnly cookie, perhaps in the JWT.  The session identifier is used to write session information, like, for example, the shopping cart, into a database.  You can use the `express-session` package for this purpose.  You can use a variety of session stores, including MongoDB, PostgreSQL, and Redis.
 
-Redis is an in memory key/value store.  It's not really a database.  You can only read or write individual records based on the key.  Sessions don't need to be persisted as carefully as other data, because sessions are temporary.  On the other hand, a session store should be fast and scalable.  The Redis in memory store, as provided by some cloud provider, is a good choice for sessions.
+Redis is an in memory key/value store.  It's not a database.  You can only read or write individual records based on the key.  Sessions don't need to be persisted as carefully as other data, because sessions are temporary.  On the other hand, a session store should be fast and scalable.  The Redis in memory store, as provided by some cloud provider, is a good choice for sessions.
 
 ### **Storage**
 
@@ -174,7 +172,7 @@ Review the rubric for the class final project.  Once you complete assignment 10,
 
 1. Yes, you can have a local database and local web server, within limits.  For example, if you have a LAN at home, other machines on that LAN could access your database and/or web server, using the IP address your laptop has.  But this isn't very practical, as it is limited to your home LAN.  The problem is that you don't have a public IP address -- and if you did, you'd be at risk for various attacks.  It is possible to set up a virtual private network (VPN) that you share with machines elsewhere, and to access non-public IP addresses over this network.  The VPN can use the regular Internet as its transport, setting up encrypted channels.  You'll use VPNs in most corporate environments.
 
-2. You need automated deployment because you have to maintain the service you create, which means you are continually making changes and redeploying it.  If you don't automate the steps, including automated testing, you'll break it for sure.
+2. You need automated deployment because you have to maintain the service you create, which means you are continually making changes and redeploying it.  Without automated steps, including testing, errors in deployment are much more likely.
 
 3. Logs identify problems.  Monitoring tells you about these problems.  Your system could crash, or fail because of a bug, or get hacked or misused, and you want to know about it promptly.
 

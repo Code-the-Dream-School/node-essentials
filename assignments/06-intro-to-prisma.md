@@ -60,7 +60,7 @@ datasource db {
 }
 ```
 
-**Important** You must also erase the `prisma.config.ts` file.  That is an artifact of the latest Prisma release, something that I think they screwed up.
+**Important** You must also erase the `prisma.config.ts` file. This is an artifact of the latest Prisma release that needs to be removed.
 
 Now you can generate the client, using this command:
 
@@ -99,7 +99,7 @@ model tasks {
 }
 ```
 
-Do you see how the model stanzas map to the SQL you used in part 1?  Pay particular attention to the way the relation between tasks and users is specified.  Also, notice the `@@unique`, which describes the additional index you need.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
+Notice how the model stanzas map to the SQL you used in part 1.  Pay particular attention to the way the relation between tasks and users is specified.  Also, notice the `@@unique`, which describes the additional index you need.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
 
 ```
 // This is your Prisma schema file
@@ -165,7 +165,7 @@ Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable
 
 **Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
 
-From this point on, if you make a schema change, you change the model, do an `npx prisma migrate dev`, and then, for the test database, do the corresponding `npx prisma migrate deploy`.  You do not change the schema with ordinary SQL.  You'll use the `deploy` also with the production database you create for Internet deployment of your app in lesson 10.  You never use a schema `reset` with the production database, for the obvious reason that it deletes all the data.
+From this point on, if you make a schema change, you change the model, do an `npx prisma migrate dev`, and then, for the test database, do the corresponding `npx prisma migrate deploy`.  You do not change the schema with ordinary SQL.  You'll use the `deploy` also with the production database you create for Internet deployment of your app in lesson 10.  You never use a schema `reset` with the production database - it deletes all the data.
 
 ### 2. Create Prisma Database Connection
 
@@ -285,7 +285,7 @@ const tasks = await prisma.task.findMany({
 
 #### d. Fix the Task Create Method
 
-This one's kind of like register.  You want to create the task with a userId of global.user_id.
+This method follows the same pattern as register.  Create the task with a userId of global.user_id.
 
 #### e. Fix Task Update
 

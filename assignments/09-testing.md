@@ -38,7 +38,7 @@ Create a `test` directory inside of the `node-homework` folder.  Then update you
 ```
 **Note: This way of setting the NODE_ENV environment variable works on Windows Native, but only if you are running the test under Git Bash.  If you are developing in Windows Native, you should use Git Bash for all development, and you should configure VSCode so that Git Bash is the default terminal program.**
 
-This configuration runs the tests you create, but not the TDD provided with the course.  You can now do `npm run test` but it won't do anything, of course, because you don't have any tests.
+This configuration runs the tests you create, but not the TDD provided with the course.  You can now do `npm run test` but it won't do anything because you don't have any tests.
 
 Within the tests directory, create a file called `validation.test.js`.  All of your test files should end with `.test.js` so that `jest` will find them.  This test file is for testing your validation schema. Accordingly, it should start:
 
@@ -73,7 +73,7 @@ console.log("got here");
 ({error, value } = userSchema.validate(object2))
 ```
 
-This is a case where you **need** that semicolon.  If you already knew about this, forgive the digression.
+This is a case where you **need** that semicolon.
 
 ## **First Test**
 
@@ -234,7 +234,7 @@ afterAll(() => {
 })
 ```
 
-Clearly you would not want to do this step unless you are pointing to the test database.  When you pass a function to `beforeAll()` or `it()` or other jest functions, you can declare it as async so that you can use await.  It is important to do the prisma.$disconnect().  If not, Jest may not terminate cleanly, and you might have a zombie process.
+You would not want to do this step unless you are pointing to the test database.  When you pass a function to `beforeAll()` or `it()` or other jest functions, you can declare it as async so that you can use await.  It is important to do the prisma.$disconnect().  If not, Jest may not terminate cleanly, and you might have a zombie process.
 
 Why do we need the user records? Each task record has a foreign key, the userId.  If this is not provided or if it doesn't correspond to a real user record, you get a constraint violation from the database.  Of course, the values provided for `hashedPassword` are not actually hashed passwords, so it would not be possible to logon with either of these, but one can associate task records with each.
 
@@ -307,7 +307,11 @@ describe("testing task creation", () => {
 })
 ```
 
-OK, all looks good.  This is a valid task object for creation.  So, run the test.  Whoa! That failed.  Have a look at the log to figure out why.  What do you see?  Ah, of course, `req.user` is not set!  In the app, task creation is behind the jwt middleware, and that is what sets up req.user.  We aren't going through that route when the controller is invoked directly.  So, we still have a valid test, but we need to rename it and catch the error, as follows:
+Now that we have a valid task object for creation, let's run the test.
+
+You will notice that the test fails. If you check the logs to investigate why, you can see that req.user is undefined. In the actual application, task creation is protected by JWT middleware, which is responsible for setting up req.user. Because our test invokes the controller directly, it bypasses that middleware.
+
+This is still a valuable test scenario, but we need to update it to expect and catch this specific error. Let's rename the test and adjust our code as follows:
 
 ```js
    it("14. cant create a task without a user id", async () => {
@@ -324,7 +328,9 @@ OK, all looks good.  This is a valid task object for creation.  So, run the test
   });
 ```
 
-Now run the test again.  Ah, that's better! But, the test case still isn't right.  If the error is not thrown, the test case would not identify the problem.  You definitely want the error to be thrown, and the test should make sure that it is.  This is done with the `expect.assertions(1)` method.  In this case, we expect that one assertion, meaning one expect() statement, will be satisfied, and we want the test to fail if that doesn't happen.  So, add that statement.  It should be before your try block.
+If you run the test now, it will pass. However, if the code under test stops throwing an error in the future, the catch block will be skipped, and the test will still report a success.
+
+To ensure the test explicitly verifies the error, add expect.assertions(1) right before your try block. This tells Jest that the test must execute exactly one expect() statement (the one inside your catch block) to be considered a true pass.
 
 ## **More Tests of the Tasks Controller**
 
@@ -415,7 +421,7 @@ Create another stanza for testing the update and delete of tasks.
 
 `32.` Retrieving user1's tasks now returns a 404.
 
-Lots of tests, eh?  A complicated project will often have a test suite of thousands of test cases.  This example is to show you all the things you need to test in a typical test suite.
+These are many tests, but complicated project will often have a test suite of thousands of test cases.  This example is to show you all the things you need to test in a typical test suite.
 
 Run the tests, and make sure all of them pass.
 
@@ -647,7 +653,7 @@ describe("register a user ", () => {
 })
 ```
 
-We are using a particular async/await style here, which is what I recommend.  You can instead do things like:
+We are using a particular async/await style here, which is what we recommend.  You can instead do things like:
 
 ```js
 it('should access a restricted page after sign-in', function (done) {
@@ -658,7 +664,7 @@ it('should access a restricted page after sign-in', function (done) {
 });
 ```
 
-But, that's old style: not recommended!
+This older callback style is not recommended.
 
 After the await for the agent completes, you get a res object.  This differs a little from the mock res for the controller tests.  You have:
 

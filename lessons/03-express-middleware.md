@@ -2,7 +2,7 @@
 
 ## **Lesson Overview**
 
-**Learning objective**:  Students will get some foundational knowledge of Internet protocols, REST APIs, and JSON.  Students will learn more about what Express is and how it augments Node to make an easy and comprehensive framework for the development of web applications. Students will learn the basic elements of an Express application and the purpose of each.
+**Learning objective**:  Students will get some foundational knowledge of Internet protocols, REST APIs, and JSON.  Students will learn more about what Express is and how it augments Node to make a comprehensive framework for the development of web applications. Students will learn the basic elements of an Express application and the purpose of each.
 
 **Topics**
 
@@ -17,15 +17,13 @@
 
 ## **3.1 Review: What is Express**
 
-As we have seen, all of the elements needed to create a web application are provided by Node, including network API access, the HTTP server, event handlers, streams, etc.  Express assembles these in an easy to use framework, where the flow of control is easily understood and where each of the elements is compact and easily created. Express is very widely used, and as a result, it has a comprehensive ecosystem of additional plug-in packages that facilitate data exchange, HTTP request parsing, and the construction of HTTP responses for the applications you create.  But, to use it effectively, you need to understand the protocols and data flows involved, so this lesson describes them.
+As we have seen, all of the elements needed to create a web application are provided by Node, including network API access, the HTTP server, event handlers, streams, etc.  Express assembles these in a framework where control flow is clear and each of the elements is compact and easily created. Express is very widely-used and has a comprehensive ecosystem of additional plug-in packages that facilitate data exchange, HTTP request parsing, and the construction of HTTP responses for the applications you create.  But, to use it effectively, you need to understand the protocols and data flows involved, so this lesson describes them.
 
 ## **3.2 Internet Basics**
 
-All Internet traffic is based on layers of protocols.  The Internet runs on IP: Internet Protocol.  When data is sent over the Internet, it is broken up into packets.  Each packet has a source address, a destination address, a protocol and a port.  The addresses are four part numbers like 9.28.147.56.  The protocol is also a number, indicating what kind of packet it is, and the port is also a number, which endpoints use to figure out which process on a machine should get the packet.  A network of routers figures out where the destination machine is and forwards the packet.  
+All Internet traffic is based on layers of protocols.  The Internet runs on IP: Internet Protocol.  Routers break data into packets and send them across the Internet.  Each packet has a source address, a destination address, a protocol and a port.  The addresses are four part numbers like 9.28.147.56.  The protocol is also a number, indicating what kind of packet it is, and the port is also a number, which endpoints use to figure out which process on a machine should get the packet.  A network of routers figures out where the destination machine is and forwards the packet.  
 
 For REST, you will use a protocol on top of IP called TCP, which stands for Transmission Control Protocol.  TCP has reliable connections, where "reliable" means that each TCP endpoint sends acknowledgements when a packet arrives, and if the acknowledgement is slow in arriving, the source machine sends the packet again.  Retries continue until the acknowledgement arrives or a timeout occurs.  TCP connections have a server, which listens for connection requests, and a client, which initiates them.  Your browser is a client.  Servers and clients communicate over TCP using a programming interface called sockets, but sockets are just a programming interface of the operating system. Servers typically have a DNS name, like www.widgets.com.  DNS stands for Domain Name System, and a network of domain name servers keep track of the names so that each endpoint can look them up.  TCP connections can be augmented with SSL, which stands for Secure Sockets Layer.  There are two advantages to SSL.  First, all the data sent by either end of the connection is encrypted so that no one can listen in.  Second, when the SSL connection is established, the server proves, by means of a cryptographic exchange, that it really is www.widgets.com, and not some impostor.
-
-Remember all of this.  It might come up during trivia night at your local bar.
 
 ## **3.3 HTTP**
 
@@ -71,7 +69,7 @@ The browser also keeps track of cookies, which are key-value pairs.  These are s
 
 ## **3.4 REST and JSON**
 
-REST stands for Representational State Transfer, which is a pretty opaque name for a standard.  What it means is that HTTP requests and responses are exchanged, and management of the state of the conversation and the security governing the exchange is not a part of the REST protocol itself.
+REST stands for Representational State Transfer, which is an indirect name for a standard.  What it means is that HTTP requests and responses are exchanged, and management of the state of the conversation and the security governing the exchange is not a part of the REST protocol itself.
 
 JSON stands for JavaScript Object Notation.  You need to know JSON.  Here is a [video introduction to JSON](https://www.youtube.com/watch?v=iiADhChRriM). Below is a summary.
 
@@ -124,7 +122,7 @@ const anObject = JSON.parse(aJSONString);  // convert from a JSON string to a Ja
 const aJSONString = JSON.stringify(anObject);  // convert from a JavaScript object to a JSON string.
 ```
 
-Of course, not all JavaScript objects can be converted to JSON.  If the object contains functions, for example, they are omitted from the resulting JSON string, and this also happens with other JavaScript types.
+Not all JavaScript objects can be converted to JSON.  If the object contains functions, for example, they are omitted from the resulting JSON string, and this also happens with other JavaScript types.
 
 Binary objects like JPEGs are never sent in JSON.  You can still do a REST request for these datatypes, but you use a different content type.
 
@@ -136,11 +134,11 @@ For each HTTP request sent to a server, there must be exactly one response.  If 
 
 Associated with each route in Express is a route handler, the function that Express calls to interpret the request and send back the response.  Route handlers may retrieve data and send it back to the caller. Or, they may store, modify, or delete data, and report the success or failure to the caller.  Or, they may manage the session state of the caller, as would happen, for example, with a logon.  The data accessed by route handlers may be in a database, or it may be accessed via some network request.  When sending the response, a route handler might send plain text, HTML, or JSON, or any number of other content types.  A route handler must either send a response or call the error handler to send a response.  Otherwise the request from the caller will wait until timeout.
 
-Route handlers and middleware functions frequently do asynchronous operations, often for database access.  While the async request is being processed, other requests may come to the server, and they are dispatched as usual.  Route handlers and middleware may be declared as async, so that the async/await style of programming can be used.  These functions don't return a value of interest -- the interesting stuff is in the response, not the return value.
+Route handlers and middleware functions frequently do asynchronous operations, often for database access.  While Node processes the async request, other requests may come to the server, and they are dispatched as usual.  Route handlers and middleware may be declared as async, so that the async/await style of programming can be used.  These functions don't return a value of interest -- the response is what matters, not the return value.
 
 ### **Understanding Express Request Processing**
 
-Before diving into middleware details, it's important to understand how Express processes requests. Every request goes through a **middleware chain** - a series of functions that execute in a specific order:
+Every request goes through a **middleware chain** - a series of functions that execute in a specific order:
 
 ```
 1. Request arrives
@@ -163,7 +161,7 @@ Let's sum up common characteristics of middleware functions and response handler
 
 ### **Understanding the Middleware Chain**
 
-Express processes requests through a **middleware chain** - a series of functions that execute in the order they are defined. Understanding this execution order is crucial for building effective Express applications.
+Express processes requests through a **middleware chain** - a series of functions that execute in the order they are defined. Execution order determines how Express handles each request.
 
 #### **Middleware Chain Execution Order**
 
@@ -282,7 +280,7 @@ The res object has the following methods:
 
 ## **3.8 Built-in vs. Custom Middleware**
 
-Understanding the difference between built-in and custom middleware is crucial for building effective Express applications.  The following sections give several examples for illustration, but you don't need to put them in your code at this time.
+The following sections give several examples of the difference between built-in and custom middleware. You don't need to put them in your code - these are for illustration
 
 ### **Built-in Middleware**
 
