@@ -23,7 +23,7 @@ The [SQL section of W3Schools](https://www.w3schools.com/sql/default.asp) is a g
 
 Within `sqlcommand`, practice running various SQL statements: SELECT, INSERT, UPDATE, DELETE, BEGIN, COMMIT, ROLLBACK. Your practice SQL statements should also include statements that use JOIN, GROUP BY, ORDER BY, HAVING, SUM, COUNT, etc. Continue practicing until you feel confident in your SQL skills. Remember that you can reload the database as needed. Also, practice writing subqueries as well. Then proceed to the following tasks.
 
-**Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until the full query works correctly. If you run into problems, ask for assistance from a mentor or via the Slack channel. If SQL is new to you, there is plenty to learn!
+**Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until the full query works correctly. If you run into problems, ask for assistance from a mentor or via the Slack channel. If SQL is new to you, take your time with this section.
 
 ### **Task 1: Find the total price of each of the first 5 orders, ordered by order_id.**
 
@@ -153,7 +153,7 @@ sudo service start postgresql
 
 For Windows, you open the Windows Services panel and start the postgresql service if it is not running.
 
-Remember these steps!  If your app quits running, perhaps your database service is not running!
+Remember these steps.  If your app quits running, perhaps your database service is not running!
 
 #### c. Create Database Tables
 

@@ -1,6 +1,6 @@
 # **Assignment 10 — A Front End, and Deployment to the Internet**
 
-## **Task 1: Adding ReCaptcha Support**
+## **Task 1: Adding reCAPTCHA Support**
 
 Before you start, remember to create an assignment10 git branch for your node-homework repository.
 
@@ -24,15 +24,15 @@ For this task, you have to have a Google gmail account. Then do the following:
    ```
    Your back end doesn't use the site key, but you'll need it for a subsequent step.
 
-7. Create a hard to guess secret, just as you did for the JWT_SECRET.  Add it to your .env file as RECAPTCHA_BYPASS.  This is for testing.  You can't get a real reCaptcha token in Postman or in your Jest tests.
+7. Create a hard to guess secret, just as you did for the JWT_SECRET.  Add it to your .env file as RECAPTCHA_BYPASS.  This is for testing.  You can't get a real reCAPTCHA token in Postman or in your Jest tests.
 
-8. Add additional logic to your `userController.js` for the register method.  You need to check if you received a reCaptcha token, and if so, whether it is valid.  The front end has a Google widget with the "I'm not a robot." prompt.  That widget tracks mouse movement and click speeds and the like, and builds up information in a token.  Then the front end sends the token to the back end in the body of the post. If the back end receives this token, you need to see if it is good.  This is done using a `fetch()` to a Google back end.  Hmm, we haven't used `fetch()` on the Node side yet, but it works there just as it does in browser side JavaScript.  (You can also use libraries like Axios, but we'll use `fetch()`.)  The fetch might fail, in which case the error is thrown to the error handler.  If the fetch succeeds, it will tell you whether the token is good.
+8. Add additional logic to your `userController.js` for the register method.  You need to check if you received a reCAPTCHA token, and if so, whether it is valid.  The front end has a Google widget with the "I'm not a robot." prompt.  That widget tracks mouse movement and click speeds and the like, and builds up information in a token.  Then the front end sends the token to the back end in the body of the post. If the back end receives this token, you need to see if it is good.  This is done using a `fetch()` to a Google back end.  Hmm, we haven't used `fetch()` on the Node side yet, but it works there just as it does in browser side JavaScript.  (You can also use libraries like Axios, but we'll use `fetch()`.)  The fetch might fail, in which case the error is thrown to the error handler.  If the fetch succeeds, it will tell you whether the token is good.
 
     You must also change `app.js`.  The line for the json parser currently reads:
     ```js
     app.use(express.json({ limit: "1kb" }));
     ```
-    and you need to change that to "1mb" or something -- the recapcha token is bigger than 1k.
+    and you need to change that to "1mb" or something -- the recapcha token is bigger than 1KB.
 
 9. In the test environment (Postman or Jest) you can't run the Google widget, so you can't generate a real token.  When testing in Postman or Jest you instead put the RECAPTCHA_BYPASS value in the "X-Recaptcha-Test" header.  If you don't receive a token in the body of the request, you check whether the RECAPTCHA_BYPASS environment variable is set.  If it is and it matches what is in the header, you proceed as if you got a good token.
 
@@ -70,13 +70,13 @@ Here's the code you'll need to add to the register method, just before userSchem
   if (!isPerson) {
     return res
       .status(StatusCodes.BAD_REQUEST)
-      .json({ message: "We can't tell if you're a person or a bot." });
+      .json({ message: "Bot verification failed. Please complete the reCAPTCHA." });
   }
 ```
 
 10. Run `npm run tdd assignment10` to see if you have this working.
 
-11. Try testing a register request with Postman.  Of course it will fail.  Change the request to include the RECAPTCHA_BYPASS in the "X-Recaptcha-Test" header, and it should work.
+11. Try testing a register request with Postman.  It will fail.  Change the request to include the RECAPTCHA_BYPASS in the "X-Recaptcha-Test" header, and it should work.
 
 12. Try `npm run test`.  This runs your tests from assignment 9.  Some of them will fail.  Why?  Optional: Fix your tests so that they complete correctly, by adding in the header you need.
 
@@ -95,7 +95,7 @@ For this step, create a new terminal session.  Make sure that your active direct
    VITE_RECAPTCHA_SITE_KEY=gobbledygook
    VITE_GOOGLE_CLIENT_ID="174295933149-09i1it2go1ssjpqtqam9vdm1pj257aqu.apps.googleusercontent.com"
    ```
-   The site key is the one that you saved in a comment in your node-homework .env file.  Have a look at the `vite.config.js` file.  It reroutes all requests for "/api" to the address specified in `VITE_TARGET`.  `VITE_BASE_URL` is kind of an artifact.  You have to set it to `""`, but it will be eliminated in the future.  VITE_GOOGLE_CLIENT_ID is also an artifact.  You have to set it in order for the React front end to come up, but Google logon won't work as it is not enabled on your back end app.  Note also that there is a sample back end on Digital Ocean.  You can access it using the values in `.env.local.sample`.
+   The site key is the one that you saved in a comment in your node-homework .env file.  Have a look at the `vite.config.js` file.  It reroutes all requests for "/api" to the address specified in `VITE_TARGET`.  `VITE_BASE_URL` is an artifact of the current configuration.  You have to set it to `""`, but it will be eliminated in the future.  VITE_GOOGLE_CLIENT_ID is also an artifact.  You have to set it in order for the React front end to come up, but Google logon won't work as it is not enabled on your back end app.  Note also that there is a sample back end on Digital Ocean.  You can access it using the values in `.env.local.sample`.
 4. You need one terminal session for the front end and one for the back end.  In the terminal session for the back end, go to the node-homework folder and start your app.  In the terminal session for the front end (the one where you are in node-essentials-front-end) type
    ```bash
    npm run dev
@@ -123,7 +123,7 @@ You are going to deploy your back end to the cloud.  An application in the cloud
 
    This command creates the tables your app needs in the Neon database, according to the schema in your Prisma schema file.
 
-5.  Start up your app.  Test it with Postman.  Of course, as you are using a new database, the user entries you created with register are not present yet, nor are any task entries.  So, create new ones.  Everything should work as before.  Then try it with the sample front end.  Everything should work as before.
+5.  Start up your app.  Test it with Postman.  As you are using a new database, the user entries you created with register are not present yet, nor are any task entries.  So, create new ones.  Everything should work as before.  Then try it with the sample front end.  Everything should work as before.
 
 ## **Task 4: Deploying Your Back End**
 
@@ -134,7 +134,7 @@ You are going to deploy your back end to the cloud.  An application in the cloud
 3. Configure your web service:
 
     1. Select public Git repository, and give the URL of your node-homework repository, and click Connect.
-    2. Use all the default values, except for the ones below.  You could try to change the name, which will default to node-homework-x, where x is some number, but of course, you have to specify a name that no one else is using.
+    2. Use all the default values, except for the ones below.  You could try to change the name, which will default to node-homework-x, where x is some number, but you have to specify a name that no one else is using.
     3. For Branch, use assignment10. **Note: for your final project, you should switch this to the main branch, but your deployment for this lesson requires the code changes of the assignment10 branch.**
     4. For Build Command, use: `npm install --production && npx prisma migrate deploy` .  This installs the packages you need (but not the ones that are used only for development and test).  It also makes sure that your database schema is current.
     5. For Run Command, use: `npm start`
@@ -142,15 +142,11 @@ You are going to deploy your back end to the cloud.  An application in the cloud
     7. Make sure the instance type is set to Free.
     8. Configure your environment variables.  Your `.env` file isn't in Github, so this is how you get your secrets into the Render configuration.  You can use `Add from .env` to copy from your existing .env file.  The ones you need are the DATABASE_URL, the JWT_SECRET, the RECAPTCHA_SECRET, and, for testing, the RECAPTCHA_BYPASS.
 
-4. Click on Deploy Web Service.
+4. Click on Deploy Web Service. Build and deploy are slow on the free plan — this may take several minutes.
 
-5. Wait.
+5. A log will convey the progress.  You might see errors, indicating something that you need to fix.
 
-6. Wait some more.  The build and deploy steps are slow on the Render free plan.  You have to be patient.
-
-7. A log will convey the progress.  You might see errors, indicating something that you need to fix.
-
-8. Eventually it will say that you are live, and give you the URL.  Click on that URL. You'll get a 404, because the `/` route is not part of your project, but this way you know it is working.
+6. Eventually it will say that you are live, and give you the URL.  Click on that URL. You'll get a 404, because the `/` route is not part of your project, but this way you know it is working.
 
 Note 1: Because you are running a free service, it will go to sleep after it idles for a while.  It will wake up when a request is received, but the restart takes a few minutes each time.
 

@@ -2,7 +2,7 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will learn how to start a Node project, and how to work on a Node project an a team, although they will not perform these steps at this time. Students will explore various ideas for additional functions that may be added to the class final project.
+**Learning objective**: Students will learn how to start a Node project, and how to work on a Node project on a team, although they will not perform these steps at this time. Students will explore various ideas for additional functions that may be added to the class final project.
 
 **Topics**:
 
@@ -10,17 +10,17 @@
 2. Working on a Project as a Team
 3. Enhancement Ideas for your Node Back End
 
-Following successful completion of class, you may begin a practicum. The practicum will involve more practice with the skills you have learned in the Node and React classes, but it will also involve creating your own project from the beginning, and learning and practicing the special procedures when you work as a team on shared code. You'll learn more of the steps when you start the practicum, but they are described in outline below. **You do not need to do any of these procedures now,** but please read about them.
+Following successful completion of class, you may begin a practicum. The practicum will involve more practice with the skills you have learned in the Node and React classes, but it will also involve creating your own project from the beginning, and learning and practicing the special procedures when you work as a team on shared code. You'll learn more of the steps when you start the practicum, but they are described in outline below. **Don't do any of these procedures now,** but please read about them.
 
 Then, go to the section below on enhancement ideas. If you have completed all the assignments up to now, you have a working final project, but if your final project is to stand out, you should try to add one or several of the enhancements suggested below, or perhaps one or more other enhancements you think of.
 
 ## **11.1 How to Begin Your Own Node Project**
 
-You began this project by cloning the node-homework repository. What if you want to create your own Node project? You don't need to do it now, but, for reference, here are steps you might use in the future. Of course, different people do this in various ways.
+You began this project by cloning the node-homework repository. What if you want to create your own Node project? You don't need to do it now, but, for reference, here are steps you might use in the future:
 
 1. Create a repository on Github. You use the plus button on the upper right of the Github page. Give it a title, choose a visibility, give it a README, and perhaps give it a license. Copy the URL for the newly created repository to your clipboard.
 
-2. Git clone the repository to your laptop. Do not do the clone from within another Git repository. Nested repositories are a mess.
+2. Git clone the repository to your laptop. Do not do the clone from within another Git repository. Nested repositories can cause version control conflicts.
 
 3. Change to the directory created when you cloned. Start VSCode. Create a .gitignore, typically with these files, but sometimes with others as well:
 
@@ -33,7 +33,7 @@ You began this project by cloning the node-homework repository. What if you want
 
 4. Run "npm init". You can take the defaults, but you can change them as well.
 
-5. Do an npm install of the packages you know you will need. Of course, you will probably add to this list over time. Have a look at the packages you've accumulated for node-homework, as listed in package.json. These are often useful for other projects. Remember to use `--save-dev` for those packages that are only needed in development.
+5. Do an npm install of the packages you know you will need. You will probably add to this list over time. Have a look at the packages you've accumulated for node-homework, as listed in package.json. These are often useful for other projects. Remember to use `--save-dev` for those packages that are only needed in development.
 
 6. Do a git add and commit of what you've done so far. Then push it to your Github repository. You still have only the main branch.
 
@@ -48,7 +48,7 @@ Most projects involve multiple developers, all of whom contribute code to the sa
 1. The repository README, or perhaps another file called CONTRIBUTING.md, must contain some key information:
    - What the project is intended to do
    - What prerequisites must be installed. In your case, they were Node, NPM, and Postgres.
-   - How to set up the project to do development: Other team members will clone the repository and do an NPM install. They will need instructions on how to create a `.env` file. (Of course the instructions can't disclose the secrets.) They will need instructions on how to configure prerequisites. In your case, you created Postgres databases. They will need instructions on other build steps. In your case, this was performing a Prisma migration to load the schema.
+   - How to set up the project to do development: Other team members will clone the repository and do an NPM install. They will need instructions on how to create a `.env` file. (the instructions can't disclose the secrets.) They will need instructions on how to configure prerequisites. In your case, you created Postgres databases. They will need instructions on other build steps. In your case, this was performing a Prisma migration to load the schema.
 
 2. In a team environment, each pull request must be reviewed by one or several team members before it can be merged. The online repository must be configured to enforce that rule, and may have other rules and workflow.
 
@@ -69,11 +69,11 @@ Most projects involve multiple developers, all of whom contribute code to the sa
 
 As part of the Rubric for the Final Project, we ask you to add something extra. Here are some ideas on things to add. This is not an exhaustive list. You may think of other things you'd like to add instead. We do ask that you make changes only to the back end, and not to the React front end. This is so that you don't get distracted writing React code when you need to focus on Node, Express, and SQL. For the items listed in this lesson, you don't have to build them according to the approach described. Also, these are just outlines -- you'll have to figure out the exact steps yourself.
 
-Don't try to do too much! Just one or two of the ideas below, or something else you think of, should suffice.
+You don't need to implement all of these — one or two additions, or an idea of your own, is sufficient.
 
 For most of these ideas, you'll need to modify the database schema using Prisma. You'll also add additional routes or parameters to existing routes. You then test with Postman, as (except for the Oauth idea), the front end doesn't support the additional function you add. Be careful about authorization for any routes you add! You don't want one user to be able to do something to records belonging to a different user.
 
-An extra for the extra: When you add a function, consider creating a Jest unit test for the function that you add.
+Optional: When you add a function, consider creating a Jest unit test for the function that you add.
 
 All changes should be in a lesson11 branch. You will submit your assignment as usual -- but see the assignment instructions as there are a couple of extra steps. You can show what you add during your presentation.
 
@@ -119,7 +119,7 @@ User is now authenticated in your app
 
 2. You need to use a Google provided library on the back end, which is google-auth-library. This provides a way to send the authorization code to Google, so that if it is valid, identity information about the user is returned, including a name and email address.
 
-3. Once the user is authenticated, you need to have a record in the database corresponding to that user. See if you have a database record for that user. If not, create one. As the hashedPassword field is mandatory, so you'll have to put something bogus in that. Once you've found or created the user record, set the JWT cookie, and return the user's name and a csrfToken in the response to the front end. You can test this one with the front end, but it would be difficult to test with Postman or Jest.
+3. Once the user is authenticated, you need to have a record in the database corresponding to that user. See if you have a database record for that user. If not, create one. Since the hashedPassword field is required, you can store a placeholder value for OAuth users. Once you've found or created the user record, set the JWT cookie, and return the user's name and a csrfToken in the response to the front end. You can test this one with the front end, but it would be difficult to test with Postman or Jest.
 
 ### **11.3.2 Todos in Folders**
 
@@ -159,4 +159,4 @@ You could add a backlog table. Each entry would be the title for a task, along w
 
 ---
 
-These are some ideas. Don't try to do them all, just one or two as your schedule permits, or do some other idea that you come up with. Keep it simple!
+Focus on one or two ideas, or pursue something else that interests you.

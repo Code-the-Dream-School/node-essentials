@@ -26,19 +26,19 @@ Whenever data is stored or changed, your API should verify the new or updated re
 
 Eventually (Lesson 6) you'll use a package called Prisma for data access.  Prisma can do data validation, so that it occurs automatically with the data access.  However, validation in Prisma is configured using TypeScript.  This class does not use TypeScript, so we'll use another data validation tool called Joi.  Some amount of data transformation may occur at the validation step, such as converting emails to lower case and trimming leading and trailing blanks.  Joi does that as well.
 
- Joi acts as your first line of defense by filtering out malicious data before it reaches your application. It prevents SQL injection by ensuring strings are properly formatted, blocks XSS attacks by validating and sanitizing input, and stops oversized requests that could crash your server. Joi's built-in methods like `.trim()`, `.escape()`, and length limits automatically clean and validate data, making your app much more secure.
+ Joi acts as your first line of defense by filtering out malicious data before it reaches your application. It prevents SQL injection by ensuring strings are properly formatted, blocks XSS (Cross-site scripting) attacks by validating and sanitizing input, and stops oversized requests that could crash your server. Joi's built-in methods like `.trim()`, `.escape()`, and length limits automatically clean and validate data, making your app much more secure.
 
 Validation can also help with one security problem.  You do not want users to use trivial passwords.  The password checking you'll do is not quite sufficient to protect against that, but it does help.  In a production application, you could use an npm package like `check-password-strength`.
 
 ## **4.3 Hashing Passwords**
 
-Passwords should never be stored in the database, as they are not needed for this authentication. If your database were compromised, or perhaps if an ill-behaved application administrator has a peek at the passwords, you have created a security exposure, which is a problem for the user, and potentially a legal problem for you.
+Never store passwords in the database — you don't need them for authentication. If your database were compromised, or perhaps if an ill-behaved application administrator has a peek at the passwords, you have created a security exposure, which is a problem for the user, and potentially a legal problem for you.
 
 Instead, you hash the password and store the hash.  When the user sends a logon request, you hash the password the user sends, and compare that with what is stored.  If you get a match, the user is authenticated.
 
 When hashing the password, you should adhere to the following rules:
 
-1. Use a publicly available hashing algorithm and code.  Use one that is current and believed to be strong.  Never invent your own cryptography!  That is **extremely hard** to get right.  Cryptographic algorithms are invented by mathematicians with specialized skills, and each invented algorithm goes through an extensive period of public review by other such geeks, with extensive testing.  You can't match that.  Even so, weaknesses are periodically discovered in widely used algorithms, at which time they must be replaced.  OWASP, the Open Worldwide Application Security Project, reports that cryptographic weakness is a frequent cause of security exposures.  And, just as you shouldn't invent cryptography, you also shouldn't write the code that implements a public algorithm.  It is too easy to make a mistake.  The publicly available npm packages are what you should use.
+1. Use a publicly available hashing algorithm and code.  Use one that is current and believed to be strong.  Never invent your own cryptography: that is extremely hard to get right.  Cryptographic algorithms are invented by mathematicians with specialized skills, and each invented algorithm goes through an extensive period of public review by specialists, with extensive testing.  You can't match that.  Even so, weaknesses are periodically discovered in widely used algorithms, at which time they must be replaced.  OWASP, the Open Worldwide Application Security Project, reports that cryptographic weakness is a frequent cause of security exposures.  And, just as you shouldn't invent cryptography, you also shouldn't write the code that implements a public algorithm.  It is too easy to make a mistake.  The publicly available npm packages are what you should use.
 
 2. For each password, you include a cryptographically chosen salt.  Each password has a different salt.  This prevents a security exposure called the rainbow attack.
 
@@ -54,11 +54,11 @@ When hashing the password, you should adhere to the following rules:
 
 ### **Answers**
 
-1. False! An authenticated user may still attempt to access data they have no business getting to.
+1. Not quite - an authenticated user may still attempt to access data they are not authorized to access.
 
-2. There are some cases where the validation can be a little bit loose, like appends to a public forum.
+2. There are some cases where the validation can be less strict (for example: appends to a public forum).
 
 3. We have discussed one security exposure caused by limited validation, which is weak passwords.  Another one we'll learn about is an injection attack.  The REST call to your API stores a dangerous script. That script is subsequently returned to the front end, where it runs.  We'll protect against that in a later lesson.
 
-4. You shouldn't store credit card numbers.  They should only be stored if the application and the entire development and deployment process has been reviewed and approved for PCI DSS (Payment Card Industry Data Security Standards).  You shouldn't store bank account numbers.  You should avoid, in most cases, storing PII (Personally Identifiable Information).  You shouldn't store health data.  There's another standard called HIPAA for that.
+4. You shouldn't store credit card numbers.  They should only be stored if the application and the entire development and deployment process has been reviewed and approved for PCI DSS (Payment Card Industry Data Security Standards).  You shouldn't store bank account numbers.  You should avoid, in most cases, storing PII (Personally Identifiable Information).  You shouldn't store health data (see [HIPAA standards](https://www.hhs.gov/hipaa/for-professionals/privacy/laws-regulations/index.html))
 

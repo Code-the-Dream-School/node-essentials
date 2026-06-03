@@ -2,7 +2,7 @@
 
 This assignment is to be done in the node-homework folder.  Within that folder, create an `assignment3` ```git branch``` for your work.  As you work on this assignment, add and commit your work to this branch periodically.
 
-> REMEMBER: Commit messages should be meaningful. `Week 3 assignment` is not a meaningful commit message.
+> REMEMBER: Commit messages should be meaningful. `Week 3 assignment` is not a meaningful commit message because it does not clearly state changes. Read [this article](https://medium.com/@iambonitheuri/the-art-of-writing-meaningful-git-commit-messages-a56887a4cb49) on how to write a meaningful commit message.
 
 ## **Task 1: A Route Handler for User Registration, Logon, and Logoff**
 
@@ -10,9 +10,9 @@ You have started work on the application you'll use for your final project.  You
 
 For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the `/api/users/register` path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.  By convention, REST API routes start with `/api'.
 
-You cannot test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left-hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right-hand side, you see an icon that is a rectangle with a little eye.  No, it doesn't mean the Illuminati.  This is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
+You cannot test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left-hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right-hand side, you see an icon that is a rectangle with a little eye -- this is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
 
-Hover over the node-homework collection and you'll see three dots. Click on those, and select 'add request'.  Give it a name, perhaps `register`.  A new request, by default, is a GET, but there is a pulldown to switch it to POST.  Save the request, and then send it.  If your Express app is running, you should see your message come back.  Of course, to create a user record, you need data in the body of the request.  So, click on the body tab for the request.  Select the `raw` option.  There's a pulldown to the right that says `Text`.  Click on that, and choose the JSON option.  Then, put JSON data in for the user you want to create.  You need a name, an email, and a password.  Remember that this is JSON, not a JavaScript object, so you have to have double quotes around the attribute names and string values.  Save the request again, and then send it.  The result is the same of course -- the request handler doesn't do more than send a message at the moment.
+Hover over the node-homework collection and you'll see three dots. Click on those, and select 'add request'.  Give it a name, perhaps `register`.  A new request, by default, is a GET, but there is a pulldown to switch it to POST.  Save the request, and then send it.  If your Express app is running, you should see your message come back.  To create a user record, you need data in the body of the request.  So, click on the body tab for the request.  Select the `raw` option.  There's a pulldown to the right that says `Text`.  Click on that, and choose the JSON option.  Then, put JSON data in for the user you want to create.  You need a name, an email, and a password.  Remember that this is JSON, not a JavaScript object, so you have to have double quotes around the attribute names and string values.  Save the request again, and then send it.  The result is the same -- the request handler doesn't do more than send a message at the moment.
 
 Go back to app.js.  You need to be able to get the body of the request.  For that you need middleware, in this case middleware that Express provides.  Add this line above your other routes:
 
@@ -20,7 +20,7 @@ Go back to app.js.  You need to be able to get the body of the request.  For tha
 app.use(express.json({ limit: "1kb" }));
 ```
 
-This tells Express to parse JSON request bodies as they come in.  The express.json() middleware only parses the request body if the Content-Type header says "application/json". The resulting object is stored in req.body.  Of course, any routes that need to look at the request body have to come after this app.use().
+This tells Express to parse JSON request bodies as they come in.  The express.json() middleware only parses the request body if the Content-Type header says "application/json". The resulting object is stored in req.body.  Any routes that need to look at the request body have to come after this app.use().
 
 Make the following change to the request handler:
 
@@ -62,13 +62,13 @@ app.post("/api/users/register", (req, res)=>{
 ```
 
 
-When creating a new record, it is standard practice to return the object just created, but of course, you don't want to send back the user password.
+When creating a new record, it is standard practice to return the object just created, but you don't want to send back the user password.
 
 Test this with your Postman request.
 
 ### **Why the Memory Store is Crude**
 
-Let's list all the hokey things you just did.
+There are several problems with the process you just followed:
 
 1. There is no validation.  You don't know if there was a valid body.  Hopefully your Postman request did send one.
 
@@ -80,11 +80,11 @@ Let's list all the hokey things you just did.
 
 5. Only one user can be logged on at a time.
 
-Well ... we'll fix all of that, over time.
+We'll fix all this over time.
 
 ### **Keeping Your Code Organized: Creating a Controller**
 
-You are going to have to create a couple more post routes.  Also, you are going to have to add a lot of logic, to solve problems 1 through 5 above.  You don't want all of that in app.js.  So, create a directory called controllers. Within it, create a file called userController.js.  Within that, create a function called register.  The register() function takes a req and a res, and the body is just as above.  Continue using the in-memory globals from earlier in the assignment (`global.users`, `global.user_id`, and `global.tasks`); there is no separate `memoryStore` module to require.  You should also do a require for http-status-codes, and instead of using 201, you use StatusCodes.CREATED.  Then, you put register inside the module.exports object for this module.
+You will create several more post routes.  Also, you will have to add a lot of logic, to solve problems 1 through 5 above.  You don't want all of that in app.js.  So, create a directory called controllers. Within it, create a file called userController.js.  Within that, create a function called register.  The register() function takes a req and a res, and the body is just as above.  Continue using the in-memory globals from earlier in the assignment (`global.users`, `global.user_id`, and `global.tasks`); there is no separate `memoryStore` module to require.  You should also do a require for http-status-codes, and instead of using 201, you use StatusCodes.CREATED.  Then, you put register inside the module.exports object for this module.
 
 ### **On Naming**
 
@@ -175,7 +175,6 @@ You'll be implementing middleware that handles things like:
 * Request validation and parsing
 * Serving dog images as static files
 * Gracefully handling unexpected errors
-The dogs are counting on you.
 
 ### Setup
 

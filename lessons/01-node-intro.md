@@ -15,7 +15,7 @@
 7. File System Access with Async Operations
 8. More on Async Functions
 
-## **1.1 What is Node**
+## **1.1 What is Node?**
 
 The JavaScript language was created to run inside the browser, so as to create rich and responsive web applications.  It is an interpreted language that is platform independent, running on Mac, Linux, Windows, and other platforms. The code you run in the browser is loaded from the Internet and can't be trusted, so there are things that JavaScript isn't allowed to do when running in the browser, like accessing the local file system or opening a server side socket. To provide security protections, browser side JavaScript runs in a sandbox, a protected area that blocks off various functions.
 
@@ -33,7 +33,7 @@ Here is a basic video summary of node capabilities: [What is Node.js?](https://y
 
 ### **The Call Stack**
 
-Computer code is merely a sequence of instruction steps. The sequence of instructions utilized in Node.js is referred to as the **call stack**.
+Computer code is merely a sequence of instruction steps. We call this sequence the call stack. the **call stack**. 
 
 A stack is a data structure like a stack of pancakes. Instructions are put on the stack and then run from the most recent (top) and down to the bottom of the stack. This is called **Last In First Out (LIFO)** order.
 
@@ -41,7 +41,7 @@ Node cannot run multiple instructions simultaneously; however, there is a clever
 
 ### **The Event Loop**
 
-The event loop is a holding area for instructions that are pending. When a pending instruction is ready to be processed, it is put into a queue.
+The event loop is a holding area for instructions that are pending. When a pending instruction is ready to be processed, Node puts into a **queue**.
 
 A queue is a data structure just like the waiting line that forms when you go to the bank. The sequence of a queue is **First In First Out (FIFO)**.
 
@@ -67,9 +67,9 @@ At your terminal, type `Node`. (You should have completed the setup assignment. 
 
 We have established that Node.js runs JavaScript on your machine outside the browser. In other words, it is a JavaScript runtime environment.
 
-In your terminal in the Node environment, try a `console.log()`. You may notice one difference from the browser environment. Where does the output appear? It appears in your terminal. Obvious, right?
+Give `console.log()` a try in your Node terminal. You will see the output print directly inside your terminal window.
 
-However, if you open up the console in your browser developer tools, you will not see the output for Node `console.log()` statements. We have had some folks fresh from the React class who develop a Node/Express application, put `console.log()` debugging statements in, and go to the browser console to see them.
+If you are used to working with React or standard frontend JavaScript, your instinct might be to open the browser’s developer tools to check the console. However, because Node is a server-side environment, those logs won't appear in the browser. Checking your terminal is the new go-to habit for debugging Node applications!
 
 ### **Node.js vs The Browser**
 
@@ -90,7 +90,7 @@ There are also some small differences in JavaScript syntax when using Node, as w
 
 ### **Running Your First Node Program**
 
-You should have set up your `node-homework` repository and folder. In the terminal, cd to that folder and start VSCode. Create a first.js file in the assignment1 directory, with a `console.log()` statement in it. Start a VSCode terminal, and type "node ./assignment1/first". This is how you tell Node to start a program you write. You do not have to give the `.js` extension. Ok, so much for the very simple stuff.
+You should have set up your `node-homework` repository and folder. In the terminal, cd to that folder and start VSCode. Create a first.js file in the assignment1 directory, with a `console.log()` statement in it. Start a VSCode terminal, and type "node ./assignment1/first". This is how you tell Node to start a program you write. You do not have to give the `.js` extension.
 
 ## **1.4 Syntax Differences between Node and Browser Based JavaScript**
 
@@ -136,14 +136,25 @@ The ESM syntax is also supported in Node.  In that case, you use files with exte
 
 In browser side JavaScript, you always have access to the window and document objects, and through them, you have access to the DOM.  For Node, there is no window, no document, and no DOM.
 
-What you have instead in Node is a global object. This includes the following attributes and functions:
+Instead of the `window` object found in browsers, Node provides a **global object** with several essential attributes and functions:
 
-- process: Contains information about the currently running process, including all environment variables, which are stored as key-value pairs in `process.env`. Additionally, `process.argv` contains the command-line arguments passed when the Node program was started. Specifically, `process.argv[0]` is the fully qualified filename of the Node executable itself, and `process.argv[1]` is the fully qualified name of the JavaScript file being executed. Any further arguments passed on the command line appear as subsequent entries in the `process.argv` array.
-- __dirname: The directory where the current module resides.
-- __filename: The fully qualified filename of the current module.
-- console: console.log() is available, just as it is in client side JavaScript.
-- module: This is actually local to each file in a Node.js program, meaning it is not a true global variable; every module has its own distinct object. The fully qualified filename of the current module is available in `module.filename`. Most importantly, `module.exports` is the object or value that is returned when another file uses `require()` to import the current module. This export can be a single entity—such as a function or a primitive value — or, most commonly, an object containing various functions and/or values.
-- require(): Used to get access to exports from other modules.  If a module calls `require("http")`, it is loading the built-in Node.js module called http. If the module name isn't built-in, Node.js will then look for it in the installed npm packages. If a module calls `require("../utils/parser")`, it is loading the `../utils/parser.js` module, where the pathname is relative to the current module.  Also, if `require.main` equals the current module, the current module is the one that was started by node.
+* `process`: Contains information about the currently running Node process.
+    * `process.env`: Stores environment variables as key-value pairs.
+    * `process.argv`: An array of command-line arguments passed when the program started.
+        * `process.argv[0]`: The path to the Node executable.
+        * `process.argv[1]`: The path to the JavaScript file being executed.
+        * `process.argv[2]` and beyond: Any extra arguments you pass in the terminal.
+* `dirname`: The directory path where the current file lives.
+* `filename`: The full file path of the current file.
+* `console`: Allows you to use console.log(), just like in frontend JavaScript.
+* `module`: *Note: This is actually local to each file, not a true global, but it is accessible everywhere.*
+    * `module.filename`: The full file path of the current module.
+    * `module.exports`: The object or value that leaves this file when another file imports it using require(). This can be a single function, a value, or an object containing multiple functions.
+ * `require()`: Used to import exports from other modules.
+     * Built-in: `require("http")` loads Node's built-in HTTP module.
+     * Third-Party: If it's not built-in, Node looks for an installed npm package.
+     * Local Files: `require("../utils/parser")` loads a local file relative to the current folder.
+     * *Tip*: If `require.main === module`, it means this specific file was the entry point started by the node command.
 
 The variables you declare inside of a node module are available only within that module, unless you export them, or unless you attach them to the global object, like:
 
@@ -187,7 +198,7 @@ When learning Node.js, bookmark the API docs and refer to them frequently. The d
 
 ### **Standard Node.js Libraries**
 
-Node.js comes with a rich set of built-in modules that provide core functionality without requiring installation. These modules cover file system operations, networking, operating system interactions, and more. To use any built-in module, you simply `require()` it in your code:
+Node.js comes with a rich set of built-in modules that provide core functionality without requiring installation. These modules cover file system operations, networking, operating system interactions, and more. To use any built-in module, `require()` it in your code:
 
 ```js
 const fs = require('fs');  // File system operations
@@ -281,7 +292,7 @@ console.log("last statement");
 
 #### Result
 
-The answer is that you will see "last statement" printed first, followed by "file open succeeded."  The asynchronous fs.open() call just tells the Node event loop to do the open and continues on to output "last statement".  Then the event loop completes the file open and does the callback.  And then you see the other message.
+The answer is that you will see "last statement" printed first, followed by "file open succeeded."  The asynchronous fs.open() call tells the Node event loop to do the open and continues on to output "last statement".  Then the event loop completes the file open and does the callback.  And then you see the other message.
 
 Now, clearly, if you were to write a line to this file, you'd have to do it in the callback, so that you have access to the file handle.  That call would also be asynchronous, with a callback.  If you want to write a second line, you'd have to do that write in the second callback.  And so on, to "callback hell".  You could keep your file legible through clever use of recursion, but it's still messy.  Now, as you know, we have promises in JavaScript.  So, one choice would be to wrap the async call in a promise, as follows:
 
@@ -305,7 +316,7 @@ const doFileOperations = async () => {
 doFileOperations(); // You can't put the try/catch here: The error would be thrown after the try/catch block completes.
 ```
 
-Please look carefully at how this is done.  You will need to do it from time to time, because some functions that you will need to use only support callbacks.  The wrappering isn't very hard.  Every time you do the wrapper, it looks just the same.  You do need the try/catch once you wrapper the function.  Of course, the advantage is that subsequent file operations, also wrappered the same way, could be added without having to create a nested series of callbacks.  Be careful when you create such a wrapper.  The callback inside your wrapper must always call resolve() or reject(), or your process hangs.
+Please look carefully at how this is done.  You will occassionally need to do this, because some functions only support callbacks. Every time you do the wrapper, it looks the same.  You do need the `try/catch` once you wrapper the function.  The advantage is that subsequent file operations, also wrappered the same way, could be added without having to create a nested series of callbacks.  Be careful when you create such a wrapper: the callback inside your wrapper must always call resolve() or reject(), or your process hangs.
 
 Fortunately, most Node functions do support promises.  There are promise based versions of all the file system functions.  So, you can do:
 
@@ -502,7 +513,7 @@ The asyncCaller() method calls syncFunc(), which is a synchronous function, with
 
 There are two ways to get the value a promise resolves to, those being, `await` and `.then`.  We can't do `await` in mainline code, so we use `.then` in this case.  The `.then` statement provides a callback that retrieves the value.  But the mainline code doesn't wait for the `.then` callback to complete.  Instead it announces `Finished.`, and only when the callback completes do we see what the promise resolves to.  In general, you don't want to use `.then` in your code because `.then` requires a callback, and that takes you straight back to callback hell.
 
-The other program, `callsync2.js`, is slightly different, and if you run it, you see that the order the logged statements appear in is slightly different.  The only functional change is that asyncCaller() does not do an await when it calls syncFunc(), so it runs all the way to the end of the function before the mainline code resumes.  But what asyncCaller returns is still a promise, and the `.then` for that promise still doesn't complete until after the mainline code reports the `Finished.`  Run this program to see the difference.  Async functions always return a promise.  You can use the `await` statement to call a synchronous function, or to resolve a promise, or to resolve a `thenable` (which is an object that works like a promise but may have additional capabilities).
+The other program, `callsync2.js`, is slightly different, and if you run it, you see that the order the logged statements appear in is slightly different.  The only functional change is that asyncCaller() does not do an await when it calls syncFunc(), so it runs all the way to the end of the function before the mainline code resumes.  But what asyncCaller returns is still a promise, and the `.then` for that promise still doesn't complete until after the mainline code reports the `Finished.`  Run this program to see the difference.  Async functions always return a promise.  You can use the `await` statement to call a synchronous function, or to resolve a promise, or to resolve a `thenable`. This is an object that works like a promise, but may have additional capabilities.
 
 ### **Check for Understanding**
 
@@ -526,4 +537,4 @@ The other program, `callsync2.js`, is slightly different, and if you run it, you
 
 4. You can get the value resolved from a Promise using `await` or `.then`.
 
-5. Most Node programs are written to the CJS standard, which uses `require()` instead of `import` and `module.exports` instead of `export default`.
+5. Most Node programs are written to the CJS (CommonJS) standard, which uses `require()` instead of `import` and `module.exports` instead of `export default`.
