@@ -1,24 +1,130 @@
-# Week 2 Assignment Event Handlers, HTTP Servers, and Express
+# Week 2 Assignment: Events, HTTP Servers, REST, and Express
 
-## Assignment Instructions
-- Create an `assignment2` folder inside your `node-homework` folder if it doesn't already exist.
-- Create an `assignment2` ```git branch``` before you start.
-- **Testing Tool:** For testing POST requests and API endpoints, use the **Postman VS Code Extension**. Install it from the VS Code Extensions marketplace if you haven't already. This extension allows you to test localhost requests directly from VS Code without needing the desktop agent. For installation instructions, see the [Postman VS Code Extension documentation](https://learning.postman.com/docs/developer/vs-code-extension/install/).
-  
-## Postman Walkthrough (Watch This First)
+## Learning Objectives
 
-Before we start working with routes and before we use the word “endpoint”, watch this quick Postman walkthrough:
+- Use Node's `EventEmitter` to emit and listen for events
+- Create a basic HTTP server with Node's built-in `http` module
+- Return JSON and HTML responses from a server
+- Understand how method and path work together in REST-style routes
+- Test HTTP routes with the browser and the Postman VS Code Extension
+- Create a small Express application with route handlers
+- Organize Express route handlers with `routes/` and `controllers/` folders
+- Practice a few HTTP edge cases, such as unknown routes and invalid JSON
 
-Postman Walkthrough: [Postman in VS Code (Quick Walkthrough)](https://www.youtube.com/watch?v=NR-s-zANqZs)
+## Assignment Guidelines
 
-**Quick note:** You don’t need to understand routing yet. The goal is just to learn how to send a request to `http://localhost:3000` and read the response (status + body).
+NOTE: The AI review tool (known as AirHub) can check code and structure, but it does not run your code in a server environment to verify that aspect runs properly. We will have human reviewers checking this aspect, so you may receive a passing assignment from AirHub that could still need revisions after a human has checked that your work runs properly in the correct environment. If your AI and human reviewer feedbacks don't match, trust the human review.
 
-### Task 1: Practice With An Event Emitter and Listener
-- Inside your `assignment2` folder, create a file called `events.js`.
-- Create an emitter. Use an `emitter.on()` statement to listen to this emitter for the 'time' event. Whenever the listener receives the event, it should print out "Time received: " followed by the string it receives. Then, call `setInterval(callback, 5000)`. Your callback for the `setInterval` should emit a 'time' message with the current time as a string. Try it out. You use `Ctrl-C` to end the program.
-- **Important:** Make sure to export your emitter using `module.exports` so it can be accessed by tests and other files.
-### Task 2: Practice with the HTTP Server
-Inside your `assignment2` folder, modify your `sampleHTTP.js` file. First, add the following to the top of your file:
+1. **Setup**
+   - You should have already done the Getting Started instructions, which set up your `node-homework` directory.
+   - Work inside the `assignment2` folder for the event and raw HTTP server files.
+   - Your Express `app.js`, `routes/`, and `controllers/` folders should live in the root of `node-homework`.
+2. **Create a branch**
+   - Create a new branch for your work on assignment 2, for example `assignment2`.
+   - Make all your changes and commits on this branch.
+3. **Use Postman**
+   - For testing POST requests and API endpoints, use the **Postman VS Code Extension**.
+   - If you need a walkthrough, review the Postman section in Lesson 2 before starting the POST tasks.
+4. **Run the tests**
+   - This assignment has a **Core** part (required) and an **Advanced** part (optional), matching the lesson.
+   - Run the core tests with:
+     ```bash
+     npm run tdd assignment2a
+     ```
+   - If you finish the optional advanced part, also run:
+     ```bash
+     npm run tdd assignment2b
+     ```
+   - Make sure the core tests pass before submitting your work. The advanced tests are optional.
+
+## Assignment Tasks
+
+**Important:** Follow the exact file names, route paths, and export instructions below. The automated tests expect specific file names and routes.
+
+## Core Tasks (Required)
+
+These tasks are required. The core tests run with `npm run tdd assignment2a`.
+
+### 1. Event Emitter and Listener
+
+Inside your `assignment2` folder, create a file called `events.js`.
+
+In this file:
+
+- Import Node's `events` module.
+- Create an `EventEmitter`.
+- Add exactly one listener for the `"time"` event.
+- When the listener receives a message, log the time message.
+- Export the emitter with `module.exports = emitter`.
+
+The tests import your emitter, so the emitter must be exported.
+
+Your file should include this basic structure:
+
+```js
+const EventEmitter = require("events");
+const emitter = new EventEmitter();
+
+emitter.on("time", (message) => {
+  console.log("Time received:", message);
+});
+
+module.exports = emitter;
+```
+
+Then add code that emits the `"time"` event every 5 seconds when you run the file directly with Node:
+
+```js
+if (require.main === module) {
+  setInterval(() => {
+    const currentTime = new Date().toString();
+    emitter.emit("time", currentTime);
+  }, 5000);
+}
+```
+
+The `if (require.main === module)` check matters. It lets you run the file directly, but it prevents the timer from starting when the test imports your file.
+
+Try it manually:
+
+```bash
+node assignment2/events.js
+```
+
+Use `Ctrl-C` to stop the program.
+
+### 2. Raw Node HTTP Server
+
+Inside your `assignment2` folder, create a file called `sampleHTTP.js`.
+
+**Important:** Use this exact file name: `sampleHTTP.js`.
+
+This server should listen on port `8000`.
+
+First, create a `GET /time` route. It should return JSON with a `time` property.
+
+The response should have:
+
+- Status code: `200`
+- Content-Type: `application/json`
+- Body shape: `{ "time": "current time here" }`
+
+Here is the idea:
+
+```js
+if (req.method === "GET" && req.url === "/time") {
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(
+    JSON.stringify({
+      time: new Date().toString(),
+    }),
+  );
+}
+```
+
+Next, create a `GET /timePage` route. It should return an HTML page with a button that calls `/time` and displays the result.
+
+Use this HTML string in your server:
 
 ```js
 const htmlString = `
@@ -30,11 +136,11 @@ const htmlString = `
 <p id="time"></p>
 <script>
 document.getElementById('getTimeBtn').addEventListener('click', async () => {
-    const res = await fetch('/time');
-    const timeObj = await res.json();
-    console.log(timeObj);
-    const timeP = document.getElementById('time');
-    timeP.textContent = timeObj.time;
+  const res = await fetch('/time');
+  const timeObj = await res.json();
+  console.log(timeObj);
+  const timeP = document.getElementById('time');
+  timeP.textContent = timeObj.time;
 });
 </script>
 </body>
@@ -42,323 +148,443 @@ document.getElementById('getTimeBtn').addEventListener('click', async () => {
 `;
 ```
 
-This is a web page.
+The `/timePage` response should have:
 
-Then change your logic so that you handle requests for the URL `'/time'`. A JSON document should be returned with an attribute `'time'` that has a value of the current time as a string.
+- Status code: `200`
+- Content-Type: `text/html; charset=utf-8`
+- Body: the `htmlString` above
 
-Once you've got that code in place, restart your server and test the new URL from your browser. Then, add logic to handle requests for `'/timePage'`. It should return the page above.  
-You will need to set the header content-type to be: `"text/html; charset=utf-8"`. See documentation about headers [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Type).
+Start the server:
 
-Then restart your server and try that URL. You should see the page with a button.  
-Click on the button, and you should see the time. The button causes a fetch to your server.  
-You have now coded your first REST API.
+```bash
+node assignment2/sampleHTTP.js
+```
 
-### Task 3: Creating your First Express Application
-You need Express. It is not part of the Node base, so be sure it is installed in your `node-homework` repository:
+Then test these URLs in your browser:
+
+```text
+http://localhost:8000/time
+http://localhost:8000/timePage
+```
+
+When you open `/timePage`, click the **Get the Time** button. The button makes a request to `/time` and puts the returned time on the page.
+
+### 3. Add a Raw Node POST Route
+
+In `assignment2/sampleHTTP.js`, add a `POST /echo` route.
+
+This route should:
+
+- Accept a JSON request body
+- Read the request body using the `"data"` and `"end"` events
+- Parse the body with `JSON.parse()`
+- Return the parsed body inside a JSON response
+
+The response should look like this:
+
+```json
+{
+  "weReceived": {
+    "message": "Hello from Postman"
+  }
+}
+```
+
+Use Postman to test it:
+
+- Method: `POST`
+- URL: `http://localhost:8000/echo`
+- Body type: `raw`
+- Body format: `JSON`
+
+Use this request body:
+
+```json
+{
+  "message": "Hello from Postman"
+}
+```
+
+This task gives you practice with the lower-level work Express will make easier later.
+
+### 4. Create Your First Express Application
+
+In the root of your `node-homework` repository, create a file called `app.js`.
+
+This file should be at the root, not inside `assignment2`.
+
+Express is not part of Node itself. Your repository may already have it installed, but if you need to install it, run:
 
 ```bash
 npm install express
 ```
 
-Actually, your `node-homework` repository already has all the required packages installed.  
-If you were setting up your own project, you’d need to install them manually using `npm install`.
-
-In the root of `node-homework`, create a file called `app.js`, with the following code:
+Start with this basic Express app:
 
 ```js
 const express = require("express");
+
 const app = express();
+
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
 
-const port = process.env.PORT || 3000;
-const server = app.listen(port, () =>
-      console.log(`Server is listening on port ${port}...`),
-    );
+app.post("/testpost", (req, res) => {
+  res.status(200).json({
+    message: "POST route works",
+  });
+});
 
-module.exports = { app, server} ;
+const port = process.env.PORT || 3000;
+
+const server = app.listen(port, () => {
+  console.log(`Server is listening on port ${port}...`);
+});
+
+module.exports = { app, server };
 ```
-Start this app from your VSCode terminal with:
+
+The export at the bottom is important. The tests use `app` and `server` to send requests and close the server after testing.
+
+Run the app:
 
 ```bash
 node app
 ```
 
-Go to your browser, and go to the URL http://localhost:3000. You should see the classic start "Hello, World!"
+Open this URL in your browser:
 
-This file, `app.js`, is the first file for your final project. You'll keep adding on to this file and creating modules that it calls.
+```text
+http://localhost:3000
+```
 
-**Let's explain the code**
+You should see:
 
-You call `express()` to create the app. You need a route handler for the app if it is to do anything.  
-The `app.get` statement tells the app about a route handler function to call when there is an HTTP GET request for `"/"`.  
-You tell the app to start listening for such requests. By default, it listens on `port 3000`, but if there is an environment variable set, it will use that value for the port.  
-The `listen()` statement might throw an error, typically because there is another process listening on the same `port`.
+```text
+Hello, World!
+```
 
-Route handlers for an operation on a route are passed two or three parameters.  
-The `req` parameter gives the properties of the request. The `res` parameter is used to respond to the request.  
-The other parameter that might be passed is `next`. When `next` is passed, it contains another route handler function. If the route handler function for the route doesn't take care of the request, it can pass it on to `next()`.
+Then test the POST route with Postman:
 
-The `module.exports` statement looks a little odd.  Why export these values?  These are needed for your TDD test!  The TDD test uses a tool called Supertest which requires these values.  Also, `app.listen()` is asynchronous, with a callback, but it does return the value of `server` synchronously, before the listen operation has completed. That suffices for Supertest.
+- Method: `POST`
+- URL: `http://localhost:3000/testpost`
+- Body: no body required
 
-**Be Careful of the Following**
+The route should return status `200`.
 
-Confirm that your route handlers respond to each request exactly once.  
-Stop the server with a `Ctrl-C`. Make the following change, and then restart the server:
+### 5. Organize the Express App Layout
+
+Small Express examples can live in one file. Real applications usually split route definitions and route handler logic into separate folders.
+
+In the root of your `node-homework` repository, create this structure:
+
+```text
+routes/
+  timeRoutes.js
+controllers/
+  timeController.js
+```
+
+The `controllers/timeController.js` file should export route handler functions.
+
+Add these two handlers:
 
 ```js
-app.get("/", (req, res) => {
-//   res.send("Hello, World!");
-  console.log("Hello, World")
-});
+function getTime(req, res) {
+  res.status(200).json({
+    time: new Date().toString(),
+  });
+}
+
+function echoBody(req, res) {
+  res.status(200).json({
+    weReceived: req.body,
+  });
+}
+
+module.exports = {
+  getTime,
+  echoBody,
+};
 ```
-Then try http://localhost:3000 again.  
-Nothing happens until eventually the browser times out. This is bad.  
-Once again, stop the server, make this change, and then restart the server.
+
+The `routes/timeRoutes.js` file should connect route paths to those controller functions.
 
 ```js
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-  res.send("Hello, World!");
-});
-```
-In this case, the browser does see a response, but in the server log, you see a bad error message.  
-If you see this error in future development, you'll know what caused it. 
+const express = require("express");
+const timeController = require("../controllers/timeController");
 
-Now try this (you have to restart the server again):
+const router = express.Router();
+
+router.get("/time", timeController.getTime);
+router.post("/echo", timeController.echoBody);
+
+module.exports = router;
+```
+
+Then update `app.js` to import and use the router:
 
 ```js
-app.get("/", (req, res) => {
-//   res.send("Hello, World!");
-  throw(new Error("something bad happened!"));
-});
-```
-As you can see, a bad error appears on your browser screen, as well as in your server log.  
-Every Express application needs an error handler. 
+const timeRouter = require("./routes/timeRoutes");
 
-An error handler in Express is like a route handler, except that it has four parameters instead of three.  
-They are `err`, `req`, `res`, and `next`. Add the following code after your `app.get()` block:
-
-```js
-app.use((err, req, res, next) => {
-  console.log(`A server error occurred responding to a ${req.method} request for ${req.url}.`, err.name, err.message, err.stack);
-  if (!res.headersSent) {
-    res.status(500).send("A server error occurred.");
-  }
-});
-```
-Then try the same URL again from your browser.  
-The user sees a terse error message this time, and the server log includes information about what caused the error, including some useful information in the req object. 
-
-Note that the error handler checks to see if a response has already been sent.  
-The error might have been thrown after a response was sent, so if you try to send a response again, it will throw an error — and an error thrown by an error handler would be unfortunate.
-
-The error handler is configured with `app.use()`, which is what you use for middleware.  
-Any request: GET, POST, PATCH, and so on, are handled by this middleware, but only if an error is thrown. The default result code for any send is `200`, which means `OK`, but in this case you are setting it to `500`, which means internal server error.  
-If you need to set the status, you do it before you send the response.
-
-At this point, you can put the `app.get()` for `"/"` back to what it was.
-
-## Nodemon
-
-Nodemon saves time. It automatically restarts your app server when you make a code change. You install it with:
-
-```bash
-npm install nodemon --save-dev
+app.use("/api", timeRouter);
 ```
 
-You are installing it as a development dependency. You do not want it included in any image deployed to production. 
+Now test these Express routes:
 
-Edit your `package.json`, so that the scripts stanza includes this line:
+```text
+GET http://localhost:3000/api/time
+POST http://localhost:3000/api/echo
+```
+
+For `POST /api/echo`, send this JSON body in Postman:
 
 ```json
-"scripts": {
-    "dev": "nodemon app"
+{
+  "source": "Express layout practice"
 }
 ```
 
-Then run ```npm run dev``` from the command line.
-Your server will start and automatically restart whenever you change your code. You can still stop it with `Ctrl-C`.
+You should get the same body back in the `weReceived` property.
 
-**Staying Organized**
+That completes the core tasks. Run the core tests with:
 
-You don't want all your Express code in `app.js`. Splitting your code across files keeps it easier to manage.  
-There are standard ways to organize it.  
-The error handler is middleware. So, create a middleware folder inside `node-homework`. Within it, create a file called `error-handler.js`. Do an `npm install` of `http-status-codes`. You use the values in this component instead of numbers like `500`.  
-Put this code in `error-handler.js`
+```bash
+npm run tdd assignment2a
+```
+
+## Advanced Tasks (Optional)
+
+This part is optional, just like the Advanced section of the lesson. You can skip it and still continue the course, but it is good extra practice.
+
+The advanced tasks focus on edge cases. An **edge case** is a situation outside the happy path, such as a bad URL, the wrong method, or invalid JSON.
+
+### 6. Raw HTTP Unknown Route
+
+In `assignment2/sampleHTTP.js`, add a response for unknown routes.
+
+If the request does not match `/time`, `/timePage`, or `/echo`, return:
+
+- Status code: `404`
+- Content-Type: `application/json`
+- Body shape: `{ "message": "That route is not available." }`
+
+Example response body:
+
+```json
+{
+  "message": "That route is not available."
+}
+```
+
+Test it in your browser:
+
+```text
+http://localhost:8000/not-here
+```
+
+### 7. Raw HTTP Invalid JSON
+
+In `assignment2/sampleHTTP.js`, improve your `POST /echo` route so invalid JSON does not crash the server.
+
+Wrap `JSON.parse()` in a `try/catch`.
+
+If parsing fails, return:
+
+- Status code: `400`
+- Content-Type: `application/json`
+- Body shape: `{ "message": "Invalid JSON." }`
+
+Here is the idea:
 
 ```js
-const { StatusCodes } = require("http-status-codes");
-
-const errorHandlerMiddleware = (err, req, res, next) => {
-  console.error(
-    "Internal server error: ",
-    err.constructor.name,
-    JSON.stringify(err, ["name", "message", "stack"]),
+try {
+  const parsedBody = JSON.parse(body);
+  // send normal success response here
+} catch (error) {
+  res.writeHead(400, { "Content-Type": "application/json" });
+  res.end(
+    JSON.stringify({
+      message: "Invalid JSON.",
+    }),
   );
-  
-  if (!res.headersSent) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .send("An internal server error occurred.");
-  }
-};
-
-module.exports = errorHandlerMiddleware;
-```
-Then, in `app.js`, take out the error handler code and substitute this:
-
-```js
-const errorHandler = require("./middleware/error-handler");
-app.use(errorHandler);
-```
-Test the result.  
-In an Express application, the error handler goes after all of the routes you declare. You can now take the `throw()` statement out of your `app.get()`, and put the send of "Hello, World" back in.
-
-Within your route handlers, you may have expected or unexpected errors being thrown.  
-Suppose a user tries to register with an email address that has already been registered. Suppose you have configured the database to require unique email addresses. In this case, the database call returns an error you can recognize. You can catch it in your route handler and give the user an appropriate message.
-
-However, the database might give an unexpected error — for example, if it is down. In this case, you may as well let the error handler take care of things.  
-An unexpected error might occur outside of a try block. In this case, it is passed to the error handler automatically. 
-
-An unexpected error might occur within a try block of your route handler. Within your catch block, you see that it is not one of the errors you expected. Call `next(err)` to pass it on to the error handler.
-
-## More Middleware
-
-Try this URL: http://localhost:3000/nonsense. Again, you get an error — a 404. You've seen those. You need to handle this case. 
-
-Create a file `./middleware/not-found.js`.  
-You need a `req` and a `res`, but no `next` in this case. You return `StatusCodes.NOT_FOUND` and the message  
-```js
-`You can't do a ${req.method} for ${req.url}`
+}
 ```
 
-Export your function and add the needed `require()` and `app.use()` statements in `app.js`.  
-Every Express application has a 404 handler like this. You put it after all the routes, but before the error handler. Then test it out.
+Use Postman to send broken JSON to `POST http://localhost:8000/echo`.
 
-The middleware you have created so far is a little unusual, because in these there is no call to `next()`. Often, middleware is, as you might expect, in the middle.  
-A middleware function runs for some or all routes before the route handlers for those routes, but then, instead of calling `res.send()` or an equivalent, it calls `next()` to pass the work on. 
+For example:
 
-Note: There are two ways to call `next()`.  
-If you call `next()` with no parameters, Express calls the next route handler in the chain. Sometimes, the only one left is the not-found handler. But if you call `next(e)`, `e` should be an Error object. 
-In this case, the error handler is called, and the error is passed to it.
+```json
+{
+  "message": "missing end quote
+}
+```
 
-**Exiting Cleanly**
+Your server should return a `400` response instead of crashing.
 
-Your Express program opens a port.  
-You need to be sure that port is closed when the program exits. If there are other open connections, such as database connections, they must also be cleaned up. If not, you may find that your program becomes a zombie process, and that the port you had been listening on is still tied up. This is especially important when you are running a debugger or an automated test.  You also need to catch errors the server reports with a `server.on()` statement.
+### 8. Express Unknown Route
 
-Here is some code to put at the bottom of `app.js`. Please make sure it is placed before this line of code `module.exports = { app, server} ;`:
+In your root `app.js`, add a final fallback route for unknown Express paths.
+
+Put this after your normal routes:
 
 ```js
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
+app.all("*", (req, res) => {
+  res.status(404).json({
+    message: `No route found for ${req.method} ${req.path}`,
+  });
+});
+```
+
+For this assignment, think of this as a final route that catches requests your app did not handle earlier. Lesson 3 will show a more complete way to organize this kind of behavior.
+
+Test this URL:
+
+```text
+http://localhost:3000/unknown
+```
+
+You should get a `404` response.
+
+### 9. Optional Server Lifecycle Polish
+
+This part is not required for the automated tests, but it is good practice for real server code.
+
+After you create the `server` with `app.listen()`, you can listen for server startup errors. A common one is `EADDRINUSE`, which means the port is already being used by another process.
+
+```js
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
     console.error(`Port ${port} is already in use.`);
   } else {
-    console.error('Server error:', err);
+    console.error("Server error:", err);
   }
   process.exit(1);
 });
+```
 
+You can also handle shutdown signals such as `Ctrl-C` (`SIGINT`) or process termination (`SIGTERM`) so the HTTP server closes cleanly.
+
+```js
 let isShuttingDown = false;
+
 async function shutdown(code = 0) {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  console.log('Shutting down gracefully...');
+
+  console.log("Shutting down gracefully...");
+
   try {
-    await new Promise(resolve => server.close(resolve));
-    console.log('HTTP server closed.');
-    // If you have DB connections, close them here
+    await new Promise((resolve, reject) => {
+      server.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    console.log("HTTP server closed.");
   } catch (err) {
-    console.error('Error during shutdown:', err);
+    console.error("Error during shutdown:", err);
     code = 1;
   } finally {
-    console.log('Exiting process...');
     process.exit(code);
   }
 }
 
-process.on('SIGINT', () => shutdown(0));  // ctrl+c
-process.on('SIGTERM', () => shutdown(0)); // e.g. `docker stop`
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception:', err);
-  shutdown(1);
-});
-process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled rejection:', reason);
-  shutdown(1);
-});
+process.on("SIGINT", () => shutdown(0));
+process.on("SIGTERM", () => shutdown(0));
 ```
 
-### Task 4: Add a Post Route Handler
-Modify your `app.js`.  
-Add an `app.post()` for `"/testpost"`.  
-Send something back. Then test this new route handler using the Postman VS Code Extension. You do not need to put anything in the body.
+You do not need to memorize this yet. The important idea is that long-running servers should handle common startup and shutdown situations predictably.
 
-### Task 5: Add Logging Middleware
-Modify your Express `app.js`.  
-Add an `app.use()` statement, above your other routes.  
-You can declare this middleware function inline, in `app.js`. 
+If you complete this optional part, run the advanced tests with:
 
-The middleware function you add should do a `console.log()` of the `req.method`, the `req.path`, and the `req.query`.  
-Don't forget to call `next()`, as this is middleware. 
+```bash
+npm run tdd assignment2b
+```
 
-Then start the server and try sending various requests to your server from your browser, to see the log messages.  
-You could also try POST requests using Postman. The `req.query` object gives the query parameters. 
-You can add them to your request from your browser or from Postman by putting something like `?height=7&color=brown` at the end of the URL you send from your browser or Postman. 
-This middleware is useful — it could help with debugging. We haven't explained how to get `req.body`, but eventually you could get that as well.
+## Suggested File Structure
 
-**Run The Tests**
-  - After completing the tasks, run the tests using:
-     ```bash
-     npm run tdd assignment2
-     ```
-  - Make sure all tests pass before submitting your work.
+By the end of the core assignment, your files should be organized like this:
+
+```text
+node-homework/
+  app.js
+  controllers/
+    timeController.js
+  routes/
+    timeRoutes.js
+  assignment2/
+    events.js
+    sampleHTTP.js
+```
+
+## Testing Your Work
+
+After completing each script, run it to make sure it behaves as expected:
+
+```bash
+node assignment2/events.js
+node assignment2/sampleHTTP.js
+node app
+```
+
+Stop each long-running process with `Ctrl-C` before starting another server.
+
+Then run the course tests:
+
+```bash
+npm run tdd assignment2a   # core (required)
+npm run tdd assignment2b   # advanced (optional)
+```
+
+If a test fails, check file names and route paths first. The tests expect exact names, including `sampleHTTP.js` with uppercase `HTTP`.
 
 ## Video Submission
 
-Record a short video (3–5 minutes) on YouTube, Loom, or a similar platform. 
-Share the link in your submission form.
+Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Share the link in your submission form.
 
-### Video Content: 
-**Answer 3 questions from Lesson 2:**
+### Video Content
+
+Answer 3 questions from Lesson 2:
 
 1. **How do Event Emitters and Listeners work in Node.js?**
-   - Explain the EventEmitter class and its purpose
-   - Discuss the synchronous nature of event emission 
+   - Explain what an event is.
+   - Explain what a listener does.
+   - Show your `events.js` file.
 
-2. **What are the key differences between Node's HTTP module and Express.js?**
-   - Explain what Express provides that makes development easier
-   - Discuss middleware and routing concepts
+2. **What are the key differences between Node's HTTP module and Express?**
+   - Explain what you had to do manually in `sampleHTTP.js`.
+   - Explain what Express makes easier in `app.js`.
 
-3. **How do you handle different HTTP methods and routes in a web server?**
-   - Explain HTTP methods (GET, POST, PUT, PATCH, DELETE)
-   - Show how to parse request bodies and headers
-   - Demonstrate route handling and response formatting
-   - Discuss error handling and status codes
+3. **How does Express project layout help organize a backend?**
+   - Explain what `app.js` does.
+   - Explain what the `routes/` folder does.
+   - Explain what the `controllers/` folder does.
+   - Show one route and the controller function it calls.
 
-**Video Requirements**:
-- Keep it concise (3-5 minutes)
-- Use screen sharing to show code examples
-- Speak clearly and explain concepts thoroughly
+### Video Requiraements
+
+- Keep it concise: 3-5 minutes
+- Use screen sharing to show code examples when helpful
+- Speak clearly and explain concepts in your own words
 - Include the video link in your assignment submission
 
-📌 Follow these steps to submit your work:
+## To Submit an Assignment
 
-1️⃣ Add, Commit, and Push Your Changes  
-Within your node-homework folder, do a `git add` and a `git commit` for the files you have created, so that they are added to the `assignment2` branch.  
-Push that branch to GitHub.
+1. Do these commands:
 
-2️⃣ Create a Pull Request  
-Log on to your GitHub account.
-Open your `node-homework` repository.  
-Select your `assignment2` branch. It should be one or several commits ahead of your main branch.  
-Create a pull request.
+   ```bash
+   git add -A
+   git commit -m "some meaningful commit message"
+   git push origin assignment2
+   ```
 
-3️⃣ Submit Your GitHub Link  
-Your browser now has the link to your pull request.  
-Copy that link to be included in your homework submission form.
-
-4️⃣ **Don't forget to include your video link in the submission form!**
+2. Go to your `node-homework` repository on GitHub.
+3. Select your `assignment2` branch.
+4. Create a pull request. The target of the pull request should be the `main` branch of your GitHub repository.
+5. Once the pull request is created, your browser contains the URL of the PR. Include that link in your homework submission.
+6. Do not forget to include your video link in the submission form.
