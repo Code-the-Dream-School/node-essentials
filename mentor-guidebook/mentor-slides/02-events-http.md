@@ -28,10 +28,11 @@ paginate: true
 
 - Warm-Up
 - Event Emitters & Listeners
-- Node HTTP Server
-- Testing with Postman
-- Introducing Express
-- Assignment Preview
+- Raw Node HTTP
+- Postman and POST requests
+- Express basics
+- Routes and controllers
+- Core vs advanced assignment split
 - Wrap-Up
 
 ---
@@ -40,27 +41,10 @@ paginate: true
 
 In chat or out loud:
 
-1. How are you feeling after Week 1 — any concepts still fuzzy?
-2. What's one thing from Node basics you feel solid on?
+1. What is one difference between Node and browser JavaScript?
+2. What is one thing from Week 1 that still feels fuzzy?
 
-<!-- Mentor note: Students often feel shaky on async after week 1. Validate that — it takes time. Use this to segue into how Node's event system is the same pattern, just built in. -->
-
----
-
-# From Last Week: The Event Loop
-
-Node is single-threaded, so it delegates slow work.
-
-When done, that work comes back via a **callback**:
-
-```js
-fs.readFile("file.txt", "utf8", (err, data) => {
-  console.log(data); // called when ready
-});
-console.log("This runs first");
-```
-
-This week: we see that same pattern **everywhere**.
+<!-- Mentor note: Use this to surface async/event loop questions before introducing EventEmitter. -->
 
 ---
 
@@ -68,66 +52,52 @@ This week: we see that same pattern **everywhere**.
 
 Node has a built-in `EventEmitter` class.
 
-Any object can emit named events. Other code **listens** for them.
-
 ```js
 const EventEmitter = require("events");
 const emitter = new EventEmitter();
 
-emitter.on("greet", (name) => {
-  console.log("Hello,", name);
+emitter.on("time", (message) => {
+  console.log("Time received:", message);
 });
 
-emitter.emit("greet", "class");
+emitter.emit("time", new Date().toString());
 ```
 
-<!-- Mentor note: Emphasize that this is the same pub/sub pattern used in front-end addEventListener. -->
+`on()` listens. `emit()` announces.
 
 ---
 
 # Why Event Emitters?
 
-They let one piece of code **communicate** with many others.
+They let one part of a program notify other parts.
 
-- `emitter.on("event", callback)` — subscribe
-- `emitter.emit("event", data)` — publish
+- The event has a name
+- One event can have one or more listeners
+- Listeners run when the event is emitted
 
-You can have multiple listeners for the same event.
+Mentor prompt:
+> Where have you seen this pattern in browser JavaScript?
 
-> Always add an `"error"` listener — otherwise unhandled errors crash the process.
-
----
-
-# Quick Think (2 min)
-
-Where have you seen this pattern before?
-
-- `button.addEventListener("click", handler)`
-- `req.on("data", chunk => ...)`
-- `stream.on("end", () => ...)`
-
-Event emitters are the same idea — just built into Node.
+<!-- Expected: addEventListener, click handlers, form events. -->
 
 ---
 
-# The Node HTTP Module
+# Raw Node HTTP
 
-Node's built-in `http` module lets you create a server.
+Node's built-in `http` module can create a server.
 
 ```js
 const http = require("http");
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ data: "Hello World!" }));
+  res.end(JSON.stringify({ time: new Date().toString() }));
 });
 
 server.listen(8000);
 ```
 
-Go to `http://localhost:8000` — you have a server!
-
-<!-- Mentor note: Stress that Node keeps running as long as the server is open. Stop with Ctrl-C. -->
+Stop it with `Ctrl-C`.
 
 ---
 
@@ -135,29 +105,70 @@ Go to `http://localhost:8000` — you have a server!
 
 When a request arrives, `req` gives you:
 
-- `req.method` — GET, POST, PATCH, DELETE, etc.
-- `req.url` — the path (`/api/tasks`)
-- `req.headers` — key-value metadata
-- **Body** — *not* available yet, needs extra work
+- `req.method` — `GET`, `POST`, `PATCH`, `DELETE`
+- `req.url` — path such as `/time`
+- `req.headers` — metadata such as `Content-Type`
+- body — arrives in chunks and must be read
+
+Headers are metadata.
+`Content-Type` says what kind of body is being sent or returned.
+
+---
+
+# Assignment 2 Raw Routes
+
+Students build `assignment2/sampleHTTP.js`.
+
+Core routes:
+
+- `GET /time` returns JSON with a `time` property
+- `GET /timePage` returns HTML with a button
+- `POST /echo` returns the JSON body under `weReceived`
+
+Advanced routes:
+
+- Unknown raw HTTP route returns `404`
+- Invalid JSON to `POST /echo` returns `400`
 
 ---
 
 # Reading the Body (Raw HTTP)
 
-The body arrives in chunks via event listeners:
+The request body arrives in chunks.
 
 ```js
 let body = "";
-req.on("data", (chunk) => (body += chunk));
+
+req.on("data", (chunk) => {
+  body += chunk;
+});
+
 req.on("end", () => {
-  const parsed = JSON.parse(body);
-  res.end(JSON.stringify({ received: parsed }));
+  const parsedBody = JSON.parse(body);
+  res.end(JSON.stringify({ weReceived: parsedBody }));
 });
 ```
 
-This is **exactly** why Express exists — it handles this for you.
+This is exactly the kind of work Express helps with.
 
-<!-- Mentor note: Briefly show this pain point, then say "and this is what Express fixes". Don't dwell on it. -->
+---
+
+# Testing POST Requests with Postman
+
+Browsers naturally make `GET` requests from the address bar.
+
+For `POST /echo`, use Postman:
+
+1. Method: `POST`
+2. URL: `http://localhost:8000/echo`
+3. Body: raw JSON
+4. Send:
+
+```json
+{
+  "message": "Hello from Postman"
+}
+```
 
 ---
 
@@ -165,26 +176,10 @@ This is **exactly** why Express exists — it handles this for you.
 
 | | Node `http` | Express |
 |---|---|---|
-| Routing | Manual if/else | `app.get()`, `app.post()` |
-| Body parsing | Manual chunks | `express.json()` middleware |
-| Error handling | Manual | Error handler middleware |
-
-Express wraps Node's `http` module to make things easier.
-
----
-
-# Testing POST Requests with Postman
-
-Browsers only send GET requests naturally.
-
-To test POST/PATCH/DELETE — use **Postman VS Code Extension**.
-
-Steps:
-1. Install from VS Code Extensions
-2. New → HTTP Request
-3. Switch to POST
-4. Set URL: `http://localhost:8000`
-5. Body → raw → JSON → paste JSON
+| Routing | Manual `if` checks | `app.get()`, `app.post()` |
+| JSON body | Manual chunks | `express.json()` |
+| Responses | `res.writeHead()`, `res.end()` | `res.status().json()` |
+| Organization | One file gets messy | routes + controllers |
 
 ---
 
@@ -192,149 +187,163 @@ Steps:
 
 ```js
 const express = require("express");
+
 const app = express();
 
-app.use(express.json());  // parse JSON bodies
+app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Hello from Express!");
+  res.send("Hello, World!");
 });
 
-app.listen(3000, () => console.log("Listening on port 3000"));
+app.post("/testpost", (req, res) => {
+  res.status(200).json({ message: "POST route works" });
+});
 ```
-
-Less boilerplate. Automatic body parsing. Clean routing.
 
 ---
 
-# The Express App Has Layers
+# Export `app` and `server`
 
-```
-Request → Middleware → Route Handler → Response
-```
-
-1. **Middleware** — runs for every (or many) requests
-2. **Route handlers** — tied to a specific method + path
-3. **404 handler** — catches unmatched routes
-4. **Error handler** — catches thrown errors
-
-Order matters — register them top to bottom.
-
----
-
-# Route Handlers
+Assignment 2 asks for:
 
 ```js
-app.get("/hello", (req, res) => {
-  res.json({ message: "Hello!" });
+const port = process.env.PORT || 3000;
+
+const server = app.listen(port, () => {
+  console.log(`Server is listening on port ${port}...`);
 });
 
-app.post("/echo", (req, res) => {
-  res.json({ youSent: req.body });
-});
+module.exports = { app, server };
 ```
 
-Every handler must:
-- **Send a response** (`res.json`, `res.send`)
-- OR **call next** to pass control forward
+Why?
+
+Supertest needs `app`, and tests need to close `server`.
 
 ---
 
-# The 404 and Error Handlers
+# Routes and Controllers
 
-Always include these at the end:
+Students organize Express code:
+
+```text
+controllers/
+  timeController.js
+routes/
+  timeRoutes.js
+```
+
+Controller:
 
 ```js
-// Not-found handler (after all routes)
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found." });
+function getTime(req, res) {
+  res.status(200).json({ time: new Date().toString() });
+}
+```
+
+Route:
+
+```js
+router.get("/time", timeController.getTime);
+```
+
+---
+
+# Mounting a Router
+
+In `app.js`:
+
+```js
+const timeRouter = require("./routes/timeRoutes");
+
+app.use("/api", timeRouter);
+```
+
+That means:
+
+- `router.get("/time", ...)`
+- becomes `GET /api/time`
+
+And:
+
+- `router.post("/echo", ...)`
+- becomes `POST /api/echo`
+
+---
+
+# Advanced: Unknown Routes
+
+Express fallback route:
+
+```js
+app.all("*", (req, res) => {
+  res.status(404).json({
+    message: `No route found for ${req.method} ${req.path}`,
+  });
 });
+```
 
-// Error handler (4 params = error handler)
-app.use((err, req, res, next) => {
-  console.error(err.message);
-  res.status(500).json({ message: "Internal server error." });
+Mentor note:
+Do not over-teach middleware here. Lesson 3 covers it deeply.
+
+---
+
+# Advanced: Server Lifecycle Polish
+
+Useful but not required by TDD:
+
+```js
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`Port ${port} is already in use.`);
+  }
 });
 ```
 
+Also mention graceful shutdown with `SIGINT` / `SIGTERM`.
+
+Keep this short unless students ask.
+
 ---
 
-# We Do — Reading the Request
+# Core vs Advanced Tests
 
-Let's trace what happens with this request:
+Assignment 2 is split:
 
+Core:
+
+```bash
+npm run tdd assignment2a
 ```
-POST /api/users/register
-Content-Type: application/json
 
-{ "name": "Alex", "email": "alex@test.com" }
+Advanced:
+
+```bash
+npm run tdd assignment2b
 ```
 
-What is available in `req`?
-
-- `req.method` → `"POST"`
-- `req.path` → `"/api/users/register"`
-- `req.body` → `{ name: "Alex", email: "alex@test.com" }` *(after `express.json()`)*
-
-<!-- Mentor note: Do this as a group discussion — ask students to predict before revealing the answers. -->
-
----
-
-# We Do — Build a Mini API
-
-Together, let's build a small Express server with:
-
-1. `GET /ping` → responds `{ status: "ok" }`
-2. `POST /echo` → responds with whatever was sent in the body
-3. A 404 handler
-
-What should the 404 handler return for a request to `/unknown`?
-
-<!-- Mentor note: Live-code this together. Take suggestions from students on how to write each handler. -->
-
----
-
-# You Do (5 min)
-
-Add one more route to the mini API:
-
-- `GET /time` — returns `{ time: new Date().toISOString() }`
-
-Then test with your browser and/or Postman.
-
-**Bonus:** Add a route that accepts `{ a, b }` in the body and returns `{ sum: a + b }`.
-
-<!-- Mentor note: Let students work independently. After 5 min, ask someone to share their solution. -->
+Core must pass before submission. Advanced is optional.
 
 ---
 
 # Assignment Preview
 
-This week you'll:
+Core tasks:
 
-1. Create an event emitter that fires every 5 seconds
-2. Build an HTTP server that handles `/time` and `/timePage`
-3. Create your first Express app (`app.js`)
-4. Add routes for user register, logon, and logoff
-5. Store users in memory with `global.users`
+1. `assignment2/events.js`
+2. `assignment2/sampleHTTP.js`
+3. raw `GET /time`, `GET /timePage`, `POST /echo`
+4. root `app.js`
+5. `controllers/timeController.js`
+6. `routes/timeRoutes.js`
 
-The assignment is where the course project starts — you'll keep building on `app.js` every week.
+Advanced:
 
----
-
-# Assignment: Key Details
-
-Your `app.js` will use global state for now:
-
-```js
-global.user_id = null;
-global.users = [];
-global.tasks = [];
-```
-
-This is temporary — not secure, but it gets you started.
-
-You'll replace this with a real database in Week 5.
+1. raw 404
+2. invalid JSON 400
+3. Express unknown route 404
+4. optional server lifecycle polish
 
 ---
 
@@ -342,15 +351,16 @@ You'll replace this with a real database in Week 5.
 
 In chat:
 
-1. What does `emitter.on()` do vs `emitter.emit()`?
-2. Why do we need Postman to test POST requests?
-3. What's the difference between middleware and a route handler?
+1. What does `emitter.on()` do?
+2. Why do raw HTTP POST bodies require `"data"` and `"end"`?
+3. What does Express make easier?
+4. How does `/api` get added to `/time`?
 
 ---
 
 # Confidence Check
 
-On a scale of 1–5:
+On a scale of 1-5:
 
 How comfortable do you feel starting Assignment 2?
 
@@ -359,8 +369,9 @@ How comfortable do you feel starting Assignment 2?
 # Resources
 
 - https://nodejs.org/api/events.html
+- https://nodejs.org/api/http.html
 - https://expressjs.com/en/guide/routing.html
-- Postman VS Code Extension docs (linked in assignment)
+- Postman VS Code Extension docs
 - Ask questions in Slack
 
 ---
@@ -368,9 +379,9 @@ How comfortable do you feel starting Assignment 2?
 # Closing
 
 **This week:**
-Event emitters + HTTP + your first Express routes.
+Events, raw HTTP, Postman, and your first Express routes.
 
 **Next week:**
-Dive deeper — REST, JSON, middleware chain, and debugging Express.
+Middleware, error handling, status codes, and debugging Express apps.
 
 See you then!
