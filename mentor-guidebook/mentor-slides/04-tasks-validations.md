@@ -19,7 +19,7 @@ paginate: true
 
 ---
 
-# Lesson 4 — Security Middleware, Validation, and Password Hashing
+# Lesson 4 - Protected Tasks, Validation, and Password Hashing
 ## Node.js/Express
 
 ---
@@ -27,11 +27,12 @@ paginate: true
 # Game Plan
 
 - Warm-Up
-- Protected Routes & Auth Middleware
-- Data Validation with Joi
-- Password Hashing
+- Authentication vs authorization
+- Protected task routes
+- Task ownership
+- Joi validation
+- Password hashing
 - Assignment Preview
-- Wrap-Up
 
 ---
 
@@ -39,294 +40,374 @@ paginate: true
 
 In chat or out loud:
 
-1. What clicked for you in Assignment 3?
-2. Can you think of a real website where you'd want some routes to be public and others private?
+1. What did Assignment 3 add to the todo backend?
+2. Which routes in a task app should require a logged-in user?
 
-<!-- Mentor note: Use the second question to bridge into auth middleware. Students often name things like login pages vs account dashboards — perfect examples. -->
+<!-- Mentor note: Use this to connect Week 3 middleware to Week 4 auth middleware. -->
 
 ---
 
-# The Problem with Open Routes
+# What Week 4 Adds
 
-Right now, anyone can call:
+Students keep using the main todo backend.
 
+This week they add:
+
+- Task routes and task controllers
+- Auth middleware for task routes
+- Ownership checks so users only access their own tasks
+- Joi schemas for user and task request bodies
+- Password hashing with Node's built-in `crypto`
+
+---
+
+# Authentication vs Authorization
+
+Authentication asks:
+
+> Who is logged in?
+
+In this assignment, the app uses:
+
+```js
+global.user_id
 ```
-DELETE /api/tasks/5
-```
 
-...even without being logged in.
+Authorization asks:
 
-We need a way to protect certain routes. That's what **auth middleware** does.
+> Is this logged-in user allowed to access this task?
+
+---
+
+# Temporary Login Scaffold
+
+`global.user_id` is a learning scaffold.
+
+It lets students practice protected routes before sessions, cookies, tokens, databases, or Prisma.
+
+Important limitation:
+
+- It does not identify separate clients
+- It is not production-ready auth
+- It will be replaced later
 
 ---
 
 # Auth Middleware Pattern
 
 ```js
-// middleware/auth.js
 module.exports = (req, res, next) => {
   if (!global.user_id) {
-    return res.status(401).json({ message: "Unauthorized." });
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  next(); // logged in — pass to route handler
+
+  next();
 };
 ```
 
-Notice: either `return res.json()` **or** `next()` — never both!
+Either send a response or call `next()`.
+
+Do not do both.
 
 ---
 
-# Applying Auth Middleware
+# Protecting Task Routes
 
-You can protect an entire group of routes at once:
+User routes stay public:
 
 ```js
-const authMiddleware = require("./middleware/auth");
-const taskRouter = require("./routers/taskRoutes");
+app.use("/api/users", userRouter);
+```
 
-// All task routes require auth
+Task routes are protected:
+
+```js
 app.use("/api/tasks", authMiddleware, taskRouter);
 ```
 
-The login and register routes stay **unprotected** — users need to reach them first.
+Users need to register and log on before they can access tasks.
 
 ---
 
-# DRY: Don't Repeat Yourself
+# Task Routes
 
-Without middleware, every route handler would have to check:
+Inside `routes/taskRoutes.js`, paths are relative to `/api/tasks`:
+
+```text
+POST   /      -> create
+GET    /      -> index
+GET    /:id   -> show
+PATCH  /:id   -> update
+DELETE /:id   -> deleteTask
+```
+
+The tests expect these controller function names.
+
+---
+
+# Task Ownership
+
+Each stored task needs an internal owner:
 
 ```js
-app.get("/api/tasks", (req, res) => {
-  if (!global.user_id) return res.status(401).json(...);
-  // ... actual logic
-});
-
-app.post("/api/tasks", (req, res) => {
-  if (!global.user_id) return res.status(401).json(...); // repeated!
-  // ... actual logic
-});
+userId: global.user_id.email
 ```
 
-Middleware solves this — write the check once, apply it everywhere.
-
----
-
-# Quick Think (2 min)
-
-If you had a blog with public posts but private drafts, which routes would you protect?
-
-```
-GET  /api/posts        (public)
-GET  /api/posts/:id    (public)
-POST /api/posts        (???
-PATCH /api/posts/:id   (???
-DELETE /api/posts/:id  (???
-GET /api/drafts        (???
-```
-
-<!-- Mentor note: Guide students to identify that write operations + drafts need auth. This builds intuition for authorization design. -->
-
----
-
-# Data Validation
-
-Before storing data, **validate** it.
-
-Bad data leads to:
-- Broken behavior
-- Security vulnerabilities (injection attacks)
-- Unhelpful error messages
-
-We use **Joi** for validation in this project.
-
-```bash
-npm install joi
-```
-
----
-
-# Joi Basics
-
-```js
-const Joi = require("joi");
-
-const schema = Joi.object({
-  title: Joi.string().min(1).max(255).required(),
-  isCompleted: Joi.boolean().default(false),
-});
-
-const { error, value } = schema.validate(req.body);
-if (error) {
-  return res.status(400).json({ message: error.details[0].message });
-}
-```
-
-If validation passes, `value` contains the cleaned data.
-
----
-
-# Joi Can Transform Too
-
-```js
-const userSchema = Joi.object({
-  name: Joi.string().trim().required(),
-  email: Joi.string().email().lowercase().required(),
-  password: Joi.string().min(8).required(),
-});
-```
-
-- `.trim()` — removes leading/trailing whitespace
-- `.lowercase()` — normalizes emails
-- `.email()` — validates format
-
-Validation is your **first line of defense** against bad input.
-
----
-
-# Predict This
-
-```js
-const schema = Joi.object({
-  password: Joi.string().min(8).required(),
-});
-
-const { error } = schema.validate({ password: "abc" });
-```
-
-What does `error` contain? What HTTP status should you return?
-
-<!-- Mentor note: Answer: error.details[0].message will say something like '"password" length must be at least 8 characters'. Return 400 Bad Request. -->
-
----
-
-# Password Storage
-
-**Never store plain-text passwords.**
-
-If your database is compromised, attackers get every password.
-
-Instead: store a **cryptographic hash**.
-
-- A hash is a one-way transformation
-- You can verify a password by hashing it and comparing
-- Each password gets a unique **salt** to prevent rainbow table attacks
-
----
-
-# bcrypt / scrypt
-
-Node's built-in `crypto` module has `scryptSync`:
-
-```js
-const crypto = require("crypto");
-
-// Hashing (on registration)
-const salt = crypto.randomBytes(16).toString("hex");
-const hash = crypto.scryptSync(password, salt, 64).toString("hex");
-const storedHash = `${salt}:${hash}`;
-
-// Verifying (on login)
-const [savedSalt, savedHash] = storedHash.split(":");
-const hashToCheck = crypto.scryptSync(inputPassword, savedSalt, 64).toString("hex");
-const match = hashToCheck === savedHash;
-```
-
----
-
-# Security Rules
-
-1. Use a well-known, public hashing algorithm — **never invent your own**
-2. Always use a unique salt per password
-3. Never store the plain-text password, even temporarily
-4. Never store credit card numbers, SSNs, etc. without proper compliance
-
-> "Never invent your own cryptography." — every security expert ever
-
----
-
-# We Do — Spot the Bug
-
-Which of these is safer and why?
-
-```js
-// Option A
-global.users.push({ ...req.body });
-
-// Option B
-const { name, email, password } = req.body;
-const { error, value } = userSchema.validate({ name, email, password });
-if (error) return res.status(400).json({ message: error.details[0].message });
-global.users.push(value);
-```
-
-<!-- Mentor note: Option B is safer because: (1) it validates input, (2) it uses the sanitized value not req.body directly, (3) you'd add hashing before push in a real implementation. -->
-
----
-
-# We Do — Design a Validation Schema
-
-For this task shape:
+Stored task shape:
 
 ```js
 {
-  title: "Buy groceries",
-  isCompleted: false
+  id: 1,
+  title: "first task",
+  isCompleted: false,
+  userId: "jim@sample.com"
 }
 ```
 
-What Joi rules would you write?
+---
 
-- `title` — required? max length? what type?
-- `isCompleted` — required? default value?
+# Do Not Return `userId`
 
-<!-- Mentor note: Have students suggest the schema rules out loud, then write them together. This mirrors what they'll do in the assignment. -->
+`userId` is for server-side authorization checks.
+
+The client does not need it in task responses.
+
+Pattern:
+
+```js
+const { userId, ...sanitizedTask } = task;
+```
+
+Use the sanitized copy in `res.json()`.
 
 ---
 
-# You Do (5 min)
+# Controller Flow
 
-Write a Joi schema for a task `update` operation:
+For `show`, `update`, and `deleteTask`:
 
-- `title` should be optional (you might only update one field)
-- `isCompleted` should be optional but must be boolean if present
-- Reject any unknown fields
+1. Parse `req.params.id`
+2. Return `400` if the ID is invalid
+3. Find a task matching both ID and `global.user_id.email`
+4. Return `404` if no owned task is found
+5. Return the task without `userId`
 
-**Hint:** `Joi.object({ ... }).options({ allowUnknown: false })`
+---
 
-<!-- Mentor note: The key insight here is that update schemas are often different from create schemas — fewer fields are required. This directly applies to the PATCH handler. -->
+# Create Flow
+
+```text
+validate body -> create task -> push to global.tasks -> return sanitized task
+```
+
+The stored task includes `userId`.
+
+The response does not include `userId`.
+
+---
+
+# Update Flow
+
+```text
+validate patch body -> parse id -> find owned task -> merge fields -> return sanitized task
+```
+
+Useful pattern:
+
+```js
+Object.assign(task, value);
+```
+
+Core idea: use it to merge validated patch fields into the stored task.
+
+---
+
+# Delete Flow
+
+Use `findIndex()` because delete needs the array position:
+
+```js
+const taskIndex = global.tasks.findIndex(...);
+```
+
+Then remove the task with:
+
+```js
+global.tasks.splice(taskIndex, 1);
+```
+
+Copy the task without `userId` before returning it.
+
+---
+
+# Joi Validation
+
+Joi validates request bodies before the app stores data.
+
+Students create:
+
+```text
+validation/userSchema.js
+validation/taskSchema.js
+```
+
+The controller should use the validated `value`, not raw `req.body`.
+
+---
+
+# User Schema
+
+Rules from the assignment:
+
+- `email` is required, trimmed, lowercased, and valid email format
+- `name` is required, trimmed, and 3 to 30 characters
+- `password` is required and must not be trivial
+
+Useful pattern:
+
+```js
+email: Joi.string().trim().lowercase().email().required()
+```
+
+---
+
+# Task Schemas
+
+Create schema:
+
+- `title` is required
+- `isCompleted` defaults to `false`
+
+Patch schema:
+
+- Allows partial updates
+- Does not default `isCompleted`
+- Requires at least one field
+
+```js
+Joi.object({ ... }).min(1)
+```
+
+---
+
+# Where Validation Goes
+
+Validate near the top of the controller.
+
+```js
+const { error, value } = userSchema.validate(req.body, {
+  abortEarly: false,
+});
+```
+
+If `error` exists, return `400`.
+
+If validation passes, build objects from `value`.
+
+---
+
+# Password Hashing
+
+Never store plain-text passwords.
+
+Assignment 4 uses Node's built-in modules:
+
+```js
+const crypto = require("crypto");
+const util = require("util");
+const scrypt = util.promisify(crypto.scrypt);
+```
+
+`crypto.scrypt` uses callback style. `util.promisify()` lets students use `await`.
+
+---
+
+# Register With Hashing
+
+In `register`:
+
+1. Validate `req.body`
+2. Use the validated `value`
+3. Hash the password
+4. Store `hashedPassword`
+5. Do not store plain `password`
+
+Stored user shape:
+
+```js
+{ email, name, hashedPassword }
+```
+
+---
+
+# Logon With Hashing
+
+In `logon`:
+
+1. Find the user by email
+2. Compare the submitted password with `user.hashedPassword`
+3. Return `401` if credentials do not match
+4. Set `global.user_id` when login succeeds
+
+Do not compare against `user.password` after this change.
+
+---
+
+# Status Code Guide
+
+For this assignment:
+
+- `200`: successful read, update, delete, or logon/logoff
+- `201`: successful register or task create
+- `400`: invalid request body or invalid task ID
+- `401`: no logged-in user or invalid credentials
+- `404`: no task found for this user
 
 ---
 
 # Assignment Preview
 
-This week's assignment is the biggest one so far:
+Students will:
 
-1. Build all 5 task routes: create, index, show, update, deleteTask
-2. Add auth middleware in front of all task routes
-3. Add Joi validation for user and task create/update
-4. Hash passwords on register (using `crypto.scryptSync`)
-5. Verify hashed password on login
-
-The assignment is labeled "a lot of work" — give yourself extra time!
+- Add `controllers/taskController.js`
+- Add `routes/taskRoutes.js`
+- Add `middleware/auth.js`
+- Add `validation/userSchema.js`
+- Add `validation/taskSchema.js`
+- Update `app.js`
+- Update `controllers/userController.js`
 
 ---
 
-# Assignment: Task ID Pattern
+# Tests
 
-```js
-const taskCounter = (() => {
-  let lastTaskNumber = 0;
-  return () => {
-    lastTaskNumber += 1;
-    return lastTaskNumber;
-  };
-})();
+Run the required Week 4 test:
+
+```bash
+npm run tdd assignment4a
 ```
 
-This is a **closure** — a function that remembers its own state.
+`assignment4a` checks protected task behavior, basic validation, and password hashing.
 
-Each call to `taskCounter()` returns the next unique ID.
+If students attempt the optional advanced section, also run:
+
+```bash
+npm run tdd assignment4b
+```
+
+`assignment4b` checks deeper validation, patch update, and password security behavior.
+
+---
+
+# Advanced Knowledge
+
+Use these if time allows:
+
+- `Object.assign()` mutates the stored task object
+- Salted password hashes protect against precomputed password attacks
+- Joi validation does not replace authorization
+- Some APIs use `403`, but this assignment can use `404` for another user's task
+- Real auth later uses sessions, cookies, or tokens
 
 ---
 
@@ -334,34 +415,19 @@ Each call to `taskCounter()` returns the next unique ID.
 
 In chat:
 
-1. Why do we use middleware for auth instead of putting the check in every route?
-2. Why should we never store a plain-text password?
-3. What's the difference between a validation error (400) and an unauthorized error (401)?
-
----
-
-# Confidence Check
-
-On a scale of 1–5:
-
-How confident are you about building protected routes this week?
-
----
-
-# Resources
-
-- https://joi.dev/api/
-- https://nodejs.org/api/crypto.html
-- Ask questions in Slack
+1. What is the difference between authentication and authorization?
+2. Why should task responses leave out `userId`?
+3. Why should controllers use Joi's validated `value`?
+4. Why should passwords be hashed before storage?
 
 ---
 
 # Closing
 
-**This week:**
-Auth middleware, Joi validation, and proper password storage.
+This week:
 
-**Next week:**
-We switch from in-memory arrays to a real database — SQL and PostgreSQL.
+Protected task routes, task ownership, validation, and password hashing.
 
-See you then!
+Next week:
+
+SQL and PostgreSQL replace temporary in-memory storage.
