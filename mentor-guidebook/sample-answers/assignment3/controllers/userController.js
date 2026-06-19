@@ -10,6 +10,7 @@ exports.register = async (req, res) => {
   // Create new user
   const newUser = { ...req.body };
   global.users.push(newUser);
+  global.user_id = newUser;
 
   res.status(201).json({
     name: newUser.name,

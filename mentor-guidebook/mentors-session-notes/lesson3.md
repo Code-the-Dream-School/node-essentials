@@ -1,65 +1,138 @@
-# Lesson/Assignment 3: HTTP, JSON, Express Concepts
+# Lesson/Assignment 3: Express Middleware and Error Handling
 
-## HTTP components
+## Session focus
 
-Request Components
-- url
-- protocol (HTTP or HTTPS, sometimes others), hostname, port
-- method (GET, POST, PUT, PATCH, DELETE, rarely others)
-- path
-- URL parameters (sometimes): DELETE /tasks/423
-- query parameters (sometimes) GET /tasks?isCompleted=true&orderBy=createdAt
-- headers, including Cookie, Setcookie (usually)
-- body (sometimes)
+Keep the session centered on Express request flow. Lesson 2 already introduced raw HTTP, basic Express routes, Postman, and routers/controllers. In Lesson 3, the new material is what happens before, after, and around route handlers.
 
-Response components
-- result code
-- body (sometimes)
-- headers (usually)
+## Core + advanced optional structure
 
-## JSON
+Lesson 3 is now split into **Core Knowledge** and **Advanced Knowledge**. Core topics are required for students to continue with the course: middleware flow, `next()`, ordering, built-in/custom/third-party middleware, not-found handling, error handling, common status codes, and basic debugging. Advanced topics are optional context and deeper reference material; use them when the group has time or when students ask follow-up questions.
 
-A JSON document is a JSON object or an array (ordered list)
+## Core concepts to emphasize
 
-The values in either are nested JSON objects/arrays or:
-numbers (integer or float), strings, booleans, null
+- Express checks middleware and routes from top to bottom.
+- Middleware functions receive `req`, `res`, and `next`.
+- Middleware must send a response, call `next()`, or report an error with `next(error)` or by throwing it.
+- If middleware does none of those things, the request hangs.
+- `express.json()` must appear before routes that read `req.body`.
+- `app.use()` can match path prefixes; route methods like `app.get()` match a specific method and path.
+- The same `req` object moves through the chain, so middleware can add data like `req.requestTime`.
+- Not-found middleware handles requests that matched no route.
+- Error handling middleware has four parameters: `err`, `req`, `res`, `next`.
 
-In JSON objects, the attribute name is always a quoted string.  
+## Middleware types
 
-JSON strings always use double quotes
+Built-in middleware:
 
-```JSON
-{ "part 1": [4, 5, 11.2, false], 
-"part 2": "miscellaneous",
-"part 3": { "nested": null } }
+- `express.json()` parses JSON bodies into `req.body`.
+- `express.static()` serves static files.
+
+Custom middleware:
+
+- request logger
+- request time / request ID with Node's built-in `crypto.randomUUID()`
+- content-type validation
+- auth checks
+
+Third-party middleware:
+
+- `morgan` for request logging
+- `cors` for cross-origin requests
+- `cookie-parser` for cookies
+- `helmet` for security-related headers
+- `compression` for compressed responses
+
+Remind students that third-party middleware must be installed with npm before it can be required.
+
+## Not-found vs error handler
+
+Use this distinction often:
+
+- Not-found means no route matched the request.
+- Error handling means something broke while processing a matched request.
+
+Recommended order:
+
+```js
+app.use(logger);
+app.use(express.json());
+
+app.use("/api/users", userRouter);
+app.use("/api/tasks", taskRouter);
+
+app.use(notFound);
+app.use(errorHandler);
 ```
 
-## REST (representational state transfer protocol)
+## Status code guidance
 
-1. HTTP GET, POST, PUT, PATCH, DELETE
-2. Request and response bodies are always JSON
-3. The Content-Type header is always “application/json”
+Students should not use `500` for every problem.
 
-## Request Handlers and Middleware
+- `200 OK`: success with a response body
+- `201 Created`: new resource created
+- `204 No Content`: success with no response body
+- `400 Bad Request`: invalid request data
+- `401 Unauthorized`: not logged in or invalid credentials
+- `403 Forbidden`: logged in but not allowed
+- `404 Not Found`: route or resource missing
+- `415 Unsupported Media Type`: wrong `Content-Type`
+- `422 Unprocessable Entity`: valid JSON shape, invalid data rules
+- `500 Internal Server Error`: unexpected server failure
 
-1. Order Matters!  For example, the body parser middleware must come before any reference to req.body.
-2. Middleware must do exactly one of these with each call:
-    - res.send() or res.json()
-    - throw err or next(err) – In Express 5, these work the same (except no throwing errors within callbacks!)
-    - next()
-3. Request handlers must do exactly one of these with each call:
-    - res.send() or res.json()
-    - throw err or next(err)
-4. Either type of function may modify the request or set headers.
-5. For request handlers, the method and path have to match exactly.  Middleware either runs on every request, or on every request with a certain path prefix.
+Note: `415` is the more specific content-type status, but the Week 3 assignment tests expect `400 Bad Request` for the content-type validation middleware.
 
-## VSCode Debugging
+## Debugging prompts
 
-1. Ctrl-Shift-P
-2. Debug: Toggle Auto Attach
-3. Set to Smart
-4. Set your breakpoints
-5. Start a terminal
-6. Run the program from the terminal as usual.
-7. Open the left hand panel for run and debug.
+When students are stuck, ask:
 
+1. Did the request reach the server?
+2. Did the method and path match?
+3. Did each middleware call `next()` or send a response?
+4. Is `express.json()` before the route?
+5. Was a response sent twice?
+6. Did the request skip to the not-found handler?
+7. Did the error handler run?
+
+Use Postman and the browser network tab to inspect status codes and response bodies. Use console logs early, and introduce the VS Code debugger when students are ready.
+
+## Assignment 3 reminders
+
+Part A extends the project app:
+
+- user register, logon, and logoff
+- controllers and routers
+- in-memory globals as a temporary database scaffold
+
+Part B focuses on required dog middleware practice:
+
+- request logging and tracking
+- JSON body parsing
+- static file serving
+- not-found handling
+- basic error handling middleware
+
+Part C focuses on optional advanced dog middleware practice:
+
+- security headers
+- request size limiting
+- content-type validation
+- custom error classes
+- advanced error logging
+
+Commands:
+
+```bash
+npm run tdd assignment3a
+npm run week3
+npm run tdd assignment3b
+npm run tdd assignment3c # optional advanced
+```
+
+## Common student issues
+
+- Putting not-found middleware before real routes.
+- Forgetting that error middleware needs four parameters.
+- Calling `res.json()` and then calling `next()`.
+- Forgetting `return` before an early response in validation middleware.
+- Throwing inside a callback instead of using `next(error)`.
+- Sending stack traces or raw error objects to the client.

@@ -19,7 +19,7 @@ paginate: true
 
 ---
 
-# Lesson 1 — Introduction to Node  
+# Lesson 1 — Introduction to Node
 ## Node.js/Express
 
 ---
@@ -32,6 +32,7 @@ paginate: true
 - Async & the Event Loop
 - CJS vs ESM
 - Node Globals
+- Node Docs & npm
 - Assignment Preview
 - Wrap-Up
 
@@ -64,7 +65,7 @@ Think of it as:
 # Why Does Node Exist?
 
 - **Originally:** JavaScript only ran in browsers
-- **Problem:** Lots of JS developers;server-side languages were complex
+- **Problem:** Lots of JS developers; server-side languages were complex
 - **Solution:** Let JavaScript run on servers
 
 Now used for:
@@ -94,7 +95,7 @@ Now used for:
 
 # Quick Think
 
-What are 3 things you can do in Node   that you cannot do in browser JS?
+What are 3 things you can do in Node that you cannot do in browser JS?
 
 (Discuss for 1–2 minutes)
 
@@ -284,6 +285,19 @@ module.exports = { myFunction };
 ```
 
 We will use CJS.
+
+---
+
+# Node Docs & npm
+
+Node gives you:
+
+- Built-in modules like `fs`, `path`, `os`, `http`, `crypto`
+- Official docs at https://nodejs.org/api/
+- Third-party packages through npm
+
+Mentor prompt:
+> When would you use a built-in module vs an npm package?
 
 ---
 

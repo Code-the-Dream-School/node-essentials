@@ -53,11 +53,12 @@ Tests verify:
 ```bash
 npm run tdd assignment3a    # For first part
 npm run tdd assignment3b    # For second part
-npm run tdd assignment3     # For complete assignment
+npm run tdd assignment3c    # For optional advanced part
 ```
 Tests verify:
 - Route handlers work correctly
 - Middleware is properly implemented
+- Optional advanced middleware is properly implemented
 - Error handling functions correctly
 
 #### **Assignment 4** (Tasks and Validations)
@@ -147,10 +148,10 @@ When tests fail, you'll see detailed error messages:
 FAIL  tdd/assignment1.test.js
   Week 1 Assignment Solution Tests
     ✕ globals-demo.js outputs correct globals (123 ms)
-    
+
     Expected: contain "__dirname: /path/to/assignment1"
     Received: "__dirname: /wrong/path"
-    
+
     Difference: Expected substring: "__dirname: /path/to/assignment1"
 ```
 
@@ -178,7 +179,7 @@ const { execSync } = require('child_process');
 
 describe('Assignment X: Description', () => {
   const assignmentDir = path.join(__dirname, '../assignmentX');
-  
+
   test('Test description', () => {
     // Test code here
     expect(actualValue).toBe(expectedValue);

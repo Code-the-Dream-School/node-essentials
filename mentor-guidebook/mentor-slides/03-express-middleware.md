@@ -19,7 +19,7 @@ paginate: true
 
 ---
 
-# Lesson 3 — Express Application Concepts
+# Lesson 3 — Express Middleware and Error Handling
 ## Node.js/Express
 
 ---
@@ -27,14 +27,14 @@ paginate: true
 # Game Plan
 
 - Warm-Up
-- HTTP Deep Dive
-- REST & JSON
-- The Middleware Chain
-- Route Handlers & Error Handling
-- Status Codes
+- Express request flow
+- Middleware and `next()`
+- Middleware order
+- Built-in, custom, and third-party middleware
+- Not-found and error handlers
+- Status codes and error responses
 - Debugging Express
 - Assignment Preview
-- Wrap-Up
 
 ---
 
@@ -42,177 +42,77 @@ paginate: true
 
 In chat or out loud:
 
-1. What's one thing that clicked after working on Assignment 2?
-2. What's one thing that still feels murky?
+1. What did you build for Assignment 2?
+2. What still feels unclear about Express?
 
-<!-- Mentor note: Use responses to calibrate how much time to spend on review. Common sticking points: body parsing, the order of middleware, 404 vs error handler. -->
-
----
-
-# The Layers Under Express
-
-**HTTP** — the protocol (language browsers and servers speak)
-
-**Node `http` module** — low-level implementation (manual everything)
-
-**Express** — high-level framework (automatic routing, parsing, etc.)
-
-Think of it like:
-> HTTP is the language. Node `http` is manual translation. Express is the automatic translator.
+<!-- Mentor note: Common issues: body parsing order, route prefixes, app/router paths. -->
 
 ---
 
-# HTTP Methods
+# Lesson 2 Recap
 
-Every HTTP request has a **method**:
+Students already saw:
 
-- `GET` — retrieve data (never change data on a GET!)
-- `POST` — create something new
-- `PATCH` — partially update something
-- `PUT` — replace something entirely
-- `DELETE` — remove something
+- Basic Express route handlers
+- `req` and `res`
+- `express.json()`
+- Routes and controllers
+- Postman for POST requests
 
-These map directly to `app.get()`, `app.post()`, etc. in Express.
+Today:
+
+> What happens around route handlers?
 
 ---
 
-# Parts of an HTTP Request
+# Express Request Flow
 
-```
-POST /api/tasks HTTP/1.1
-Content-Type: application/json
-
-{ "title": "Buy groceries" }
+```text
+request -> middleware -> route handler -> response
 ```
 
-- **Method**: `POST`
-- **Path**: `/api/tasks`
-- **Header**: `Content-Type: application/json`
-- **Body**: `{ "title": "Buy groceries" }`
+Middleware can:
 
-Query params look like: `/api/tasks?isCompleted=false`
+- Prepare the request
+- Check the request
+- Modify `req` or `res`
+- Stop with a response
+- Pass control with `next()`
 
 ---
 
-# REST & JSON
+# What Is Middleware?
 
-**REST** — a style for how APIs exchange data over HTTP.
-
-**JSON** — the format for that data.
-
-```json
-{
-  "id": 1,
-  "title": "Buy groceries",
-  "isCompleted": false
+```js
+function logger(req, res, next) {
+  console.log(`${req.method} ${req.path}`);
+  next();
 }
+
+app.use(logger);
 ```
 
-By convention:
-- `GET /tasks` → list of tasks
-- `POST /tasks` → create a task
-- `PATCH /tasks/1` → update task with id 1
-- `DELETE /tasks/1` → delete task with id 1
+Middleware receives:
+
+- `req`
+- `res`
+- `next`
 
 ---
 
-# Predict This
+# What Does `next()` Mean?
 
-```js
-app.use(express.json());
+Think of `next()` as:
 
-app.post("/api/items", (req, res) => {
-  console.log(req.body);
-  res.status(201).json({ created: req.body });
-});
-```
+> "I am done with my part. Go to the next matching function."
 
-What happens if you POST without `Content-Type: application/json`?
+Every middleware must:
 
-<!-- Mentor note: Answer: req.body will be undefined. This is a very common bug students encounter. -->
-
----
-
-# The Middleware Chain
-
-Every request passes through a series of functions in order:
-
-```
-Request
-  → Middleware 1 (logging)
-  → Middleware 2 (body parsing)
-  → Middleware 3 (auth check)
-  → Route Handler
-  → Response
-```
-
-Each function must either:
-- Call `next()` to pass control forward
-- Send a response (`res.json()`, `res.send()`)
-- Throw an error / call `next(error)`
-
----
-
-# Order Matters!
-
-```js
-// ✅ Correct order
-app.use(express.json());       // parse bodies first
-
-app.post("/api/tasks", (req, res) => {
-  res.json({ task: req.body }); // req.body is available
-});
-```
-
-```js
-// ❌ Wrong order
-app.post("/api/tasks", (req, res) => {
-  res.json({ task: req.body }); // undefined!
-});
-
-app.use(express.json()); // too late
-```
-
----
-
-# Common Express App Structure
-
-```js
-// 1. Body parsing
-app.use(express.json());
-
-// 2. Your routes
-app.use("/api/users", userRouter);
-app.use("/api/tasks", taskRouter);
-
-// 3. 404 handler (after routes)
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found." });
-});
-
-// 4. Error handler (always last, 4 params)
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: "Internal server error." });
-});
-```
-
----
-
-# What Route Handlers Do
-
-A route handler is matched by **method** + **exact path**:
-
-```js
-app.get("/api/tasks", (req, res) => { /* ... */ });
-// Only called for GET /api/tasks — nothing else
-```
-
-A route handler must always do one of:
 1. Send a response
-2. Call `next(error)`
-3. Throw an error
+2. Call `next()`
+3. Call `next(error)` or throw
 
-If none of these happen, the request just... hangs.
+Otherwise the request hangs.
 
 ---
 
@@ -220,188 +120,431 @@ If none of these happen, the request just... hangs.
 
 | | Middleware | Route Handler |
 |---|---|---|
-| Registered with | `app.use()` | `app.get()`, `app.post()`, etc. |
-| Path match | Prefix (optional) | Exact match |
-| Methods | All | Specific |
-| Typical behavior | Calls `next()` | Sends response |
+| Registered with | `app.use()` | `app.get()`, `app.post()` |
+| Typical job | prepare/check/log/modify | send main route response |
+| Usually calls | `next()` | `res.json()` / `res.send()` |
+
+Route handlers are usually the endpoint of the chain.
 
 ---
 
-# Path Parameters
-
-You can capture parts of the URL as variables:
+# Order Matters
 
 ```js
-app.get("/api/tasks/:id", (req, res) => {
-  const taskId = req.params.id;
-  res.json({ taskId });
-});
+app.use(logger);
+app.use(express.json());
+
+app.get("/tasks", getTasks);
+app.post("/tasks", createTask);
+
+app.use(notFound);
+app.use(errorHandler);
 ```
 
-A request to `/api/tasks/42` gives you `req.params.id === "42"`.
-
-Note: `req.params` values are always **strings**.
+Express checks these from top to bottom.
 
 ---
 
-# The `req` Object
+# Path Matching
 
-```js
-req.method       // "GET", "POST", etc.
-req.path         // "/api/tasks"
-req.params       // { id: "42" }
-req.query        // { isCompleted: "true" }
-req.body         // { title: "Buy groceries" }
-req.headers      // { "content-type": "application/json", ... }
-req.get("content-type")  // shorthand for headers
-```
-
----
-
-# The `res` Object
-
-```js
-res.status(201)            // set status code
-res.json({ key: "value" }) // send JSON (also sets Content-Type)
-res.send("plain text")     // send text
-res.status(404).json({ message: "Not found" })  // chain them
-```
-
-> `res.json()` and `res.send()` both **end** the response.
-> Calling either twice for the same request is an error.
-
----
-
-# HTTP Status Codes
-
-| Range | Meaning | Examples |
+| Code | Matches | Does not match |
 |---|---|---|
-| 2xx | Success | 200 OK, 201 Created, 204 No Content |
-| 4xx | Client error | 400 Bad Request, 401 Unauthorized, 404 Not Found |
-| 5xx | Server error | 500 Internal Server Error |
+| `app.use("/api", logger)` | `/api/tasks` | `/tasks` |
+| `app.get("/api", handler)` | `GET /api` | `GET /api/tasks` |
 
-Returning the right status code is part of the API contract.
+`app.use()` can match a prefix.
+Route methods match a specific method and path.
 
 ---
 
-# Error Handling in Express
+# Built-In Middleware
 
-When something goes wrong, throw or call `next(error)`:
+Most important for this course:
 
 ```js
-app.get("/api/tasks/:id", (req, res, next) => {
-  const task = findTask(req.params.id);
-  if (!task) {
-    return res.status(404).json({ message: "Task not found." });
+app.use(express.json());
+```
+
+It parses JSON request bodies and puts the object on:
+
+```js
+req.body
+```
+
+Order reminder:
+`express.json()` must come before routes that read `req.body`.
+
+---
+
+# Custom Middleware
+
+Request logger:
+
+```js
+function requestLogger(req, res, next) {
+  console.log(`${req.method} ${req.path}`);
+  next();
+}
+```
+
+Request metadata:
+
+```js
+function addRequestTime(req, res, next) {
+  req.requestTime = new Date().toISOString();
+  next();
+}
+```
+
+---
+
+# Content-Type Checker
+
+Headers are metadata.
+
+`Content-Type: application/json` means:
+
+> "The request body should be JSON."
+
+```js
+if (methodsWithBody.includes(req.method) && !req.is("application/json")) {
+  return res.status(400).json({
+    message: "Content-Type must be application/json.",
+  });
+}
+next();
+```
+
+---
+
+# Why `return`?
+
+```js
+return res.status(400).json({
+  message: "Content-Type must be application/json.",
+});
+```
+
+The `return` stops the middleware.
+
+Without it, the function could keep going and call `next()` after a response was already sent.
+
+
+
+---
+
+# Third-Party Middleware
+
+Installed from npm:
+
+```bash
+npm install morgan
+```
+
+Used like middleware:
+
+```js
+const morgan = require("morgan");
+
+app.use(morgan("dev"));
+```
+
+If not installed: `Cannot find module`.
+
+---
+
+# Common Third-Party Middleware
+
+- `morgan`: logs requests
+- `cors`: configures cross-origin requests
+- `cookie-parser`: parses cookies into `req.cookies`
+- `helmet`: sets helpful security-related headers
+- `compression`: compresses responses
+
+Ordering still matters.
+
+Example: `morgan` usually goes near the top.
+
+---
+
+# Modifying `req`
+
+The same `req` object moves through the chain.
+
+```js
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+
+app.get("/debug", (req, res) => {
+  res.json({ requestTime: req.requestTime });
+});
+```
+
+---
+
+# Modifying `res`
+
+Middleware can set response headers:
+
+```js
+app.use((req, res, next) => {
+  res.setHeader("X-App-Name", "Node Homework");
+  next();
+});
+```
+
+It can also listen for the response finishing:
+
+```js
+res.on("finish", () => {
+  console.log(res.statusCode);
+});
+```
+
+---
+
+# Not-Found Middleware
+
+Not-found means:
+
+> No route matched this request.
+
+```js
+app.use((req, res) => {
+  res.status(404).json({
+    message: `No route found for ${req.method} ${req.path}`,
+  });
+});
+```
+
+Place after all real routes.
+
+---
+
+# Error Handling Middleware
+
+Error handlers have **four parameters**:
+
+```js
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({
+    message: "Internal server error.",
+  });
+});
+```
+
+Express recognizes this signature:
+
+```js
+(err, req, res, next)
+```
+
+---
+
+# Not Found vs Error Handler
+
+| Situation | Handler |
+|---|---|
+| No route matched | Not-found middleware |
+| Something broke while processing | Error middleware |
+
+Examples:
+
+- `/not-real` -> 404 not found
+- database throws -> error handler
+
+---
+
+# Async Error Pattern
+
+```js
+app.get("/tasks/:id", async (req, res, next) => {
+  try {
+    const task = await getTaskById(req.params.id);
+    if (!task) return res.status(404).json({ message: "Task not found." });
+    res.status(200).json({ task });
+  } catch (error) {
+    next(error);
   }
-  res.json(task);
 });
 ```
 
-For unexpected errors, Express 5 auto-catches `async` throws.
-For callbacks: **use `next(error)`** — never `throw` inside a callback.
+For callbacks: use `next(error)`, do not throw inside the callback.
 
 ---
 
-# We Do — Debug This
+# Status Codes
 
-What's wrong with this route?
+Common API codes:
+
+- `200 OK`: success with data
+- `201 Created`: new resource created
+- `204 No Content`: success with no body
+- `400 Bad Request`: bad request data
+- `401 Unauthorized`: not logged in / invalid auth
+- `403 Forbidden`: logged in but not allowed
+- `404 Not Found`: route or resource missing
+- `500 Internal Server Error`: unexpected server failure
+
+---
+
+# Don't Use 500 For Everything
+
+Use `4xx` when the client caused the problem:
 
 ```js
-app.post("/api/users", (req, res) => {
-  const user = { name: req.body.name };
-  global.users.push(user);
-  res.status(201).json(user);
-  console.log("User created");
-  res.json({ status: "done" }); // ← problem?
-});
+res.status(400).json({ message: "Title is required." });
+res.status(404).json({ message: "Task not found." });
 ```
 
-<!-- Mentor note: Two issues: (1) calling res.json() twice, (2) console.log after res. The second res.json() will throw "Cannot set headers after they are sent". Ask students to spot both. -->
+Use `500` when the server failed unexpectedly:
+
+```js
+res.status(500).json({ message: "Internal server error." });
+```
+
+---
+
+# Error Response Shape
+
+Simple and consistent:
+
+```js
+{
+  message: "Title is required."
+}
+```
+
+Larger apps may add:
+
+```js
+{
+  message: "Validation failed.",
+  errors: [{ field: "email", message: "Email must be valid." }]
+}
+```
+
+Do not send stack traces to clients.
+
+---
+
+# Complete Mini App
+
+Core order:
+
+```js
+app.use(logger);
+app.use(express.json());
+
+app.get("/", home);
+app.post("/echo", echo);
+app.get("/problem", (req, res, next) => next(new Error("Boom")));
+
+app.use(notFound);
+app.use(errorHandler);
+```
+
+This is the pattern to keep using.
 
 ---
 
 # We Do — Trace a Request
 
-Walk through this request together:
+Request:
 
-```
-PATCH /api/tasks/5
+```text
+POST /echo
 Content-Type: application/json
 
-{ "isCompleted": true }
+{ "message": "Hello" }
 ```
 
-What is:
-- `req.method`? `req.path`? `req.params`? `req.body`?
+Trace:
 
-What status code should we return on success?
+1. logger
+2. `express.json()`
+3. `POST /echo`
+4. response
 
-<!-- Mentor note: Guide students to answer 200 (success) or 204 (no content). Both are valid. -->
+What is `req.body`?
 
 ---
 
-# You Do (5 min)
+# We Do — Debug This
 
-Add a route to your Express app:
-
-```
-GET /api/tasks/:id
-```
-
-It should:
-1. Find the task in `global.tasks` by matching the `id`
-2. Return 404 if not found
-3. Return the task if found
-
-Try it with Postman after creating a task first.
-
-<!-- Mentor note: This directly previews the show() function they'll write in Assignment 3. Walk around virtually and help anyone stuck on finding the task by id. -->
-
----
-
-# Debugging Express
-
-**Technique 1: console.log**
-
-Add logs to see what's in `req.body`, `req.params`, etc.
-
-**Technique 2: Postman**
-
-The Network tab shows exactly what was sent and received.
-
-**Technique 3: VS Code Debugger**
-
-Set a breakpoint, press F5 to start debugging, inspect variables live.
-
----
-
-# Debugging Middleware Tip
-
-You can log every request with a small middleware:
+What's wrong?
 
 ```js
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+app.post("/users", (req, res, next) => {
+  res.status(201).json({ user: req.body });
   next();
 });
 ```
 
-Put this **before** all other middleware to catch every request.
+<!-- Mentor note: It sends a response and then continues. This can cause later middleware to attempt another response. -->
+
+---
+
+# Basic Debugging
+
+Check:
+
+1. Did the request reach the server?
+2. Did method/path match?
+3. Did middleware call `next()`?
+4. Did a middleware send a response early?
+5. Is `express.json()` before routes?
+6. Did the error handler run?
+
+Use Postman or browser network tab to inspect status and body.
 
 ---
 
 # Assignment Preview
 
-This week you'll extend your Express app with:
+Assignment 3 has three parts:
 
-1. Route handlers for users: register, logon, logoff
-2. Route handlers for tasks: create, index, show, update, delete
-3. Controllers and routers as separate files
-4. An auth middleware that protects task routes
-5. A basic debugger exercise
+1. Assignment 3A: extend the project app
+   - user register/logon/logoff
+   - controllers and routers
 
-This is where the structure of the real app starts to take shape.
+2. Assignment 3B: work in week 3 folder
+   - JSON body parsing
+   - static files
+   - request IDs with `crypto.randomUUID()`
+   - logging
+   - 404 handler
+   - error handling
+
+3. Assignment 3C: optional advanced work in week 3 folder
+   - security headers
+   - request size limits
+   - content-type validation
+   - custom error classes
+   - advanced error logging
+
+---
+
+# Assignment Commands
+
+Core app work:
+
+```bash
+npm run tdd assignment3a
+```
+
+Middleware/debugging work:
+
+```bash
+npm run week3
+npm run tdd assignment3b
+npm run tdd assignment3c # optional advanced
+```
+
+Use Postman to test routes manually.
 
 ---
 
@@ -409,17 +552,18 @@ This is where the structure of the real app starts to take shape.
 
 In chat:
 
-1. What's the difference between `req.params` and `req.query`?
-2. What must a route handler always do?
-3. Why does the error handler have 4 parameters?
+1. What is `next()` for?
+2. Why does middleware order matter?
+3. What is the difference between 404 and 500?
+4. Why does the error handler have four parameters?
 
 ---
 
 # Confidence Check
 
-On a scale of 1–5:
+On a scale of 1-5:
 
-How comfortable do you feel building route handlers and middleware?
+How comfortable do you feel building middleware and error handlers?
 
 ---
 
@@ -427,6 +571,7 @@ How comfortable do you feel building route handlers and middleware?
 
 - https://expressjs.com/en/guide/writing-middleware.html
 - https://expressjs.com/en/guide/error-handling.html
+- https://expressjs.com/en/resources/middleware.html
 - Ask questions in Slack
 
 ---
@@ -434,9 +579,9 @@ How comfortable do you feel building route handlers and middleware?
 # Closing
 
 **This week:**
-The full middleware chain — routing, parsing, error handling.
+Middleware, request flow, status codes, error handling, and debugging.
 
 **Next week:**
-Protecting routes and validating data before it hits your database.
+Security middleware, validation, and password hashing.
 
 See you then!
