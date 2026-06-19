@@ -271,7 +271,7 @@ Then test the POST route with Postman:
 
 - Method: `POST`
 - URL: `http://localhost:3000/testpost`
-- Body: no body required
+- Body: no request body required
 
 The route should return status `200`.
 
@@ -566,7 +566,7 @@ Answer 3 questions from Lesson 2:
    - Explain what the `controllers/` folder does.
    - Show one route and the controller function it calls.
 
-### Video Requiraements
+### Video Requirements
 
 - Keep it concise: 3-5 minutes
 - Use screen sharing to show code examples when helpful
