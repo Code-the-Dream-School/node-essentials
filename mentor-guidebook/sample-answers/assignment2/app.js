@@ -17,12 +17,12 @@ app.post("/testpost", (req, res) => {
 
 app.use("/api", timeRouter);
 
-app.use((req, res) => {
+
+app.all("*", (req, res) => {
   res.status(404).json({
     message: `No route found for ${req.method} ${req.path}`,
   });
 });
-
 const port = process.env.PORT || 3000;
 
 const server = app.listen(port, () => {
