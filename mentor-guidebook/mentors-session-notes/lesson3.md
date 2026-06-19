@@ -12,7 +12,7 @@ Lesson 3 is now split into **Core Knowledge** and **Advanced Knowledge**. Core t
 
 - Express checks middleware and routes from top to bottom.
 - Middleware functions receive `req`, `res`, and `next`.
-- Middleware must send a response, call `next()`, or report an error with `next(error)` / `throw`.
+- Middleware must send a response, call `next()`, or report an error with `next(error)` or by throwing it.
 - If middleware does none of those things, the request hangs.
 - `express.json()` must appear before routes that read `req.body`.
 - `app.use()` can match path prefixes; route methods like `app.get()` match a specific method and path.
