@@ -235,6 +235,43 @@ expect(fileExists).toBe(true);
 - `.toBeTruthy()` / `.toBeFalsy()` check boolean values
 - Many other matchers are available (see Jest documentation)
 
+### Reading Tests One Piece at a Time
+
+When you read a test file, do not try to understand the whole file at once. Read it from the outside in:
+
+1. Start with the `describe()` block. This tells you the feature or group of behavior being tested.
+2. Then read one `test()` or `it()` block at a time. The name inside the block should describe the behavior being checked.
+3. Look at the setup: file paths, request objects, body, params, headers, saved variables, database records, or mock data.
+4. Finally, read the `expect()` statement. This tells you what result the test requires.
+
+For example, a test named `"The user can be logged on"` tells you the behavior first. Then the code inside the test shows the request being made. The `expect()` statement tells you what must be true for that behavior to count as working.
+
+As you are learning to read tests, it can help to run one test at a time. You can run one test by matching part of its test name:
+
+```bash
+npm test -- -t="The user can be logged on"
+```
+
+The text inside `-t="..."` should match the name inside the `test()` or `it()` block you want to read and run.
+
+You can also temporarily use `.only` in a test file while you are studying one test:
+
+```javascript
+it.only("The user can be logged on", async () => {
+  // test code here
+});
+```
+
+Or you can focus a whole `describe()` block while you are studying one group of tests:
+
+```javascript
+describe.only("testing analytics endpoints", () => {
+  // tests here
+});
+```
+
+Use these tools only while learning or debugging. Before you commit or submit, remove `.only` and run the full test suite again. For Assignment 9, also run the full `npm run lesson9TDD` command because the final report needs to see all of the required test numbers.
+
 ### Example: Reading assignment1a.test.js
 
 Let's break down a real test:

@@ -2,13 +2,13 @@
 
 ## **Task 1: Adding reCAPTCHA Support**
 
-Before you start, remember to create an assignment10 git branch for your node-homework repository.
+Before you start, create an `assignment10` git branch for your `node-homework` repository.
 
-For this task, you have to have a Google gmail account. Then do the following:
+For this task, you need a Google Gmail account. Then do the following:
 
-1. Go to `https://www.google.com/recaptcha/admin`.  You'll have to log on to Google if you haven't already.
+1. Go to `https://www.google.com/recaptcha/admin`. You will have to log on to Google if you have not already.
 
-2. Select the form that says "Register a new site."  Give it some label, like "my ctd node homework".
+2. Select the form that says "Register a new site." Give it a label, like "my ctd node homework".
 
 3. Choose reCAPTCHA v. 2.
 
@@ -16,25 +16,29 @@ For this task, you have to have a Google gmail account. Then do the following:
 
 5. Accept the terms and click "Submit".
 
-6. You will be given two keys, the site key and the secret key.  Save the site key in a comment in your node-homework .env file, and save the secret in a variable, like:
+6. You will receive two keys: the site key and the secret key. Save the site key in a comment in your node-homework .env file, and save the secret in a variable, like:
 
    ```
    # reCAPTCHA site key  gobbledygook
    RECAPTCHA_SECRET=othergobbledygook
    ```
-   Your back end doesn't use the site key, but you'll need it for a subsequent step.
+   Your back end does not use the site key, but you will need it in a later step.
 
-7. Create a hard to guess secret, just as you did for the JWT_SECRET.  Add it to your .env file as RECAPTCHA_BYPASS.  This is for testing.  You can't get a real reCAPTCHA token in Postman or in your Jest tests.
+7. Create a hard-to-guess secret, just as you did for `JWT_SECRET`. Add it to your .env file as `RECAPTCHA_BYPASS`. This is for testing. You cannot get a real reCAPTCHA token in Postman or in your Jest tests.
 
-8. Add additional logic to your `userController.js` for the register method.  You need to check if you received a reCAPTCHA token, and if so, whether it is valid.  The front end has a Google widget with the "I'm not a robot." prompt.  That widget tracks mouse movement and click speeds and the like, and builds up information in a token.  Then the front end sends the token to the back end in the body of the post. If the back end receives this token, you need to see if it is good.  This is done using a `fetch()` to a Google back end.  Hmm, we haven't used `fetch()` on the Node side yet, but it works there just as it does in browser side JavaScript.  (You can also use libraries like Axios, but we'll use `fetch()`.)  The fetch might fail, in which case the error is thrown to the error handler.  If the fetch succeeds, it will tell you whether the token is good.
+8. Add logic to the register method in `userController.js`. Check whether you received a reCAPTCHA token. If you did, verify whether it is valid.
+
+   The front end has a Google widget with the "I'm not a robot." prompt. That widget tracks mouse movement, click timing, and similar signals. It uses that information to create a token. Then the front end sends the token to the back end in the body of the post.
+
+   If the back end receives this token, verify it with a `fetch()` request to Google. We have not used `fetch()` on the Node side yet, but it works there just like it does in browser-side JavaScript. You can also use libraries like Axios, but we will use `fetch()`. The fetch might fail. If it does, the error should go to the error handler. If the fetch succeeds, Google's response tells you whether the token is good.
 
     You must also change `app.js`.  The line for the json parser currently reads:
     ```js
     app.use(express.json({ limit: "1kb" }));
     ```
-    and you need to change that to "1mb" or something -- the recapcha token is bigger than 1KB.
+    Change that to "1mb" or something similar because the reCAPTCHA token is bigger than 1KB.
 
-9. In the test environment (Postman or Jest) you can't run the Google widget, so you can't generate a real token.  When testing in Postman or Jest you instead put the RECAPTCHA_BYPASS value in the "X-Recaptcha-Test" header.  If you don't receive a token in the body of the request, you check whether the RECAPTCHA_BYPASS environment variable is set.  If it is and it matches what is in the header, you proceed as if you got a good token.
+9. In the test environment, Postman or Jest, you cannot run the Google widget, so you cannot generate a real token. When testing in Postman or Jest, put the RECAPTCHA_BYPASS value in the "X-Recaptcha-Test" header. If you do not receive a token in the request body, check whether the RECAPTCHA_BYPASS environment variable is set. If it is set and it matches the header, proceed as if you received a good token.
 
 Here's the code you'll need to add to the register method, just before userSchema.validate:
 
@@ -76,18 +80,18 @@ Here's the code you'll need to add to the register method, just before userSchem
 
 10. Run `npm run tdd assignment10` to see if you have this working.
 
-11. Try testing a register request with Postman.  It will fail.  Change the request to include the RECAPTCHA_BYPASS in the "X-Recaptcha-Test" header, and it should work.
+11. Try testing a register request with Postman. It will fail. Change the request to include the RECAPTCHA_BYPASS in the "X-Recaptcha-Test" header, and it should work.
 
-12. Try `npm run test`.  This runs your tests from assignment 9.  Some of them will fail.  Why?  Optional: Fix your tests so that they complete correctly, by adding in the header you need.
+12. Try `npm run test`. This runs your tests from assignment 9. Some of them will fail. Why? Optional: fix your tests so they complete correctly by adding the header you need.
 
-You have run the TDD for this assignment as well as the Postman test -- but these aren't very good tests in this case.  You are just using the bypass, and not a real token.  You'll correct this in the next lesson.
+You have now run the TDD for this assignment and the Postman test. These are not complete tests of reCAPTCHA because they use the bypass instead of a real token. You will correct that in the next lesson.
 
 ## **Task 2: Calling Your Back End from a React Front End**
 
-For this step, create a new terminal session.  Make sure that your active directory is **not** the node-homework folder.  You want the front end files to be completely separate.
+For this step, create a new terminal session. Make sure your active directory is **not** the node-homework folder. The front end files should be completely separate.
 
-1. Do a git clone for the following URL: `https://github.com/Code-the-Dream-School/node-essentials-front-end` .
-2. Change to the node-essentials-front-end folder.  Then do an `npm install` to get the packages you need.
+1. Clone this repository: `https://github.com/Code-the-Dream-School/node-essentials-front-end`.
+2. Change to the node-essentials-front-end folder. Then run `npm install` to get the packages you need.
 3. Create a `.env` file. It should have four lines:
    ```
    VITE_BASE_URL=""
@@ -95,25 +99,27 @@ For this step, create a new terminal session.  Make sure that your active direct
    VITE_RECAPTCHA_SITE_KEY=gobbledygook
    VITE_GOOGLE_CLIENT_ID="174295933149-09i1it2go1ssjpqtqam9vdm1pj257aqu.apps.googleusercontent.com"
    ```
-   The site key is the one that you saved in a comment in your node-homework .env file.  Have a look at the `vite.config.js` file.  It reroutes all requests for "/api" to the address specified in `VITE_TARGET`.  `VITE_BASE_URL` is an artifact of the current configuration.  You have to set it to `""`, but it will be eliminated in the future.  VITE_GOOGLE_CLIENT_ID is also an artifact.  You have to set it in order for the React front end to come up, but Google logon won't work as it is not enabled on your back end app.  Note also that there is a sample back end on Digital Ocean.  You can access it using the values in `.env.local.sample`.
-4. You need one terminal session for the front end and one for the back end.  In the terminal session for the back end, go to the node-homework folder and start your app.  In the terminal session for the front end (the one where you are in node-essentials-front-end) type
+   The site key is the one you saved in a comment in your node-homework .env file. Look at `vite.config.js`. It reroutes all requests for "/api" to the address specified in `VITE_TARGET`.
+
+   `VITE_BASE_URL` is an artifact of the current configuration. Set it to `""`; it will be removed in the future. `VITE_GOOGLE_CLIENT_ID` is also an artifact. You must set it so the React front end can start, but Google logon will not work because your back end does not support that feature. There is also a sample back end on Digital Ocean. You can access it using the values in `.env.local.sample`.
+4. You need one terminal session for the front end and one for the back end. In the back end terminal, go to the node-homework folder and start your app. In the front end terminal, where you are in node-essentials-front-end, type:
    ```bash
    npm run dev
    ```
    to start the front end.
-5. You now have two local processes, the front end at http://localhost:3001, and the back end at http://localhost:3000.  Go to your browser and open [http://localhost:3001](http://localhost:3001).  Then, try the application out. You should be able to register, logon, create todo list entries, mark them complete, and logoff.  For the register step, you have to click on the "I'm not a robot" button, so you can now see if that part works.  There is also a button for Google logon -- but the button doesn't work, because you haven't enabled the back end for that function.
+5. You now have two local processes: the front end at http://localhost:3001 and the back end at http://localhost:3000. Open [http://localhost:3001](http://localhost:3001) in your browser and try the app. You should be able to register, logon, create todo list entries, mark them complete, and logoff. For registration, click the "I'm not a robot" button so you can see whether reCAPTCHA works. There is also a Google logon button, but it does not work because your back end does not support that function.
 
-Go into browser developer tools for the front end screen, and click on network.  You can then do application operations and see the REST requests that flow.
+Open browser developer tools on the front end page and click the Network tab. Then use the app and watch the REST requests as they happen.
 
 ## **Task 3: Switching Your Back End to a Cloud Resident Postgres Database**
 
-You are going to deploy your back end to the cloud.  An application in the cloud can't connect to your local database.  You'll now create a database on Neon.tech, and switch your application so that it uses that one instead of a local database.
+You are going to deploy your back end to the cloud. An application running in the cloud cannot connect to your local database. Create a database on Neon.tech, then switch your application so it uses that database instead of your local one.
 
-1. Create a free account on Neon.tech (unless you have one already.)
+1. Create a free account on Neon.tech, unless you already have one.
 
-2. Create a new project called node-homework.  This creates a Postgres database on Neon.  A connection string (a URL) will be shown.  Copy it to your clipboard.  (You can get to this connection string at any time, by opening the node-homework project, selecting "connect to your database", and clicking on the connection string pulldown.)
+2. Create a new project called node-homework. This creates a Postgres database on Neon. A connection string, which is a URL, will be shown. Copy it to your clipboard. You can find it again later by opening the node-homework project, selecting "connect to your database", and clicking the connection string pulldown.
 
-3. Edit the .env file in your node-homework directory.  You have a line that begins `DATABASE_URL`.  Comment that one out by putting a `# ` at the front.  Create a new line that starts with `DATABASE_URL=`and paste in the connection string at the end.  Be careful with the connection string!  It contains a password.  Because you are putting it in the .env file, it won't be stored in Github.
+3. Edit the .env file in your node-homework directory. You have a line that begins `DATABASE_URL`. Comment it out by putting `# ` at the front. Create a new line that starts with `DATABASE_URL=` and paste the Neon connection string at the end. Be careful with the connection string. It contains a password. Since it is in the .env file, it should not be stored in Github.
 
 4. Stop the back end app in node-homework if it is running.  In the terminal session, do the following command:
 
@@ -121,58 +127,58 @@ You are going to deploy your back end to the cloud.  An application in the cloud
    npx prisma migrate deploy
    ```
 
-   This command creates the tables your app needs in the Neon database, according to the schema in your Prisma schema file.
+   This command creates the tables your app needs in the Neon database, based on your Prisma schema file.
 
-5.  Start up your app.  Test it with Postman.  As you are using a new database, the user entries you created with register are not present yet, nor are any task entries.  So, create new ones.  Everything should work as before.  Then try it with the sample front end.  Everything should work as before.
+5. Start your app. Test it with Postman. Since this is a new database, the users and tasks you created earlier will not be there. Create new ones. Everything should work as before. Then try it with the sample front end. Everything should still work.
 
 ## **Task 4: Deploying Your Back End**
 
 1. Create a free account on Render.com (if you don't have one already).
 
-2. Within the dashboard for your account, click on the New button and select Web Service.
+2. In your account dashboard, click the New button and select Web Service.
 
 3. Configure your web service:
 
-    1. Select public Git repository, and give the URL of your node-homework repository, and click Connect.
-    2. Use all the default values, except for the ones below.  You could try to change the name, which will default to node-homework-x, where x is some number, but you have to specify a name that no one else is using.
+    1. Select public Git repository, provide the URL of your node-homework repository, and click Connect.
+    2. Use the default values except for the ones below. You can change the service name, which defaults to node-homework-x, where x is some number, but you must choose a name no one else is using.
     3. For Branch, use assignment10. **Note: for your final project, you should switch this to the main branch, but your deployment for this lesson requires the code changes of the assignment10 branch.**
-    4. For Build Command, use: `npm install --production && npx prisma migrate deploy` .  This installs the packages you need (but not the ones that are used only for development and test).  It also makes sure that your database schema is current.
+    4. For Build Command, use: `npm install --production && npx prisma migrate deploy`. This installs the packages needed in production, but not the packages used only for development and test. It also makes sure your database schema is current.
     5. For Run Command, use: `npm start`
-    6. Make sure AutoDeploy is set to off.  Otherwise it will redeploy every time you change the main branch.
+    6. Make sure AutoDeploy is set to off. Otherwise, it will redeploy every time you change the main branch.
     7. Make sure the instance type is set to Free.
-    8. Configure your environment variables.  Your `.env` file isn't in Github, so this is how you get your secrets into the Render configuration.  You can use `Add from .env` to copy from your existing .env file.  The ones you need are the DATABASE_URL, the JWT_SECRET, the RECAPTCHA_SECRET, and, for testing, the RECAPTCHA_BYPASS.
+    8. Configure your environment variables. Your `.env` file is not in Github, so this is how you provide secrets to Render. You can use `Add from .env` to copy from your existing .env file. The ones you need are the DATABASE_URL, the JWT_SECRET, the RECAPTCHA_SECRET, and, for testing, the RECAPTCHA_BYPASS.
 
-4. Click on Deploy Web Service. Build and deploy are slow on the free plan — this may take several minutes.
+4. Click on Deploy Web Service. Build and deploy are slow on the free plan, so this may take several minutes.
 
-5. A log will convey the progress.  You might see errors, indicating something that you need to fix.
+5. The log will show progress. You might see errors that point to something you need to fix.
 
-6. Eventually it will say that you are live, and give you the URL.  Click on that URL. You'll get a 404, because the `/` route is not part of your project, but this way you know it is working.
+6. Eventually it will say that you are live and give you the URL. Click that URL. You will get a 404 because the `/` route is not part of your project, but this still proves the service is responding.
 
-Note 1: Because you are running a free service, it will go to sleep after it idles for a while.  It will wake up when a request is received, but the restart takes a few minutes each time.
+Note 1: Because you are using a free service, it will go to sleep after it idles for a while. It wakes up when a request is received, but the restart takes a few minutes.
 
-Note 2: If you make changes to your app and push your commits to Github, you can go to your Render dashboard, select your web service, and click on Manual Deploy to get the new version loaded.
+Note 2: If you make changes to your app and push your commits to Github, go to your Render dashboard, select your web service, and click Manual Deploy to load the new version.
 
 ## **Task 5: Testing Your Deployed Back End with Postman**
 
-Each of your Postman tests references the `urlBase` Postman environment variable.  Change that environment variable so that it has the URL of the Render.com service you created.  Then, try each of the operations, to make sure everything works.  Make sure that your Node app is not running on your local machine, so that you know the REST requests are going to your service on Render.
+Each of your Postman tests references the `urlBase` Postman environment variable. Change that environment variable so it contains the URL of the Render.com service you created. Then try each operation and make sure everything works. Make sure your Node app is not running locally, so you know the REST requests are going to Render.
 
 ## **Task 6: Testing Your Deployed Back End with the Front End**
 
-Change the `.env` file for your front end.  For the VITE_TARGET, put in the URL of your service on Render.  Then try out the front end to see that everything still works.
+Change the `.env` file for your front end. For VITE_TARGET, use the URL of your service on Render. Then try the front end and make sure everything still works.
 
-**You need to tell your reviewer about the URL for your deployed application on Render.**  Create a file called project-summary.txt in the root of the node-homework folder, and put the URL in that file.
+**You need to tell your reviewer the URL for your deployed application on Render.** Create a file called project-summary.txt in the root of the node-homework folder, and put the URL in that file.
 
 ### **Check for Understanding**
 
-1. You have created a public API by putting your app on Render.  What are the risks?
+1. You have created a public API by putting your app on Render. What are the risks?
 
-2. What have you done to mitigate those risks?  What else should be done?
+2. What have you done to reduce those risks? What else should be done?
 
 ### **Answers**
 
-1. The main risk to you is that the API could be misused.  Anyone can register an email address, whether or not they actually own that address, and anyone can then use that account to create an unlimited number of task records, perhaps by configuring a bot with the email and password they registered.  They might put harmful data in the task records.  They might register with an email address that belongs to someone else, preventing that person from using the application.
+1. The main risk is that the API could be misused. Anyone can register an email address, whether or not they own it. Then they can use that account to create an unlimited number of task records, maybe with a bot. They might put harmful data in the task records. They might also register with an email address that belongs to someone else, preventing that person from using the application.
 
-2. You have put bot protection into the register API.  You have also put other measures in place, such as preventing cross site request forgery, scrubbing data to prevent cross site scripting attacks, and restricting the transaction rate.  In a production application, you would verify the email address.  This would require that you send an email message from the back end and then verify, somehow, that the user received it.  This is a little complicated, so we don't try to do it in this class.  You should also limit the number of task records that any one user can create.
+2. You have added bot protection to the register API. You have also added other protections, such as CSRF prevention, data scrubbing to reduce cross-site scripting risk, and rate limiting. In a production application, you would verify the email address. That would require sending an email from the back end and confirming that the user received it. That is more complicated, so we do not do it in this class. You should also limit the number of task records any one user can create.
 
 ## **Submit Your Assignment on GitHub**
 
@@ -180,7 +186,7 @@ Change the `.env` file for your front end.  For the VITE_TARGET, put in the URL 
 
 #### **1️⃣ Add, Commit, and Push Your Changes**
 
-- Within your node-homework folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment10` branch.
+- Inside your `node-homework` folder, add and commit the files you created so they are included on the `assignment10` branch.
 - Push that branch to GitHub.
 
 #### **2️⃣ Create a Pull Request**
@@ -198,7 +204,7 @@ Change the `.env` file for your front end.  For the VITE_TARGET, put in the URL 
 
 ## Video Submission
 
-Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Share the link in your submission form.
 
 **Video Content**: Short demos based on Lesson 10:
 

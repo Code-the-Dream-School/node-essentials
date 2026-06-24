@@ -2,7 +2,7 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will learn how to start a Node project, and how to work on a Node project on a team, although they will not perform these steps at this time. Students will explore various ideas for additional functions that may be added to the class final project.
+**Learning objective**: By the end of this lesson, you should understand the basic steps for starting a Node project and the basic workflow for working on a Node project with a team. You will not perform those setup steps right now. You will also review ideas for extra back end features you can add to your final project.
 
 **Topics**:
 
@@ -10,19 +10,21 @@
 2. Working on a Project as a Team
 3. Enhancement Ideas for your Node Back End
 
-Following successful completion of class, you may begin a practicum. The practicum will involve more practice with the skills you have learned in the Node and React classes, but it will also involve creating your own project from the beginning, and learning and practicing the special procedures when you work as a team on shared code. You'll learn more of the steps when you start the practicum, but they are described in outline below. **Don't do any of these procedures now,** but please read about them.
+After you successfully complete this class, you may begin a practicum. The practicum gives you more practice with the Node and React skills you have learned. It also asks you to create a project from the beginning and follow team procedures for shared code.
 
-Then, go to the section below on enhancement ideas. If you have completed all the assignments up to now, you have a working final project, but if your final project is to stand out, you should try to add one or several of the enhancements suggested below, or perhaps one or more other enhancements you think of.
+You will learn more of those steps when you start the practicum. For now, they are outlined below. **Do not do any of these procedures now,** but read through them so the workflow is familiar.
+
+Then go to the enhancement ideas section. If you have completed all the assignments so far, you have a working final project. To make your final project stand out, add one or more of the enhancements below, or choose another back end enhancement of your own.
 
 ## **11.1 How to Begin Your Own Node Project**
 
-You began this project by cloning the node-homework repository. What if you want to create your own Node project? You don't need to do it now, but, for reference, here are steps you might use in the future:
+You began this project by cloning the `node-homework` repository. If you want to create your own Node project later, the process starts differently. You do not need to do this now, but these are the steps you might use in the future:
 
-1. Create a repository on Github. You use the plus button on the upper right of the Github page. Give it a title, choose a visibility, give it a README, and perhaps give it a license. Copy the URL for the newly created repository to your clipboard.
+1. Create a repository on GitHub. Use the plus button in the upper right of GitHub. Give the repository a title, choose visibility, add a README, and perhaps add a license. Copy the URL for the new repository.
 
-2. Git clone the repository to your laptop. Do not do the clone from within another Git repository. Nested repositories can cause version control conflicts.
+2. Clone the repository to your laptop. Do not clone it from inside another Git repository. Nested repositories can cause version control conflicts.
 
-3. Change to the directory created when you cloned. Start VSCode. Create a .gitignore, typically with these files, but sometimes with others as well:
+3. Change into the directory created by the clone. Start VSCode. Create a `.gitignore`, typically with these files, and sometimes others:
 
    ```
    node_modules/
@@ -31,57 +33,69 @@ You began this project by cloning the node-homework repository. What if you want
    .DS_Store
    ```
 
-4. Run "npm init". You can take the defaults, but you can change them as well.
+4. Run `npm init`. You can accept the defaults or change them.
 
-5. Do an npm install of the packages you know you will need. You will probably add to this list over time. Have a look at the packages you've accumulated for node-homework, as listed in package.json. These are often useful for other projects. Remember to use `--save-dev` for those packages that are only needed in development.
+5. Install the packages you know you will need. You will probably add more over time. Look at the packages in `node-homework`'s `package.json`; many of them are useful for other projects. Use `--save-dev` for packages that are only needed during development.
 
-6. Do a git add and commit of what you've done so far. Then push it to your Github repository. You still have only the main branch.
+6. Run `git add`, commit what you have done so far, and push it to your GitHub repository. At this point, you still have only the main branch.
 
-7. Go back to your Github for the repository. Open Settings -> Rules -> Rulesets and create a new branch ruleset. Call it "protect default branch". Add a branch target for the default branch, which is main. Restrict deletions, block force pushes, and **require a pull request before merging**. What does this do for you? It makes sure you don't push to main. Whenever you work on a project, you create a branch, make changes to that branch, git add, git commit, git push (for the branch), and create a pull request. These are good habits.
+7. Go back to the repository on GitHub. Open Settings -> Rules -> Rulesets and create a new branch ruleset. Call it "protect default branch". Add a branch target for the default branch, which is main. Restrict deletions, block force pushes, and **require a pull request before merging**. This helps make sure you do not push directly to main. When you work on a project, create a branch, make changes on that branch, run `git add`, commit, push the branch, and create a pull request. These are good habits.
 
-This just describes the basics. You could configure your Github repository with other steps governing the workflow, such as a trigger for automated tests, or automated syntax checking and code format checking. You could create a specific form for pull requests, as is common for a team.
+These are only the basics. You can also configure GitHub with workflow steps such as automated tests, syntax checks, and code formatting checks. Teams often also create a pull request template.
 
-11.2 **Working on a Project as a Team**
+## **11.2 Working on a Project as a Team**
 
-Most projects involve multiple developers, all of whom contribute code to the same Git repository. The repository and the development process have to be set up so that this works well. Here are some points:
+Most projects involve multiple developers contributing code to the same Git repository. The repository and development process need structure so this works smoothly. Here are some common pieces:
 
 1. The repository README, or perhaps another file called CONTRIBUTING.md, must contain some key information:
    - What the project is intended to do
    - What prerequisites must be installed. In your case, they were Node, NPM, and Postgres.
-   - How to set up the project to do development: Other team members will clone the repository and do an NPM install. They will need instructions on how to create a `.env` file. (the instructions can't disclose the secrets.) They will need instructions on how to configure prerequisites. In your case, you created Postgres databases. They will need instructions on other build steps. In your case, this was performing a Prisma migration to load the schema.
+   - How to set up the project for development: Other team members will clone the repository and run an NPM install. They will need instructions for creating a `.env` file, but those instructions cannot disclose secrets. They will also need instructions for configuring prerequisites. In your case, that included creating Postgres databases. They may also need build steps, such as running a Prisma migration to load the schema.
 
-2. In a team environment, each pull request must be reviewed by one or several team members before it can be merged. The online repository must be configured to enforce that rule, and may have other rules and workflow.
+2. In a team environment, each pull request should be reviewed by one or more team members before it is merged. The online repository should enforce that rule and may enforce other workflow rules too.
 
-3. Usually, there will be several special Git branches, each with protection rules. One way to do this is as follows:
+3. Usually, there are several special Git branches, each with protection rules. One common approach is:
    - The **dev** branch is the default branch. Each team member pulls from this branch, creates a feature branch from it, pushes the feature branch to Github when the feature is ready, and creates a pull request, where the target of the PR is the dev branch.
    - The **staging** branch is used to promote code from the dev branch when the dev branch is well tested and stable. Additional testing is then performed, and user acceptance testing by the project owner may occur. The staging test environment is made to match the production environment as closely as possible. Practicum teams sometimes omit this one for simplicity.
    - When all is good in staging, the code is promoted to the **production** branch, which is sometimes main.
 
-   Each of these branches, including feature branches, may have workflow that performs automated deployment for testing, perhaps to a cloud service. The main branch is deployed, not for testing, but for public use.
+   Each of these branches, including feature branches, may have workflows that perform automated deployment for testing, possibly to a cloud service. The main branch is deployed for public use, not for testing.
 
-4. You will have a project board that keeps track of the work backlog and the team member assigned to each task.
+4. The team will usually have a project board that tracks the work backlog and the team member assigned to each task.
 
-5. You will have a development process, typically using what is called the "Agile" methodology. This organizes team communication. You will also have design documents that describe the planned appearance and flow of the application, the APIs, and the data model.
+5. The team will usually follow a development process, often called Agile. This organizes team communication. The team will also have design documents that describe the planned appearance and flow of the application, the APIs, and the data model.
 
-6. As multiple team members are contributing code to the same repository, you need to understand how to avoid merge conflicts and how to resolve them when they do occur. A merge conflict may occur if several members make overlapping changes to the same files.
+6. Since multiple team members contribute to the same repository, you need to understand how to avoid merge conflicts and how to resolve them when they happen. A merge conflict can occur when several people make overlapping changes to the same files.
 
 ## **11.3 Enhancement Ideas for Your Node Back End**
 
-As part of the Rubric for the Final Project, we ask you to add something extra. Here are some ideas on things to add. This is not an exhaustive list. You may think of other things you'd like to add instead. We do ask that you make changes only to the back end, and not to the React front end. This is so that you don't get distracted writing React code when you need to focus on Node, Express, and SQL. For the items listed in this lesson, you don't have to build them according to the approach described. Also, these are just outlines -- you'll have to figure out the exact steps yourself.
+As part of the final project rubric, you need to add something extra. The ideas below are possible additions. This is not a complete list, and you may choose a different idea.
+
+Make changes only to the back end, not the React front end. This keeps your focus on Node, Express, and SQL. For the items listed here, you do not have to follow the exact approach described. These are outlines, so you will still need to figure out the exact steps.
 
 You don't need to implement all of these — one or two additions, or an idea of your own, is sufficient.
 
-For most of these ideas, you'll need to modify the database schema using Prisma. You'll also add additional routes or parameters to existing routes. You then test with Postman, as (except for the Oauth idea), the front end doesn't support the additional function you add. Be careful about authorization for any routes you add! You don't want one user to be able to do something to records belonging to a different user.
+For most of these ideas, you will need to modify the database schema with Prisma. You will also add routes or add parameters to existing routes. Then you will test with Postman. Except for the OAuth idea, the provided front end does not support the extra function you add.
 
-Optional: When you add a function, consider creating a Jest unit test for the function that you add.
+Be careful about authorization for any route you add. One user should not be able to read or change records that belong to another user.
 
-All changes should be in a lesson11 branch. You will submit your assignment as usual -- but see the assignment instructions as there are a couple of extra steps. You can show what you add during your presentation.
+**Important deployment note:** If your extra feature adds or changes columns in your Prisma schema, Render needs both the migration and a newly generated Prisma Client. Locally, `npx prisma migrate dev` usually runs `npx prisma generate` for you, so you may not notice this step. On Render, add both commands to your build command:
+
+```bash
+npm install --production && npx prisma generate && npx prisma migrate deploy
+```
+
+If you deploy the migration but do not regenerate the Prisma Client, you may see a confusing error like `Unknown argument 'yourField'`, even though the column exists in the database.
+
+Optional: When you add a function, consider creating a Jest unit test for it.
+
+All changes should be in a `lesson11` branch. You will submit your assignment as usual, but read the assignment instructions carefully because there are a couple of extra steps. You can show what you add during your presentation.
 
 ### **11.3.1 OAuth Authentication with Google**
 
 **What is OAuth?**
 
-OAuth (Open Authorization) is a security protocol that allows applications to authenticate users without requiring them to share their actual passwords. Instead, it uses tokens to grant access to user data and resources.
+OAuth, which stands for Open Authorization, lets applications authenticate users without asking them to share their actual passwords with your app. Instead, it uses tokens to grant access to user data and resources.
 
 **How OAuth Works Between Frontend, Backend, and Google**
 
@@ -115,48 +129,58 @@ User is now authenticated in your app
 
 **Implementation Steps**
 
-1. Your sample front end includes a Google logon button. But, if you click it, you get an error message back, because you haven't implemented the back end route that it calls. That route is /users/googleLogon, and the front end sends a POST with a body of `{authorizationCode: xxxxx}`, where the xxxxx is the authorization code obtained from Google. You need to add support to your back end for this route.
+1. Your sample front end includes a Google logon button. If you click it now, you get an error because you have not implemented the back end route it calls. That route is `/users/googleLogon`, and the front end sends a POST with a body of `{authorizationCode: xxxxx}`, where `xxxxx` is the authorization code from Google. You need to add support for this route in your back end.
 
-2. You need to use a Google provided library on the back end, which is google-auth-library. This provides a way to send the authorization code to Google, so that if it is valid, identity information about the user is returned, including a name and email address.
+2. You need to use a Google-provided back end library called google-auth-library. This library lets you send the authorization code to Google. If the code is valid, Google returns identity information about the user, including a name and email address.
 
-3. Once the user is authenticated, you need to have a record in the database corresponding to that user. See if you have a database record for that user. If not, create one. Since the hashedPassword field is required, you can store a placeholder value for OAuth users. Once you've found or created the user record, set the JWT cookie, and return the user's name and a csrfToken in the response to the front end. You can test this one with the front end, but it would be difficult to test with Postman or Jest.
+3. Once the user is authenticated, the database needs a record for that user. Check whether a record already exists. If not, create one. Since the `hashedPassword` field is required, you can store a placeholder value for OAuth users. Once you find or create the user record, set the JWT cookie and return the user's name and a `csrfToken` in the response to the front end. You can test this with the front end, but it would be difficult to test with Postman or Jest.
 
 ### **11.3.2 Todos in Folders**
 
-There are various ways to implement this, but you'll need to extend the data model. One way is to create a folders table. Each folder would belong to a user, and a user may have many folders. A folder would have many tasks. So, you'd need an optional foreign key added to the tasks table, that being the folder id. Not all of a user's tasks would belong to a folder. You'd need to have a route that creates a folder for the logged on user. You'd need to have a way to add task to a given folder,or to remove a task from a folder. Perhaps this could be done with the task update operation. You'd need to have a way to retrieve the user's list of folders, so that you can get the id for each folder. You could change the GET for /tasks support a query parameter like folder=xxxxx, and if that query parameter is present, the tasks from that folder are returned.
+There are several ways to implement folders, but you will need to extend the data model. One approach is to create a folders table. Each folder belongs to a user, and one user may have many folders. A folder can have many tasks.
+
+To support this, you would add an optional folder id foreign key to the tasks table. Not every task has to belong to a folder. You would need a route that creates a folder for the logged-on user. You would also need a way to add a task to a folder or remove a task from a folder. That could possibly be done with the task update operation. You would also need a way to retrieve the user's folders and their ids. You could update the GET for `/tasks` to support a query parameter like `folder=xxxxx`. If that query parameter is present, return the tasks from that folder.
 
 ### **11.3.3 Role Based Access Control**
 
-You'd need to extend the user model to add a role column. One way to do this is to add an optional string called roles, which would have a comma delimited list of the roles the user has. You could keep it simple for now. For example, you might have a "manager" role. The manager is keeping tabs on all the users, to see who is progressing at getting their todos done. The manager would have special access to the `analyticsRoutes` that allow them to see everyone's tasks. You can just use Prisma Studio or some similar tool to add roles to a user's entry in the database. At logon time, if the user record has a role attribute, you'd include that in the JWT. Your authentication middleware would store this information, if present in the JWT, into req.user.roles. The special manager routes would deny access if req.user.roles isn't present or doesn't include "manager".
+You would need to extend the user model to add a role column. One simple approach is to add an optional string called roles, containing a comma-delimited list of the user's roles. For example, you might add a "manager" role. A manager could view progress across users and would have special access to `analyticsRoutes`, which can show everyone's tasks.
 
-Once you have this in place, you'd add some middleware to `analyticsRoutes.js` to allow access only to the manager, and to return 401 for others. Be sure to test both cases!
+You can use Prisma Studio or a similar tool to add roles to a user record in the database. At logon time, if the user record has a role attribute, include that role information in the JWT. Your authentication middleware would store it, if present, in `req.user.roles`. The manager-only routes would deny access if `req.user.roles` is missing or does not include "manager".
+
+Once this is in place, add middleware to `analyticsRoutes.js` that allows access only to managers and returns 401 for others. Be sure to test both cases.
 
 ## **11.3.4 Documenting Your APIs with Swagger**
 
-Swagger, also known as the OpenAPI specification, is a good way to document your APIs. You document each API in your code with comments of a particular format. Then Swagger builds and exports an entire user interface that other developers can use to experiment with your APIs, including in this case, registering, logging on, adding tasks, etc. The process is documented **[here.](https://blog.logrocket.com/documenting-express-js-api-swagger/)** You have been testing with Postman. You can export your Postman test descriptions in Swagger format, to generate some of the documentation you need automatically, but you'll have to add on to what Postman provides. You select your Postman collection and choose "export". That creates a JSON file. Then, you convert that to Swagger with **[this tool](https://metamug.com/util/postman-to-swagger/)** Then, you can check out the user interface you create, which will be a web page at http://localhost:3000/api-docs/.
+Swagger, also known as the OpenAPI specification, is a good way to document APIs. You document each API in your code with specially formatted comments. Swagger then builds a user interface that other developers can use to experiment with your APIs, including registering, logging on, and adding tasks. The process is documented **[here.](https://blog.logrocket.com/documenting-express-js-api-swagger/)**
+
+You have been testing with Postman. You can export your Postman collection in a Swagger-compatible format to generate some documentation automatically, but you will still need to add to what Postman provides. Select your Postman collection and choose "export". That creates a JSON file. Then convert that to Swagger with **[this tool](https://metamug.com/util/postman-to-swagger/)**. Then you can open the generated user interface at http://localhost:3000/api-docs/.
 
 ## **11.3.5 A Progress Log for Each Task**
 
-When you work as a team, various team members may be assigned large tasks, and may want to keep other team members apprised of their progress. So, you could have a logs table. Each log record might have a date and a string describing status. Each log record would belong to a task, and a task may have many log records. You'd need to add an additional route that records a log record for a task. You already have a route that retrieves a task. You could add a query parameter that says, get the log records as well as the tasks.
+When you work on a team, team members may be assigned large tasks and may want to keep others updated on progress. You could add a logs table. Each log record might have a date and a string describing status. Each log record would belong to a task, and a task may have many log records.
 
-Note that this will cause the delete operation to fail, because of the foreign key constraint. You can't delete a task that has log records. How can you fix this? (Hint: You can do something special in the schema.)
+You would need to add a route that creates a log record for a task. You already have a route that retrieves a task. You could add a query parameter that says to include the log records along with the task.
+
+Note that this can cause the delete operation to fail because of the foreign key constraint. You cannot delete a task that has log records unless the schema handles that relationship. How can you fix this? Hint: You can do something special in the schema.
 
 ## **11.3.6 Updating Many Records with a Single Operation**
 
-You might want to update a collection of tasks to mark them all complete. Or, you might want to delete a collection of tasks. You could use `updateMany` or `deleteMany`, but you would support query parameters, such as `?isCompleted=true` to specify the tasks to be updated and/or deleted.
+You might want to update a collection of tasks to mark them all complete. Or you might want to delete a collection of tasks. You could use `updateMany` or `deleteMany`, with query parameters such as `?isCompleted=true` to specify which tasks should be updated or deleted.
 
 ## **11.3.7 Bulk Update or Delete**
 
-Another way to do this might be to allow a REST request that specifies an array of task IDs. You can imagine the front end having a check box to select from the list of tasks. Then, the user could send a delete operation to delete all the selected tasks. We don't want you to change the front end. Just build the bulk update or bulk delete REST request. This would also use `updateMany` or `deleteMany`, but the where clause would specify `in:` to specify the set of ids you want to include.
+Another approach is to allow a REST request that specifies an array of task IDs. You can imagine a front end with checkboxes for selecting tasks. The user could then send a delete request for all selected tasks. Do not change the front end for this class. Just build the bulk update or bulk delete REST request. This would also use `updateMany` or `deleteMany`, but the `where` clause would use `in:` to specify the set of ids to include.
 
 ## **11.3.8 Recycle Bin**
 
-You could add a "trash" optional boolean to the task model. When a deletion occurs, the trash column could be set to true, and the queries would be modified so that tasks with trash=true aren't returned. But, a REST request would empty the trash, actually deleting the entries. A filter on the index request might allow trash entries to be included in what is returned, so that they could be updated to take them out of the trash.
+You could add an optional `trash` boolean to the task model. When a deletion occurs, the `trash` column could be set to true. Queries would then be modified so tasks with `trash=true` are not returned. Another REST request could empty the trash and actually delete those records. A filter on the index request might allow trash entries to be included in the response, so they could be restored.
 
 ## **11.3.9 Implementing a Backlog**
 
-You could add a backlog table. Each entry would be the title for a task, along with a priority. Each logged on user could see the list of backlog entries and add, modify, or delete from that list. However, a logged on user could also claim a task. That would create a task with the same title, createdAt, and priority belonging to the logged on user, and remove the corresponding backlog item. Here's a tip: You should use a transaction! You don't want a race condition, where one user claims a task, and so does another user, before the first one gets it deleted from the backlog.
+You could add a backlog table. Each entry would include a task title and priority. Each logged-on user could see the backlog and add, modify, or delete entries from it.
+
+A logged-on user could also claim a task. That would create a task with the same title, `createdAt`, and priority for that user, then remove the corresponding backlog item. Here is a tip: use a transaction. You do not want a race condition where two users claim the same task before the first claim removes it from the backlog.
 
 ---
 
-Focus on one or two ideas, or pursue something else that interests you.
+Focus on one or two ideas, or pursue another back end idea that interests you.

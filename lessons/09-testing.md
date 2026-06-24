@@ -2,7 +2,7 @@
 
 ## **Lesson Overview**
 
-**Learning objective**: Students will learn what automated testing of software is, how it is used in typical development processes, and why they should learn to write automated tests.  Students will learn the basic concepts of automated software testing.  They will then learn how to write tests of Express applications using the jest and supertest packages.
+**Learning objective**: By the end of this lesson, you should understand what automated testing is, why developers use it, and why writing tests is an important professional skill. You will also learn the basic ideas behind automated testing and how to write Express application tests with the `jest` and `supertest` packages.
 
 **Topics**:
 
@@ -13,31 +13,49 @@
 
 ## **9.1 Introduction to Automated Software Testing**
 
-Whenever software is provided to a customer or end user, there is an implicit contract:
+When software is provided to a customer or end user, there is an implied promise:
 
 - The results returned by the software are correct.
 - The software stores information as needed and does not lose the data it stores.
 - The software is secure, and does not divulge sensitive information.
-- The software won't be broken as it is maintained or enhanced.
+- The software will not be broken as it is maintained or enhanced.
 - The software is robust and does not fail under normal use, or even under hostile attack.
 
-The purpose of testing is to meet the terms of the contract.
+Testing helps you keep that promise.
 
-Until this point in the course, you have been doing two kinds of testing.  Automated testing is provided to you in your node-homework repository.  This assists you by allowing you to do test driven development, letting you know what you must develop and, more or less, whether it is working properly. You have also been doing manual testing of your REST APIs using Postman.  Now you will learn how to write tests.
+Until this point in the course, you have used two kinds of testing. First, the `node-homework` repository provides automated tests. Those tests support test driven development by showing what you need to build and whether it is mostly working. Second, you have manually tested REST APIs with Postman.
+
+Now you will learn how to write tests yourself.
 
 ## **9.2 Why You Should Learn to Write Automated Tests**
 
-The ability to write automated tests is a required development skill.  Manual testing for any complicated project is slow and error-prone.  For this reason, it is not possible to have reliable continuous integration without automated testing.
+Writing automated tests is a required development skill. Manual testing becomes slow and error-prone as projects grow. Reliable continuous integration depends on automated testing.
 
-In some cases, your starting role in a job may be to write such tests.  In some development shops, the test cases are written first, according to the project specification.  The developers then write code that can pass the test.  In many cases, if you submit a PR to add or change code, you must also submit a test case for the change.  In shops with test driven development, if a bug is found, that means that there was an error in the product code, but also a behavior that was not tested, so both the production code and the test cases must be fixed.  Even in shops with test driven development, developers may need to provide additional tests with their code.  Automated tests are then included in the continuous integration pipeline, for example as part of the Github configuration for the project, so that a PR may be blocked if it does not complete an automated regression test.  The deployment process may also be blocked until comprehensive automated tests are completed.
+In some jobs, your first development work may involve writing tests. Some teams write test cases before product code, based on the project specification. Developers then write code that passes those tests. In many teams, if you submit a PR that adds or changes behavior, you also need to submit a test for that change.
 
-Good testing includes both test cases written by someone who is not the developer of the code to be tested **and** code written by the developer.  The developer may understand some possible failure conditions not known to the tester, but developers often miss things that a test case developer finds.  Good testing also must include security testing.  Test suites should include security tests, but you may also run third party tools to evaluate code security.  These include "black box" tests, which probe the running software for security holes, and "white box" tests, that scan the source code for security problems.
+In test driven development, a bug usually means two things: the product code has an error, and the behavior was not covered by a test. Both the product code and the tests need to be fixed. Automated tests are also included in continuous integration pipelines, such as GitHub checks. A PR may be blocked until the automated regression tests pass. Deployment can also be blocked until the test suite passes.
 
-How can you know if the testing is comprehensive?  One way is to measure the code coverage of the test suite.  If some code is not run during the test, it may be dead code, in which case it doesn't belong in the project, but if not, that code path has not been tested, and may contain bugs.  Strive for 100% code coverage.  Even if you do have 100% code coverage, there may be bugs that the test doesn't find, because the possible modes of failure were not all checked.  There may also be race conditions that only occur when the application is under significant load, or that are caused by data size or unexpected data content.  There are packages such as `@faker-js/faker` that can provide simulated data in volume.  For some kinds of functions, such as math or logic oriented functions, one can do mutation testing with a package such as Stryker.  Stryker returns failures in various combinations, in an effort to explore different failure modes, so as to identify missed test cases.
+Good testing includes tests written by someone other than the developer **and** tests written by the developer. The developer may understand failure cases that an outside tester does not know about. At the same time, developers often miss cases that another tester catches.
+
+Good testing also includes security testing. Test suites can include security tests, and teams may also run third-party security tools. These include "black box" tests, which probe running software for security holes, and "white box" tests, which scan source code for security problems.
+
+How can you know whether testing is comprehensive? One tool is code coverage. Code coverage tells you which code ran during the test suite. If some code does not run during tests, it may be dead code. If it is not dead code, then that path has not been tested and may contain bugs.
+
+Strive for 100% code coverage. Even with 100% coverage, bugs can still exist because the tests may not check every failure mode. Some bugs only appear under heavy load, with large data sets, or with unexpected data content. Packages such as `@faker-js/faker` can generate large amounts of simulated data. For some math or logic-heavy functions, teams may use mutation testing with a package such as Stryker. Stryker changes behavior in different ways to help identify missing test cases.
 
 ## **9.3 Concepts in Automated Software Testing**
 
-Read [this summary of the concepts](https://www.functionize.com/automated-testing).
+Read [this summary of the concepts](https://www.functionize.com/automated-testing). Here are the key terms you need for this assignment:
+
+- **Unit test**: Tests one small piece of code, such as a validation schema or helper function. In Assignment 9, your validation tests are unit tests.
+- **Integration test**: Tests how multiple pieces work together. A controller test that uses Prisma and the test database is closer to an integration test because it checks the controller and database behavior together.
+- **End-to-end test**: Tests a full user flow through the app, usually from the outside. In a full-stack app, this might involve the browser, front end, back end, and database.
+- **API or functional test**: Sends real HTTP requests to your Express app and checks the response. In Assignment 9, your Supertest tests are API tests.
+- **Regression test**: Protects against a bug coming back. When a bug is fixed, teams often add a test for that exact behavior.
+- **Mock**: A fake version of code or data used during a test. Mocks help you test one part of the system without depending on every real dependency.
+- **Code coverage**: A measurement of which lines or branches of your code ran during the test suite. High coverage is useful, but it does not guarantee that every possible bug has been tested.
+
+In this assignment, you will start with focused unit tests for validation. Then you will test controller functions with mock request and response objects. Finally, you will use Supertest to send real HTTP requests to your Express app.
 
 ### **Check for Understanding**
 
@@ -68,9 +86,13 @@ Read [this summary of the concepts](https://www.functionize.com/automated-testin
 
 ## **9.4 The `jest` and `supertest` Packages**
 
-Depending on the languages and frameworks used by the project, different testing packages may be used.  You are developing using JavaScript, React, and Express.  The `jest` package [here](https://www.npmjs.com/package/jest) is commonly used for this kind of project.  
+Different projects use different testing packages depending on the language and framework. You are using JavaScript, React, and Express. The `jest` package [here](https://www.npmjs.com/package/jest) is commonly used for this kind of project.
 
-A Jest test invokes product code in various ways, typically by requiring the module that contains the function to be tested and then invoking that function.  The `expect()` function is used to evaluate whether the correct result is returned.  Test cases may be grouped using the `describe()` function, which may group invocations to the `it()` or `test()` methods.  Each of these tests and groups is given a title, so that it is evident what has been tested or what failed.  Test cases can fail two ways: An `expect()` assertion may fail, or an error may be thrown.  In either case, that ends the processing for that test.  Jest can also test a React front end, to see that user interaction with that front end gives the desired results.  We won't do front end testing for this assignment.  A jest test file, which should end with `.test.js`, might look something like this:
+A Jest test runs product code and checks the result. For a plain function, the test usually imports the module that contains the function, calls the function, and then uses `expect()` to check the returned value.
+
+Tests can be grouped with `describe()`. Individual test cases use `it()` or `test()`. Each group and test gets a title, which helps you see what passed or failed. A test can fail when an `expect()` assertion fails or when an error is thrown. Either way, Jest stops that test and moves on to the next one.
+
+Jest can also test React front ends, but this assignment focuses on back end testing. A Jest test file should end with `.test.js`, and might look something like this:
 
 ```js
 const {fnA, fnB} = require("../codeFolder/someModule"); // The module to test
@@ -88,7 +110,7 @@ describe("Tests for someModule", ()=>{
 });
 ```
 
-In the above, `toBe()`, `toBeDefined`, and `toEqual()` are matchers.  There are various matchers in jest, documented [here](https://jestjs.io/docs/expect).  Some common ones are:
+In the example above, `toBe()`, `toBeDefined`, and `toEqual()` are matchers. Matchers are Jest methods that check expected values. Jest documents them [here](https://jestjs.io/docs/expect). Some common matchers are:
 
 - `toBe()` Equality, but only for primitive types, not for objects.
 - `toEqual()` Equality for objects.  All values of the attributes and the class, if any, must match.
@@ -99,12 +121,38 @@ In the above, `toBe()`, `toBeDefined`, and `toEqual()` are matchers.  There are 
 - `toBeNull()`
 - `toBeLessThan()`
 
-In the test for fnB above, the test for `retValue.name` could throw an error, for example if retValue is null.  Or, the expect() for `retValue.name` could fail. In either case, the test reports a failure, but other statements in that test() stanza don't run -- that's as far as you get in that test.  Subsequent tests within the same file would still run.  
+In the test for `fnB` above, the check for `retValue.name` could throw an error if `retValue` is null. Or the `expect()` for `retValue.name` could fail. In either case, that test reports a failure, and later statements in that same test do not run. Other tests in the file still run.
 
 The homework will also cover `expect.assertions()`.
 
-For function testing of a web API, one must also send real network requests.  To do so, the `supertest` package [here](https://www.npmjs.com/package/supertest) may be used.  The Express application is started, and REST requests are sent as they would be by an application front end in production.  You would do this within a jest `it()` statement, and you would have `expect()` statements to see what comes back.
+To test a web API, you also need to send HTTP requests. The `supertest` package [here](https://www.npmjs.com/package/supertest) helps with this. Supertest can send requests to your Express application as if they came from a front end. You do this inside a Jest `it()` statement, then use `expect()` statements to check the response.
+
+Here is a small Supertest example. This assumes your `app.js` exports `app` and `server`, which lets the test send requests to the Express app and close the server afterward:
+
+```js
+const request = require("supertest");
+const { app, server } = require("../app");
+
+afterAll(() => {
+  server.close();
+});
+
+describe("GET /", () => {
+  it("returns a successful response", async () => {
+    const res = await request(app).get("/");
+    expect(res.status).toBe(200);
+  });
+});
+```
+
+The important idea is that Supertest gives you a `res` object. You can check `res.status`, `res.body`, and `res.headers`. In Assignment 9, you will also use a Supertest agent so cookies are saved across requests, which matters for login and protected routes.
 
 ### **Testing Your Tests**
 
-Test Driven Development tests are provided for the assignment.  How do we do that?  First, we require that you only do one expect() per test case.  This is a limitation to facilitate TDD -- you wouldn't necessarily do that for all test cases.  Second, we provide `mocks`.  Mocks are fake versions of the code that substitute for the project code that you write.  These are written to return incorrect results that your tests should find.  Third, `jest` has a reporter function.  We provide an interceptor for that, so that we can tell if your test reports a success when it should not.  The TDD won't catch every omission in your test suite, but it will get you started.
+Test Driven Development tests are provided for the assignment. Here is how that works.
+
+First, we require only one `expect()` per test case. This is a limitation for the assignment so the TDD checks can evaluate your tests more easily. In real projects, you may sometimes use more than one assertion in a test.
+
+Second, we provide `mocks`. Mocks are fake versions of code that stand in for the project code you write. These mocks intentionally return incorrect results that your tests should catch.
+
+Third, Jest has a reporter function. We provide an interceptor for that reporter, so we can tell if your test reports success when it should not. The TDD checks will not catch every missing test case, but they will help you get started.

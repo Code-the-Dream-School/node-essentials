@@ -2,11 +2,30 @@
 
 ## **Assignment Instructions**
 
-Your assignment is to complete the final project and to prepare your final presentation.  If you have completed all assignments through assignment 10, you have completed a final project, except that we'd like you to do something extra if time permits.  The lesson contains some ideas for what you could do, or you may come up with a different idea.  You should only make changes to the back end, so that you are not distracted by React code.
+Your assignment is to complete the final project and prepare your final presentation. If you have completed all assignments through Assignment 10, you already have a final project. If time permits, add one extra back-end feature. The lesson includes some ideas, or you may come up with your own. Only make changes to the back end so you are not distracted by React code.
 
-Make your changes to an assignment11 branch of your node-homework repository.  Do a complete test. If you are adding or modifying APIs, test them.  If you are enabling Swagger, make sure that you can see the Swagger user interface.
+Make your changes on an `assignment11` branch of your node-homework repository. Test the full app. If you add or modify APIs, test them. If you enable Swagger, make sure you can see the Swagger user interface.
 
-**Important** We hope that you do add some extra function.  If you do add extra function, describe what you added in the file project-summary.txt.  In particular, if you add or modify any REST APIs, document the new or modified APIS, with enough information that your reviewer can try them out: the path, the method, the query parameters if any, and the body if any.
+**Important:** We hope you add an extra feature. If you do, describe what you added in `project-summary.txt`. If you add or modify any REST APIs, document them with enough detail for your reviewer to try them: the path, the method, any query parameters, and the request body if there is one.
+
+## **Prepare Your Final Presentation**
+
+Please record a 3-5 minute presentation that follows the expectations in the [final project rubric](../final-project-rubric.md). Your presentation does not need to be long, but it should give your reviewer a clear tour of what you built and what you learned.
+
+Your presentation should cover:
+
+- A brief explanation of what your application does.
+- User registration and/or login.
+- The application's CRUD functionality:
+  - Create data.
+  - Read data.
+  - Update data.
+  - Delete data.
+- The security protections you included, such as protected routes, hashed passwords, and secure authentication handling.
+- Any additional feature you implemented for the final project, such as pagination, filtering, role-based access control, Swagger documentation, or another back-end enhancement.
+- One technical challenge you encountered and how you solved it.
+- What you learned during the project and what you are most proud of.
+- What you would add next if you continued developing the application.
 
 ## **Submit Your Assignment on GitHub**
 
@@ -14,7 +33,7 @@ Make your changes to an assignment11 branch of your node-homework repository.  D
 
 #### **1️⃣ Add, Commit, and Push Your Changes**
 
-- Within your node-homework folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment11` branch.
+- Inside your `node-homework` folder, add and commit the files you created so they are included on the `assignment11` branch.
 - Push that branch to GitHub.
 
 #### **2️⃣ Create a Pull Request**
@@ -23,11 +42,12 @@ Make your changes to an assignment11 branch of your node-homework repository.  D
 - Open your `node-homework` repository.
 - Select your `assignment11` branch. It should be one or several commits ahead of your main branch.
 - Create a pull request. **Save the link to this pull request.**
-- **Merge the pull request.**  In this one case, you do not wait for your reviewer.
+- **Merge the pull request.** In this one case, you do not wait for your reviewer.
 - **On Render.com, open the dashboard for your service and do a manual deploy of the main branch.**
+- **If your final project changed your Prisma schema, update your Render build command so it regenerates the Prisma Client and applies migrations:** `npm install --production && npx prisma generate && npx prisma migrate deploy`
 - **Test that everything works for your Render service, including any extra function you have added.**
 
 
 #### **3️⃣ Submit Your GitHub Link**
 
-- Paste the URL of your pull request into the **assignment submission form**.  Your reviewer may look at the changes for the pull request or perhaps the entire main branch.
+- Paste the URL of your pull request into the **assignment submission form**. Your reviewer may look at the pull request changes or the entire main branch.

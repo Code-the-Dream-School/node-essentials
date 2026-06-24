@@ -1,4 +1,4 @@
-# Assignment 7: Advanced Prisma ORM Features
+# **Assignment 7 — Advanced Prisma ORM Features**
 
 ## Learning Objectives
 - Implement eager loading to optimize database queries and eliminate N+1 problems
@@ -10,12 +10,14 @@
 - Implement proper error handling for advanced Prisma operations
 
 ## Assignment Overview
-Building on your existing Prisma application from Assignment 6, you'll enhance it with advanced features learned in Lesson 7. You'll add analytics endpoints, implement complex queries, and optimize performance while maintaining the same API structure.
+In this assignment, you will build on your Prisma application from Assignment 6. You will add analytics endpoints, write more complex queries, and improve performance while keeping the same API structure.
 
-Be sure to create an assignment7 branch before you make any new changes. This branch should build on top of assignment6, so you create the assignment7 branch when assignment6 is the active branch.
+Create an `assignment7` branch before you make any new changes. This branch should build on top of `assignment6`, so create it while `assignment6` is your active branch.
 
 **Prologue:**
-Right now you are using basic Prisma ORM operations from Assignment 6 for CRUD functionality. For this assignment, you want to add advanced Prisma features including eager loading with `include`, `groupBy` operations for analytics, database transactions, batch operations, raw SQL queries, pagination, and selective field loading. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+Right now, your app uses basic Prisma ORM operations for CRUD functionality. In this assignment, you will add the next layer: eager loading with `include`, `groupBy` operations for analytics, database transactions, batch operations, raw SQL queries, pagination, and selective field loading.
+
+The REST calls your application supports should still work the same way, so your Postman tests do not need to change.
 
 ## Prerequisites
 - Completed Assignment 6 with a working Prisma application
@@ -31,7 +33,7 @@ Right now you are using basic Prisma ORM operations from Assignment 6 for CRUD f
 
 #### a. Update Prisma Schema
 
-You need to add a `priority` field to your Task model. Open your `prisma/schema.prisma` file and update the Task model:
+Add a `priority` field to your Task model. Open `prisma/schema.prisma` and update the Task model:
 
 ```prisma
 model Task {
@@ -47,11 +49,11 @@ model Task {
 }
 ```
 
-**Hint on Priority Values:** The priority field should accept one of three values: `"low"`, `"medium"`, or `"high"`. You can handle validation on the backend using simple conditions in your validation schema (e.g., using Joi's `.valid()` method to restrict values to these three options). The default value should be `"medium"` when no priority is specified.
+**Hint on Priority Values:** The priority field should accept one of three values: `"low"`, `"medium"`, or `"high"`. Handle this in your validation schema. For example, use Joi's `.valid()` method to restrict the value to those three options. The default value should be `"medium"` when no priority is specified.
 
 #### b. Run Migration
 
-After updating the schema, you need to create and apply a migration:
+After updating the schema, create and apply a migration:
 
 ```bash
 npx prisma migrate dev --name add_priority_field
@@ -63,7 +65,7 @@ Then apply the migration to your test database:
 DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy
 ```
 
-**Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships. Every time you do a migration for the development database, you do it for the test database as well, with the command above.
+**Important:** Run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to know about changes to your models, fields, or relationships. Every time you migrate the development database, migrate the test database too with the command above.
 
 **Note:** After adding the priority field, make sure your task creation method in `taskController.js` includes `priority` in the `select` statement. The test expects tasks to have a `priority` field that defaults to "medium" if not specified. Your taskSchema validation should already handle this (it should have `priority: Joi.string().valid("low", "medium", "high").default("medium")`).
 
@@ -71,9 +73,9 @@ DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy
 
 #### a. Update Task Index Method
 
-You need to update your existing task index method to use eager loading. In your `taskController.js`, find the method that lists tasks and update it to include user information.
+Update your existing task index method so it uses eager loading. In `taskController.js`, find the method that lists tasks and update it to include user information.
 
-**What is eager loading?** Instead of making separate queries for each task's user, you fetch everything in one query using `select` with nested relations.
+**What is eager loading?** Instead of making a separate query for each task's user, you fetch the task and user information together in one query using `select` with nested relations.
 
 
 ```js
@@ -107,7 +109,7 @@ const tasks = await prisma.task.findMany({
 
 **Note:** This is completely optional and not required. There was no user show method in Assignment 6, and `assignment7.test.js` does not test for it. The test file only imports `logon`, `register`, and `logoff` from `userController` (line 16), and there are no tests that call a user show method. However, if you want to practice eager loading with user-to-task relationships, you can optionally add this method as an extra exercise.
 
-If you choose to implement it, create a user show method that includes tasks using eager loading. You want to include incomplete tasks, limit to 5, and order by creation date descending:
+If you choose to implement it, create a user show method that includes tasks using eager loading. Include incomplete tasks, limit the list to 5, and order by creation date descending:
 
 ```js
 // In userController.js (if you have a show method)
@@ -151,7 +153,7 @@ exports.show = async (req, res) => {
 
 #### a. Add Pagination to Task Index
 
-Update your task index method to support pagination. You need to:
+Update your task index method so it supports pagination. You need to:
 
 1. Parse page and limit from query parameters (default to 1 and 10)
 2. Calculate skip value for pagination (skip = (page - 1) * limit)
@@ -160,7 +162,7 @@ Update your task index method to support pagination. You need to:
 5. Build pagination object with `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
 6. Return tasks and pagination information
 
-**What is pagination?** Instead of loading all tasks at once, pagination lets you load them in smaller chunks (pages). This improves performance and user experience.
+**What is pagination?** Instead of loading all tasks at once, pagination lets you load a smaller set of tasks at a time. This improves performance and makes the API easier for a frontend to use.
 
 **Important points:**
 - The test expects `tasks` array and `pagination` object in the response
@@ -168,7 +170,7 @@ Update your task index method to support pagination. You need to:
 - Keep the eager loading you added earlier (User information with name and email)
 - Default to page 1 and limit 10 if not provided
 
-**Here's the complete implementation:**
+**Here is the complete implementation:**
 ```js
 // Parse pagination parameters
 const page = parseInt(req.query.page) || 1;
@@ -239,12 +241,12 @@ res.status(200).json({
 
 #### b. Add Search Filter (Required)
 
-The task index endpoint must support searching by title using a `find` query parameter. This is part of the API contract for the React frontend.
+The task index endpoint must support searching by title with a `find` query parameter. This is part of the API contract for the React frontend.
 
 **Example URL:** `GET /api/tasks?find=meeting&page=1&limit=10`
 
 **Implementation:**
-You need to add filtering to your task index method. Build a `whereClause` object that includes the search filter when the `find` parameter is provided:
+Add filtering to your task index method. Build a `whereClause` object that includes the search filter when the `find` parameter is provided:
 
 ```js
 // Build where clause with optional search filter
@@ -275,11 +277,11 @@ const totalTasks = await prisma.task.count({
 - If `find` is not provided, return all tasks (with pagination)
 - The `contains` operator with `mode: 'insensitive'` translates to `ILIKE '%searchTerm%'` in PostgreSQL
 
-**Optional:** You may also optionally implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials, but the `find` filter is required.
+**Optional:** You may also implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials. The `find` filter is required.
 
 #### c. Add Sorting Support (Optional)
 
-The task index endpoint can support sorting by different fields using `sortBy` and `sortDirection` query parameters. This allows users to control how their tasks are ordered.
+The task index endpoint can support sorting by different fields using `sortBy` and `sortDirection` query parameters. This lets users control how their tasks are ordered.
 
 **Example URLs:**
 - `GET /api/tasks?sortBy=title&sortDirection=asc` - Sort by title ascending
@@ -287,7 +289,7 @@ The task index endpoint can support sorting by different fields using `sortBy` a
 - `GET /api/tasks?sortBy=createdAt` - Sort by createdAt descending (default direction)
 
 **Implementation:**
-You need to create a helper function that builds the `orderBy` object based on query parameters:
+Create a helper function that builds the `orderBy` object from query parameters:
 
 ```js
 const getOrderBy = (query) => {
@@ -322,7 +324,7 @@ const tasks = await prisma.task.findMany({
 
 #### a. Create Analytics Controller
 
-Create a new file `controllers/analyticsController.js`. You need to require prisma at the top, similar to how you did it in your other controllers in Assignment 6:
+Create a new file named `controllers/analyticsController.js`. Require Prisma at the top, just like you did in your other controllers in Assignment 6:
 
 ```js
 const prisma = require("../db/prisma");
@@ -330,21 +332,21 @@ const prisma = require("../db/prisma");
 
 #### b. User Productivity Analytics Endpoint
 
-Create a method for `GET /api/analytics/users/:id` that provides comprehensive user statistics. You need to:
+Create a method for `GET /api/analytics/users/:id` that returns user statistics. You need to:
 
 1. Parse and validate the user ID from req.params (check if it's a valid number)
 2. Use `groupBy` to count tasks by completion status (group by `isCompleted`, use `_count` with `id: true`)
 3. Use `findMany` with eager loading to get recent tasks (last 10, ordered by createdAt descending) with user information
 4. Use `groupBy` to calculate weekly progress (tasks created in the last 7 days, grouped by createdAt)
 
-**What is groupBy?** `groupBy` lets you count or aggregate data by specific fields. For example, you can count how many tasks are completed vs incomplete.
+**What is groupBy?** `groupBy` lets you count or aggregate rows by a field. For example, you can count how many tasks are completed and how many are incomplete.
 
 **Important points:**
 - The test expects `taskStats` to be an array with `isCompleted` and `_count` properties
 - The test expects `recentTasks` to include user information (name)
 - The test expects `weeklyProgress` to be an array of groupBy results
 - For weekly progress, calculate a date 7 days ago using JavaScript's `Date` object
-- **404 Check Required:** After validating the user ID, you should check if the user exists in the database. If the user doesn't exist, return a 404 status with an appropriate error message. You can use `prisma.user.findUnique()` to check if the user exists before querying their tasks.
+- **404 Check Required:** After validating the user ID, check whether the user exists in the database. If the user does not exist, return a 404 status with an appropriate error message. You can use `prisma.user.findUnique()` before querying that user's tasks.
 
 ```js
 // Parse and validate user ID
@@ -434,7 +436,7 @@ return;
 
 #### c. User List with Task Counts
 
-Create a method for `GET /api/analytics/users` that shows all users with their task statistics. You need to:
+Create a method for `GET /api/analytics/users` that shows all users with task statistics. You need to:
 
 1. Parse pagination parameters from query (page, limit) - default to page 1 and limit 10
 2. Use `findMany` with `include` to get users, including `_count` for tasks and incomplete tasks (limit to 5)
@@ -528,7 +530,7 @@ res.status(200).json({
 
 #### a. Enhance User Registration with Welcome Tasks
 
-You need to update your user registration method in `userController.js` to create initial tasks automatically using a transaction. As you did in Assignment 6, you'll need to do the Joi validation and hash the password first. Then:
+Update your user registration method in `userController.js` so it creates initial tasks automatically with a transaction. As you did in Assignment 6, run Joi validation and hash the password first. Then:
 
 1. Use `prisma.$transaction()` to wrap both user creation and task creation
 2. Inside the transaction, create the user account (similar to how you did it in Assignment 6, but now using `tx` instead of `prisma`)
@@ -636,9 +638,9 @@ try {
 
 #### b. Implement Bulk Task Operations
 
-Add a method to your `taskController.js` for `POST /api/tasks/bulk`. You need to:
+Add a method to `taskController.js` for `POST /api/tasks/bulk`. You need to:
 
-**What is bulk create?** Instead of creating tasks one at a time, you can create multiple tasks in a single database operation using `createMany`. 
+**What is bulk create?** Instead of creating tasks one at a time, you can create several tasks in one database operation using `createMany`.
 
 **Important points:**
 - The test expects the request body to have a `tasks` array
@@ -646,7 +648,7 @@ Add a method to your `taskController.js` for `POST /api/tasks/bulk`. You need to
 - The test expects status 201 on success, 400 for invalid data
 - You must validate each task using your taskSchema before inserting
 
-When creating multiple records from user input, always validate each record:
+When you create multiple records from user input, validate each record before inserting anything:
 
 ```js
 // Bulk create with validation
@@ -709,7 +711,7 @@ exports.bulkCreate = async (req, res, next) => {
 
 #### a. Task Search with Raw SQL
 
-Add a method to your `analyticsController.js` for `GET /api/analytics/tasks/search`. You need to:
+Add a method to `analyticsController.js` for `GET /api/analytics/tasks/search`. You need to:
 
 1. Get search query from req.query (parameter `q`) and validate it (must be at least 2 characters)
 2. Get limit from query (default to 20 if not provided)
@@ -721,7 +723,7 @@ Add a method to your `analyticsController.js` for `GET /api/analytics/tasks/sear
    - Limits results
 5. Return results with `results` array, `query` string, and `count` number
 
-**Why use raw SQL?** Prisma's query builder can't express complex text search with relevance ranking, so we use `$queryRaw` for this.
+**Why use raw SQL?** Prisma's query builder is great for many queries, but this text search needs relevance ranking. `$queryRaw` lets you write that SQL directly.
 
 **Important points:**
 - The test expects query parameter `q` (at least 2 characters)
@@ -797,13 +799,13 @@ res.status(200).json({
 }
 ```
 
-**Important:** Notice how we use template literals with `$queryRaw` to ensure parameterized queries. This prevents SQL injection attacks. Never concatenate user input directly into SQL strings.
+**Important:** Notice how the example uses template literals with `$queryRaw` to create parameterized queries. This helps prevent SQL injection attacks. Never concatenate user input directly into SQL strings.
 
 ### 7. Implement Selective Field Loading
 
 #### a. Update User Methods to Exclude Sensitive Data
 
-As you did in Assignment 6, make sure all user-related endpoints use `select` to exclude the `hashedPassword` field. Update your user methods to always use `select`, similar to how you did it in Assignment 6:
+As you did in Assignment 6, make sure all user-related endpoints use `select` to exclude the `hashedPassword` field. Update your user methods so they always use `select`, similar to Assignment 6:
 
 ```js
 // In userController.js, update methods to always use select:
@@ -821,23 +823,23 @@ const user = await prisma.user.findUnique({
 
 #### b. Add Fields Query Parameter Support (Optional)
 
-You can enhance endpoints to allow clients to specify which fields they need. This is optional, but if you want to implement it, parse the fields query parameter and build the select object dynamically.
+You can enhance endpoints so clients can specify which fields they need. This is optional. If you implement it, parse the fields query parameter and build the select object dynamically.
 
 ### 8. Enhanced Error Handling
 
 #### a. Missing 404 Checks
 
-Review your endpoints and ensure they return appropriate 404 (Not Found) responses when resources don't exist:
+Review your endpoints and make sure they return appropriate 404 (Not Found) responses when resources do not exist:
 
-- **User Analytics Endpoint (`GET /api/analytics/users/:id`)**: After validating that the user ID is a valid number, check if the user exists in the database. If the user doesn't exist, return a 404 status with an appropriate error message (e.g., "User not found"). You can use `prisma.user.findUnique()` to verify the user exists before querying their tasks.
+- **User Analytics Endpoint (`GET /api/analytics/users/:id`)**: After validating that the user ID is a valid number, check whether the user exists in the database. If the user does not exist, return a 404 status with an appropriate error message (for example, "User not found"). You can use `prisma.user.findUnique()` before querying their tasks.
 
-- **Task Show Endpoint (`GET /api/tasks/:id`)**: This should already have a 404 check from Assignment 6, but verify that it returns 404 when a task is not found or doesn't belong to the current user.
+- **Task Show Endpoint (`GET /api/tasks/:id`)**: This should already have a 404 check from Assignment 6, but verify that it returns 404 when a task is not found or does not belong to the current user.
 
-**Why 404 checks matter:** Returning 404 for non-existent resources is a REST API best practice. It provides clear feedback to clients and helps distinguish between "resource doesn't exist" (404) and "empty results" (200 with empty array).
+**Why 404 checks matter:** Returning 404 for missing resources is a REST API best practice. It gives clear feedback to clients and helps separate "resource does not exist" from "the result is empty."
 
 #### b. Update Error Handling in Controllers
 
-As you did in Assignment 6, make sure you're catching Prisma-specific error codes appropriately. For update and delete operations, catch P2025 errors, similar to how you handled them in Assignment 6:
+As you did in Assignment 6, make sure you catch Prisma-specific error codes where needed. For update and delete operations, catch P2025 errors, similar to how you handled them in Assignment 6:
 
 ```js
 try {
@@ -861,15 +863,15 @@ try {
 
 #### b. Input Validation
 
-Add validation for pagination and search parameters. Validate that page is >= 1 and limit is between 1 and 100. You can use Joi validation similar to how you did it in Assignment 6, or simple checks.
+Add validation for pagination and search parameters. Validate that page is >= 1 and limit is between 1 and 100. You can use Joi validation, similar to Assignment 6, or simple checks.
 
 ### 9. Setting Up Routes
 
-You already know how to create routes from previous assignments. Here are the hints for setting up the new routes needed for this assignment:
+You already know how to create routes from previous assignments. Use these hints to set up the new routes for this assignment:
 
 #### a. Create Analytics Routes
 
-Create a new file `routes/analyticsRoutes.js` following the same pattern you used for `taskRoutes.js` and `userRoutes.js`:
+Create a new file named `routes/analyticsRoutes.js`. Follow the same pattern you used for `taskRoutes.js` and `userRoutes.js`:
 
 - Import your analytics controller methods: `getUserAnalytics`, `getUsersWithStats`, and `searchTasks`
 - Set up routes:
@@ -887,7 +889,7 @@ In your existing `routes/taskRoutes.js`:
 
 #### c. Wire Routes in app.js
 
-In your `app.js` file:
+In `app.js`:
 
 - Import the new `analyticsRoutes`
 - Add a route: `app.use("/api/analytics", authMiddleware, analyticsRoutes)`
@@ -921,7 +923,7 @@ Your complete route structure should look like this:
 
 ### 10. Testing Your Advanced Prisma Features
 
-Test using Postman. Everything should still work -- your existing endpoints from Assignment 6 should continue to function, but now with enhanced functionality:
+Test with Postman. Everything should still work. Your existing endpoints from Assignment 6 should continue to function, but now they include enhanced behavior:
 
 - Analytics endpoints with groupBy operations
 - User registration with welcome tasks (transaction)
@@ -930,7 +932,7 @@ Test using Postman. Everything should still work -- your existing endpoints from
 - Pagination on list endpoints
 - Selective field loading
 
-Make sure all operations work as before. They are:
+Make sure all operations still work:
 
 - register (now with welcome tasks)
 - logon
@@ -943,9 +945,9 @@ Make sure all operations work as before. They are:
 - health check
 - new analytics endpoints
 
-As you did for Assignment 6, conduct a test to verify that one user can't read, modify, or delete another's tasks.
+As you did for Assignment 6, test that one user cannot read, modify, or delete another user's tasks.
 
-Then, run `npm run tdd assignment7` and make sure it completes without test failure.
+Then run `npm run tdd assignment7` and make sure it completes without test failures.
 
 #### a. Database Testing
 
@@ -973,7 +975,7 @@ Test your endpoints using Postman or curl:
 ## Implementation Guidelines
 
 ### File Structure
-Your enhanced application should maintain the same structure as Assignment 6, with these additions:
+Your enhanced application should keep the same structure as Assignment 6, with these additions:
 
 ```
 project/
@@ -1048,7 +1050,7 @@ Test all new endpoints with Postman or curl:
 ## Submission Instructions
 
 ### 1️⃣ Add, Commit, and Push Your Changes
-Within your `node-homework` folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment7` branch.
+Inside your `node-homework` folder, add and commit the files you created so they are included on the `assignment7` branch.
 
 ```bash
 git add .
@@ -1079,7 +1081,7 @@ git push origin assignment7
 
 ## Video Submission
 
-Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
+Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Share the link in your submission form.
 
 **Video Content**: Short demos based on Lesson 7:
 
@@ -1127,4 +1129,4 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 - Use Prisma query logging to see generated SQL
 - Ask for help if you get stuck on specific concepts
 
-**Remember:** This assignment builds on Assignment 6. Make sure you have a working Prisma application from Assignment 6 before adding advanced features!
+**Remember:** This assignment builds on Assignment 6. Make sure you have a working Prisma application from Assignment 6 before adding advanced features.
