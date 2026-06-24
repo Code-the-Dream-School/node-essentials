@@ -549,7 +549,7 @@ The order matters because the error handler is a final safety net. It should not
 
 Be careful not to send more than one response for the same request. If a route sends a response and then an error handler also tries to send another response, Express will report an error because the response was already sent.
 
-Async route handlers often need error handling too. If you are waiting on a database call or another asynchronous operation, use `try`/`catch` and pass unexpected errors to `next(error)`.
+Async route handlers often need error handling too. If you are waiting on a database call or another asynchronous operation, use `try`/`catch` and pass unexpected errors to `next(error)`. This is not optional. In Express, an error thrown inside a bare `async` handler is not caught automatically. If you do not catch it and call `next(error)`, Express never reaches the error handler and the request just hangs until it times out.
 
 In this example, there are two different outcomes:
 

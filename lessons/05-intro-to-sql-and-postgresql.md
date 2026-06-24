@@ -32,6 +32,8 @@ By the end of this lesson, you will be able to:
 ## Overview
 In this lesson, you will connect your Express application to PostgreSQL. Up to this point, your app has stored data in memory. That works for practice, but memory storage disappears when the server restarts. PostgreSQL gives your app a real database, so the data can stay available after the Node process stops.
 
+This is the first of several changes to where your data lives and how your app tracks the logged-in user. For the big picture of how those pieces evolve across the whole course, see the [Data and Identity guide](../DATA-AND-IDENTITY-GUIDE.md).
+
 **Prologue:**
 Right now, your app uses `global.users` to store users and `global.tasks` to store each user's tasks. In this lesson, you will remove those globals and read from and write to the database instead. You will still use `global.user_id` for now. The REST calls your application supports should keep working the same way, so your Postman tests do not need to change.
 

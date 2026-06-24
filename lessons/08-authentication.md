@@ -77,7 +77,7 @@ There are two problems in your application in its current state.
 
 You will fix both problems in the assignment.
 
-In Assignment 8, the fix is to stop storing the current user in one global variable. Instead, each browser receives its own signed cookie. When a request arrives, middleware reads that cookie and stores the current user's id on `req.user.id`. That makes the user identity specific to the request.
+In Assignment 8, the fix is to stop storing the current user in one global variable. Instead, each browser receives its own signed cookie. When a request arrives, middleware reads that cookie and stores the current user's id on `req.user.id`. That makes the user identity specific to the request. This is the final step in how the app tracks the logged-in user; the [Data and Identity guide](../DATA-AND-IDENTITY-GUIDE.md) shows the full progression from the temporary global to per-request `req.user`.
 
 In the application you are building, there are three authentication relationships to think about:
 
