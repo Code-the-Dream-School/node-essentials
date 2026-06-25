@@ -2,6 +2,8 @@
 
 This guide explains how to run the Test-Driven Development (TDD) tests for each assignment and how to read and understand the test files in the `tdd/` folder.
 
+NOTE: The AI review tool (known as AirHub) can check code and structure, but it does not run your code in a server environment to verify that aspect runs properly.  We will have human reviewers checking this aspect, so you may receive a passing assignment from AirHub that could still need revisions after a human has checked that your work runs properly in the correct environment. If your AI and human reviewer feedbacks don't match, trust the human review.
+
 ## What are TDD Tests?
 
 The TDD (Test-Driven Development) tests are automated tests provided by the course to verify that your assignment solutions are correct. These tests are located in the `tdd/` folder and check that your code:
@@ -31,12 +33,16 @@ Replace `X` with the assignment number (e.g., `assignment1`, `assignment2`, etc.
 
 #### **Assignment 1** (Node.js Fundamentals)
 ```bash
-npm run tdd assignment1
+npm run tdd assignment1a    # Core tasks (required)
+npm run tdd assignment1b    # Advanced tasks (optional)
 ```
-Tests verify:
+Core tests (`assignment1a`) verify:
 - `globals-demo.js` outputs correct global variables
 - `async-demo.js` demonstrates async patterns correctly
-- `core-modules-demo.js` uses Node.js core modules properly
+- `core-modules-demo.js` uses the `os`, `path`, and `fs.promises` core modules properly
+
+Advanced tests (`assignment1b`, optional) verify:
+- `core-modules-demo.js` reads a large file with streams
 
 #### **Assignment 2** (Events, HTTP, Express)
 ```bash
@@ -51,21 +57,25 @@ Tests verify:
 ```bash
 npm run tdd assignment3a    # For first part
 npm run tdd assignment3b    # For second part
-npm run tdd assignment3     # For complete assignment
+npm run tdd assignment3c    # For optional advanced part
 ```
 Tests verify:
 - Route handlers work correctly
 - Middleware is properly implemented
+- Optional advanced middleware is properly implemented
 - Error handling functions correctly
 
 #### **Assignment 4** (Tasks and Validations)
 ```bash
-npm run tdd assignment4
+npm run tdd assignment4a
+npm run tdd assignment4b    # For optional advanced part
 ```
 Tests verify:
 - User registration, login, and logoff
 - Task CRUD operations
+- Protected task access and task ownership
 - Validation schemas work correctly
+- Optional advanced validation, patch update, and password security checks
 
 #### **Assignment 5** (SQL Introduction)
 ```bash
@@ -127,11 +137,11 @@ Tests verify:
 When all tests pass, you'll see output like:
 
 ```
-PASS  tdd/assignment1.test.js
-  Week 1 Assignment Solution Tests
+PASS  tdd/assignment1a.test.js
+  Week 1 Assignment — Core Tests
     ✓ globals-demo.js outputs correct globals (245 ms)
-    ✓ async-demo.js demonstrates async patterns (312 ms)
-    ✓ core-modules-demo.js uses os, path, fs.promises, and streams (278 ms)
+    ✓ async-demo.js demonstrates async patterns and file operations (312 ms)
+    ✓ core-modules-demo.js uses os, path, and fs.promises (278 ms)
 
 Test Suites: 1 passed, 1 total
 Tests:       3 passed, 3 total
@@ -142,13 +152,13 @@ Tests:       3 passed, 3 total
 When tests fail, you'll see detailed error messages:
 
 ```
-FAIL  tdd/assignment1.test.js
-  Week 1 Assignment Solution Tests
+FAIL  tdd/assignment1a.test.js
+  Week 1 Assignment — Core Tests
     ✕ globals-demo.js outputs correct globals (123 ms)
-    
+
     Expected: contain "__dirname: /path/to/assignment1"
     Received: "__dirname: /wrong/path"
-    
+
     Difference: Expected substring: "__dirname: /path/to/assignment1"
 ```
 
@@ -176,7 +186,7 @@ const { execSync } = require('child_process');
 
 describe('Assignment X: Description', () => {
   const assignmentDir = path.join(__dirname, '../assignmentX');
-  
+
   test('Test description', () => {
     // Test code here
     expect(actualValue).toBe(expectedValue);
@@ -228,7 +238,7 @@ expect(fileExists).toBe(true);
 - `.toBeTruthy()` / `.toBeFalsy()` check boolean values
 - Many other matchers are available (see Jest documentation)
 
-### Example: Reading assignment1.test.js
+### Example: Reading assignment1a.test.js
 
 Let's break down a real test:
 
@@ -265,7 +275,7 @@ test('globals-demo.js outputs correct globals', () => {
 - Make sure it logs the exact strings the test expects
 - Pay attention to spacing and capitalization!
 
-### Example: Reading assignment4.test.js
+### Example: Reading assignment4a.test.js
 
 For controller tests (like Assignment 4), tests use `node-mocks-http`:
 

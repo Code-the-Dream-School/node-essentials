@@ -1,412 +1,449 @@
-# **Assignment 3 — Extending Your Express App, and a Middleware Debugging Exercise**
+# Week 3 Assignment: Express Middleware and Error Handling
 
-This assignment is to be done in the node-homework folder.  Within that folder, create an `assignment3` ```git branch``` for your work.  As you work on this assignment, add and commit your work to this branch periodically.
+## Learning Objectives
+- Continue building the backend for your todo application
+- Use Express middleware in the correct order
+- Parse JSON request bodies with `express.json()`
+- Organize code with `controllers/`, `routes/`, and `middleware/`
+- Create route handlers for user registration, logon, and logoff
+- Add not-found and error-handler middleware
+- Practice middleware debugging in a separate Express app
+- Practice enhanced middleware features
 
-> REMEMBER: Commit messages should be meaningful. `Week 3 assignment` is not a meaningful commit message.
+## Assignment Guidelines
 
-## **Task 1: A Route Handler for User Registration, Logon, and Logoff**
+NOTE: The AI review tool (known as AirHub) can check code and structure, but it does not run your code in a server environment to verify that aspect runs properly. We will have human reviewers checking this aspect, so you may receive a passing assignment from AirHub that could still need revisions after a human has checked that your work runs properly in the correct environment. If your AI and human reviewer feedbacks don't match, trust the human review.
 
-You have started work on the application you'll use for your final project.  You now start adding the main functions.
+1. **Setup**
+   - Work in your `node-homework` repository.
+   - The main todo backend files go in the root of `node-homework`.
+   - The dog rescue middleware exercise uses the provided `week-3-middleware` starter folder.
+   - Do not mix the dog rescue app into the main todo app.
+2. **Create a branch**
+   - Create a new branch for your work on assignment 3 (e.g., `assignment3`).
+   - Make all your changes and commits on this branch.
+3. **Before you test**
+   - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](?page=test-driven-development-(tdd)-testing-guide)
+   - Watch this video that goes over Test Driven Development: [How to Read Tests](https://www.youtube.com/watch?v=fxe1yNSC6H4)
+4. **Run the tests**
+   - Run the main todo backend tests with:
+     ```bash
+     npm run tdd assignment3a
+     ```
+   - Run the dog rescue middleware exercise tests with:
+     ```bash
+     npm run tdd assignment3b
+     ```
+   - If you attempt the optional advanced dog middleware tasks, run:
+     ```bash
+     npm run tdd assignment3c
+     ```
 
-For your final project, you'll have users with todo lists.  A user will be able to register with the application, log on, and create, modify, and delete tasks in their todo lists.  You'll now create the route that does the register.  That's a POST operation for the `/api/users/register` path.  Add that to app.js, before the 404 handler.  For now, you can just have it return a message.  By convention, REST API routes start with `/api'.
+## Assignment Parts and Test Files
 
-You cannot test this with the browser.  Browsers send GET requests, and only do POSTs from within forms.  Postman is the tool you'll use.  Start it up.  On the upper left-hand side, you see a `new` button.  Create a new collection, called `node-homework`.  On the upper right-hand side, you see an icon that is a rectangle with a little eye.  No, it doesn't mean the Illuminati.  This is the Postman environment.  Create an environment variable called host, with a value of `http://localhost:3000`.  This is the base URL for your requests.  When it comes time to test your application as it is deployed on the internet, you can just change this environment variable.
+This assignment has three learning parts and three test files:
 
-Hover over the node-homework collection and you'll see three dots. Click on those, and select 'add request'.  Give it a name, perhaps `register`.  A new request, by default, is a GET, but there is a pulldown to switch it to POST.  Save the request, and then send it.  If your Express app is running, you should see your message come back.  Of course, to create a user record, you need data in the body of the request.  So, click on the body tab for the request.  Select the `raw` option.  There's a pulldown to the right that says `Text`.  Click on that, and choose the JSON option.  Then, put JSON data in for the user you want to create.  You need a name, an email, and a password.  Remember that this is JSON, not a JavaScript object, so you have to have double quotes around the attribute names and string values.  Save the request again, and then send it.  The result is the same of course -- the request handler doesn't do more than send a message at the moment.
+1. **Assignment 3A - Main Todo Backend**
+   - This is part of the main app you will keep building throughout the course.
+   - Test command:
+     ```bash
+     npm run tdd assignment3a
+     ```
 
-Go back to app.js.  You need to be able to get the body of the request.  For that you need middleware, in this case middleware that Express provides.  Add this line above your other routes:
+2. **Assignment 3B - Dog Rescue Middleware Exercise**
+   - This is a separate middleware practice app.
+   - It lives in `week-3-middleware`.
+   - Do not mix this code into the main todo app.
+   - Test command:
+     ```bash
+     npm run tdd assignment3b
+     ```
 
-```js
-app.use(express.json({ limit: "1kb" }));
+3. **Advanced Dog Middleware Tasks** (optional)
+   - It still uses the `week-3-middleware` app.
+   - Test command:
+     ```bash
+     npm run tdd assignment3c
+     ```
+
+**Important:** You will work with two separate apps:
+
+- The main todo backend, which you will keep building throughout the course
+- The dog rescue middleware exercise, which is a separate practice app in `week-3-middleware`
+
+## Core Tasks (Required)
+
+These tasks are required. The tests run with `npm run tdd assignment3a` and `npm run tdd assignment3b`.
+
+### 1. Main Todo Backend File Structure
+
+In the root of `node-homework`, continue working on the main Express app.
+
+Your main app should use this structure:
+
+```text
+app.js
+controllers/
+  userController.js
+routes/
+  userRoutes.js
+middleware/
+  not-found.js
+  error-handler.js
 ```
 
-This tells Express to parse JSON request bodies as they come in.  The express.json() middleware only parses the request body if the Content-Type header says "application/json". The resulting object is stored in req.body.  Of course, any routes that need to look at the request body have to come after this app.use().
+You will create the controller first, then the router, then the middleware files, and then connect everything in `app.js`.
 
-Make the following change to the request handler:
+### 2. Create `controllers/userController.js`
+
+Create a `controllers` folder if it does not already exist.
+
+Inside it, create:
+
+```text
+controllers/userController.js
+```
+
+Export these three functions:
 
 ```js
-app.post("/api/users/register", (req, res)=>{
-    console.log("This data was posted", JSON.stringify(req.body));
-    res.send("parsed the data");
+register
+logon
+logoff
+```
+
+The tests require these exact function names.
+
+**About the globals in this assignment:** In Lesson 1, you learned that putting changing application data on `global` is usually bad practice. We are using `global.users`, `global.user_id`, and `global.tasks` here as a temporary in-memory database so you can practice controllers, routers, and middleware before we add a real database. In a later week, you will replace this fake database with PostgreSQL through Prisma, and you will see how little of your controller code has to change.
+
+### 3. Implement `register`
+
+The `register` function should:
+
+- Read `name`, `email`, and `password` from `req.body`
+- Create a new user object
+- Add that user to `global.users`
+- Set `global.user_id` to that user
+- Return status `201`
+- Return JSON with the user's `name` and `email`
+- Do not return the password
+
+Example response:
+
+```json
+{
+  "name": "Jim",
+  "email": "jim@sample.com"
+}
+```
+
+### 4. Implement `logon`
+
+The `logon` function should:
+
+- Read `email` and `password` from `req.body`
+- Find a matching user in `global.users`
+- If the email and password match, set `global.user_id` to that user
+- Return status `200`
+- Return JSON with the user's `name` and `email`
+- If the email or password does not match, return status `401`
+
+### 5. Implement `logoff`
+
+The `logoff` function should:
+
+- Set `global.user_id` to `null`
+- Return status `200`
+
+### 6. Create `routes/userRoutes.js`
+
+Create a `routes` folder if it does not already exist.
+
+Inside it, create:
+
+```text
+routes/userRoutes.js
+```
+
+Set up these routes:
+
+```text
+POST /register
+POST /logon
+POST /logoff
+```
+
+Later, when you connect this router in `app.js`, you will mount it at `/api/users`, so the full routes are:
+
+```text
+POST /api/users/register
+POST /api/users/logon
+POST /api/users/logoff
+```
+
+### 7. Add Main App Middleware Files
+
+Create a `middleware` folder if it does not already exist.
+
+Inside it, create:
+
+```text
+middleware/not-found.js
+middleware/error-handler.js
+```
+
+`not-found.js` should:
+
+- Export a middleware function
+- Return status `404`
+- Return a JSON response
+
+`error-handler.js` should:
+
+- Export an error-handling middleware function with four parameters: `err`, `req`, `res`, `next`
+- Return status `500`
+- Return a JSON response
+
+### 8. Connect Everything in `app.js`
+
+After the controller, router, and middleware files exist, update the root `app.js`.
+
+In `app.js`:
+
+- Initialize `global.user_id = null`
+- Initialize `global.users = []`
+- Initialize `global.tasks = []`
+- Use `express.json()` before your routes
+- Mount the user router at `/api/users`
+- Add not-found middleware after your routes
+- Add error-handler middleware at the end
+- Export `{ app, server }`
+
+**Important:** Middleware order matters. Use this order:
+
+```text
+express.json()
+routes
+not-found middleware
+error-handler middleware
+```
+
+Run the main app tests:
+
+```bash
+npm run tdd assignment3a
+```
+
+### 9. Dog Rescue Middleware Exercise
+
+The dog rescue app is separate from the main todo backend.
+
+The `week-3-middleware` folder is already provided in your repository. It contains the starter code for the dog rescue app. Read through it first and do not create this app from scratch.
+
+Do not move this code into the main todo app.
+
+Work only inside:
+
+```text
+week-3-middleware/
+```
+
+This app has routes for:
+
+```text
+GET /dogs
+POST /adopt
+GET /error
+GET /images/dachshund.png
+```
+
+In `week-3-middleware/app.js`, export the Express app directly:
+
+```js
+module.exports = app;
+```
+
+By the end of the dog rescue exercise, your middleware should follow the same order taught in Lesson 3:
+
+```text
+request ID middleware
+logging middleware
+security headers middleware
+JSON parsing middleware
+static file middleware
+content-type validation middleware
+dog routes
+404 handler
+error handler
+```
+
+You will add some of these pieces in the core dog tasks and the rest in the advanced dog middleware tasks.
+
+### 10. Add Built-In Middleware
+
+In `week-3-middleware/app.js`:
+
+- Add `express.json()` so `POST /adopt` can read `req.body`
+- Add `express.static()` so dog images can be served from `week-3-middleware/public/images`
+
+The image route should work:
+
+```text
+GET /images/dachshund.png
+```
+
+### 11. Add Request ID Middleware
+
+In `week-3-middleware/app.js`, add custom middleware that:
+
+- Adds `req.requestId`
+- Adds an `X-Request-Id` response header
+- Calls `next()`
+
+Use Node's built-in `crypto.randomUUID()` to create the ID. You do not need to install `crypto`; it comes with Node.
+
+The `uuid` package is common in real projects, but current `uuid` is ESM-only, so this CommonJS assignment uses `crypto.randomUUID()` instead.
+
+```js
+const { randomUUID } = require("crypto");
+
+app.use((req, res, next) => {
+  req.requestId = randomUUID();
+  res.setHeader("X-Request-Id", req.requestId);
+  next();
 });
 ```
 
-Then try the Postman request again.  You see the body in your server log, but you are still just sending back a message.
+### 12. Add Logging Middleware
 
-What you should do for this request is store the user record.  Eventually you'll store it in a database, but we haven't learned how to do that yet.  So, for the moment, you can just store it in memory.  Use the following globals:
+Add logging middleware after the request ID middleware.
 
-```js 
-global.user_id // The logged on user.  This will be undefined or null if no user is logged on.
-global.users // an array of user objects, initially empty.
-global.tasks   // an array of task object, initially empty.
+The log format should be:
+
+```text
+[timestamp]: METHOD PATH (requestId)
 ```
 
-Near the start of `app.js`, add:
+Example:
+
+```text
+[2024-01-15T10:30:45.123Z]: GET /dogs (abc-123)
+```
+
+### 13. Add Error and 404 Handling
+
+In `week-3-middleware/app.js`:
+
+- Add a 404 handler for unmatched routes
+- Add an error handler for unexpected errors
+
+The 404 response should include:
+
+```json
+{
+  "error": "Route not found",
+  "requestId": "..."
+}
+```
+
+The 500 response should include:
+
+```json
+{
+  "error": "Internal Server Error",
+  "requestId": "..."
+}
+```
+
+Run the dog rescue middleware tests:
+
+```bash
+npm run tdd assignment3b
+```
+
+## Advanced Dog Middleware Tasks (Optional)
+
+These tasks are more advanced than the first dog rescue tasks. They are still part of the dog rescue middleware app.
+
+Continue working inside the separate `week-3-middleware` folder.
+
+### 14. Add Security Headers
+
+Add middleware that sets these headers on all responses:
+
+```text
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+```
+
+### 15. Add Request Size Limiting
+
+Update JSON parsing to limit body size:
 
 ```js
-global.user_id = null;
-global.users = [];
-global.tasks = [];
+app.use(express.json({ limit: "1mb" }));
 ```
 
-And then, change the app.post() as follows:
+### 16. Add Content-Type Validation
+
+Add middleware that checks POST requests.
+
+If a POST request does not use `application/json`, return:
+
+- Status `400`
+- JSON response with `error`
+- The current `requestId`
+
+The error message should include:
+
+```text
+Content-Type must be application/json
+```
+
+`415 Unsupported Media Type` is a more specific HTTP status for unsupported content types, but this assignment and its tests use `400 Bad Request`.
+
+### 17. Add Custom Error Classes
+
+Inside `week-3-middleware`, create:
+
+```text
+errors.js
+```
+
+Create and export:
 
 ```js
-app.post("/api/users/register", (req, res)=>{
-    const newUser = {...req.body}; // this makes a copy
-    global.users.push(newUser);
-    global.user_id = newUser;  // After the registration step, the user is set to logged on.
-    delete req.body.password;
-    res.status(201).json(req.body);
-});
+ValidationError
+NotFoundError
+UnauthorizedError
 ```
 
+Each class should extend `Error` and include a `statusCode`.
 
-When creating a new record, it is standard practice to return the object just created, but of course, you don't want to send back the user password.
+Suggested status codes:
 
-Test this with your Postman request.
-
-### **Why the Memory Store is Crude**
-
-Let's list all the hokey things you just did.
-
-1. There is no validation.  You don't know if there was a valid body.  Hopefully your Postman request did send one.
-
-2. You stored to memory (globals).  When you restart the server, the data's gone.  Your users will not be happy.
-
-3. You don't know if the email is unique.  You are going to use the email as the userid, but a bunch of entries could be created with the same email.
-
-4. You stored the plain text password, which is very insecure.
-
-5. Only one user can be logged on at a time.
-
-Well ... we'll fix all of that, over time.
-
-### **Keeping Your Code Organized: Creating a Controller**
-
-You are going to have to create a couple more post routes.  Also, you are going to have to add a lot of logic, to solve problems 1 through 5 above.  You don't want all of that in app.js.  So, create a directory called controllers. Within it, create a file called userController.js.  Within that, create a function called register.  The register() function takes a req and a res, and the body is just as above.  You can move the require() statement for the memoryStore over there (but you have to use a relative path).  You should also do a require for http-status-codes, and instead of using 201, you use StatusCodes.CREATED.  Then, you put register inside the module.exports object for this module.
-
-### **On Naming**
-
-In the general case, you can name modules and functions as you choose.  However, we are providing tests for what you develop, and so you need to use the names specified below, so that the tests work:
-
+```text
+ValidationError -> 400
+NotFoundError -> 404
+UnauthorizedError -> 401
 ```
-/controllers/userController.js with functions logon, register, and logoff
-/controllers/taskController.js with functions index, create, show, update, and deleteTask.
-```  
 
-The show function returns a single task, and the index function returns all the tasks for the logged on user (or 404 if there aren't any.)
-
-### **Back to the Coding***
-
-Change the code for the route as follows:
+Example structure:
 
 ```js
-const { register } = require("./controllers/userController");
-app.post("/api/user/register", register);
-```
-
-Test again with Postman to make sure it works.
-
-### **More on Staying Organized: Creating a Router**
-
-You are going to create several more user post routes, one for logon, and one for logoff.  You could have app.post() statements in app.js for each.  But as your application gets more complex, you don't want all that stuff in app.js.  So, you create a router.  Create a folder called routes.  Within that, create a file called userRoutes.js.  It should read as follows:
-
-```js
-const express = require("express");
-
-const router = express.Router();
-const { register } = require("../controllers/userController");
-
-router.route("/register").post(register);
-
-module.exports = router;
-```
-
-Then, change app.js to take out the app.post().  Instead, put this:
-
-```js
-const userRouter = require("./routes/userRoutes");
-app.use("/api/users", userRouter);
-```
-
-The user router is called for the routes that start with "/api/users".  You don't include that part of the URL path when you create the router itself.
-
-All of the data sent or received by this app is JSON.  You are creating a back end that just does JSON REST requests.  So, you really shouldn't do res.send("everything worked.").  You should always do this instead:
-
-```js
-res.json({message: "everything worked."});
-```
-
-At this time, change the res.send() calls you have in your app and middleware to res.json() calls.  Remember that res.json() calls must return an object.  If this is only a message, then for the sake of consistency, start that object with a `message` attribute.
-
-### **The Other User Routes**
-
-Here's a spec.
-
-1. You need to have an `/api/users/logon` POST route.  That one would get a JSON body with an email and a password.  The controller function has to do a find() on the `global.users` array for an entry with a matching email.  If it finds one, it checks to see if the password matches.  If it does, it returns a status code of OK, and a JSON body with the user name and email.  The user name is convenient for the front end, because it can show who is logged on.  The email may or may not be used by the front end, but you can return it.  The controller function for the route would also set the value of `global.user_id` to be the entry in the `global.users` array that it finds.  (You don't make a copy, you just set the reference.)  If the email is not found, or if the password doesn't match, the controller returns an UNAUTHORIZED status code, with a message that says Authentication Failed.
-
-2. You need to have an `/api/users/logoff` POST route.  That one would just set the `global.user_id` to null and return a status code of OK.  You could do `res.sendStatus()`, because you don't need to send a body.
-
-3. You add the handler functions to the userController, and you add the routes to the userRoutes.js router, doing the necessary exports and requires.
-
-4. You test with Postman to make sure all of this works.
-
-5. Run the TDD test!  You type `npm run tdd assignment3a` .
-
-
-For the rest of this assignment, you'll set your app aside for a moment, and learn some debugging skills.
-
----
-
-## **Task 2: Debugging Middleware**
-
-### ***Introduction to the Scenario**
-
-You're volunteering for a local dog rescue, **The Good Boys and Girls Club**, to help them upgrade their adoption site.
-
-They’ve already built the main API routes, but their middleware is a mix of broken and missing. Your job is to clean things up and ensure the app behaves, just like all their dogs!
-
-The site serves adorable images of adoptable dogs, accepts applications from potential adopters, and includes a test route for simulating server errors. It just needs your help to become a robust, production-ready app using Express middleware the right way.
-
-You'll be implementing middleware that handles things like:
-
-* Logging and request tracking
-* Request validation and parsing
-* Serving dog images as static files
-* Gracefully handling unexpected errors
-The dogs are counting on you.
-
-### Setup
-
-1. The `week-3-middleware` folder is already provided in your repository. This folder contains the skeleton code for the dog rescue application.
-
-2. To run the provided framework enter ```npm run week3``` in terminal.  You do this to start server before you begin testing with Postman.
-
-3. To run the test, enter ```npm run tdd assignment3b``` in terminal.  Your task is to modify the existing files in the `week-3-middleware folder` to make the tests pass.
-
-### **Advanced Middleware Implementation**
-
-The dog rescue team wants to add more robust middleware to their application. Implement these additional features:
-
-
-**Request Validation:**
-- Add middleware that validates the `Content-Type` header for POST requests
-- If a POST request doesn't have `application/json` content type, return a 400 error with a helpful message
-- Include the request ID in the error response
-
-**Error Handling Middleware:**
-- Create custom error classes that extend `Error` with status code properties
-- Add middleware to catch different error types and return appropriate HTTP status codes:
-  - `ValidationError` → 400 Bad Request
-  - `NotFoundError` → 404 Not Found  
-  - `UnauthorizedError` → 401 Unauthorized
-  - Default errors → 500 Internal Server Error
-- Log errors with different severity levels based on status code (see Task 4 for details)
-
-
-**Testing Your Implementation:**
-- Test with Postman to ensure all new middleware works correctly
-- Test that invalid content types return proper error responses
-- Error responses include the correct status code, message, and requestId
-- Unmatched routes return a 404 JSON response
-
-
-4. In **Postman**, set up the following routes.  They should all be in one collection called "dogs":
-
-   * `GET {{host}}/dogs`
-   * `GET {{host}}/images/dachshund.png`
-   * `GET {{host}}/error`
-   * `POST {{host}}/adopt`
-     * Body:
-
-       ```json
-       {
-         "name": "your name",
-         "address": "123 Sesame Street",
-         "email": "yourname@codethedream.org",
-         "dogName": "Luna"
-       }
-       ```
-  Here `{{host}}` is a Postman environment variable you should configure.  It should be set to `http://localhost:3000`.  You'll do manual testing with Postman.
-
-5. Get coding!
-
-### Deliverables
-
-Your work will involve editing `app.js` to add the expected middleware. You will also need to modify `routes/dogs.js` to throw custom errors (`ValidationError` and `NotFoundError`) instead of returning error responses directly.
-
-**Important:** Pay attention to the **order** of your middleware! As you learned in Lesson 3, middleware executes in the order it's defined. Place each middleware in the correct position in the chain.
-
-**Recommended Middleware Order:**
-1. Request ID middleware (adds `req.requestId`)
-2. Logging middleware (logs requests with requestId)
-3. Security headers middleware (sets security headers)
-4. Body parsing middleware (`express.json()` with size limit)
-5. Content-Type validation middleware (for POST requests)
-6. Routes (your route handlers)
-7. Error handling middleware (catches thrown errors)
-8. 404 handler (catches unmatched routes)
-
-1. **Built-In Middleware**  
-
-   * The `POST /adopt` endpoint doesn’t seem to be processing requests as expected. This route expects a `name`, `email`, and `dogName`, but the controller keeps erroring. Implement the appropriate middleware to parse JSON requests on this endpoint.  
-   * The images for adoptable dogs are not being served on  `GET /images/**` as expected. Implement the appropriate middleware to serve the images of adoptable dogs from the `public/images/..` directory on this endpoint.  
-
-2. **Custom Middleware**  
-
-   * The following middleware should be chained and applied globally to all routes:  
-     * We would like to add a unique request ID to all incoming requests for debugging purposes. Using the `uuid` library to generate the unique value, write a custom middleware that:
-       * Adds a `requestId` property to `req` object (e.g., `req.requestId`) for all requests in the application
-       * Injects this value as an `X-Request-Id` header in the response headers (note: header name is case-insensitive, but use `X-Request-Id`)
-       * This middleware should run first, before any other middleware that might need the requestId
-       
-       **💡 Hint: Using the `uuid` Library**
-       - First, install the package: `npm install uuid`
-       - Import it at the top of your `app.js`: `const { v4: uuidv4 } = require('uuid');`
-       - Generate a unique ID: `const requestId = uuidv4();` (this creates a string like "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d")
-       - Example middleware structure:
-         ```js
-         app.use((req, res, next) => {
-           req.requestId = uuidv4();
-           res.setHeader('X-Request-Id', req.requestId);
-           next();
-         });
-         ```
-       
-     * We would like to output logs on all requests. These logs should contain the timestamp of the request, the method, path, and request ID. They should be formatted as:
-
-       ```js
-       `[${timestamp}]: ${method} ${path} (${requestID})`
-       ```
-       
-       **💡 Hint: Logging Format Requirements**
-       - Use `console.log()` to output these logs
-       - The timestamp can be formatted as an ISO string: `new Date().toISOString()` (e.g., "2024-01-15T10:30:45.123Z")
-       - The method should be `req.method` (e.g., "GET", "POST")
-       - The path should be `req.path` (e.g., "/dogs", "/adopt")
-       - The requestID should come from `req.requestId` set by the request ID middleware above
-       - Example implementation:
-         ```js
-         app.use((req, res, next) => {
-           const timestamp = new Date().toISOString();
-           console.log(`[${timestamp}]: ${req.method} ${req.path} (${req.requestId})`);
-           next();
-         });
-         ```
-       - **Important:** Make sure this middleware runs AFTER the request ID middleware, so that `req.requestId` is already set
-
-3. **Custom Error Handling**  
-
-* Catch any uncaught errors and respond with a `500 Internal Server Error` error status and a JSON response body with the `requestId` (note: lowercase 'd') and an error message set to "Internal Server Error"
-* The error response should be a JSON object: `{ error: "Internal Server Error", requestId: "..." }`
-* You can test this middleware with the `/error` endpoint
-
-**💡 Hint: Basic Error Handling Middleware**
-
-Error handling middleware must have 4 parameters: `(err, req, res, next)`. Express recognizes it as an error handler because of the 4 parameters.
-
-```js
-app.use((err, req, res, next) => {
-  res.status(500).json({
-    error: "Internal Server Error",
-    requestId: req.requestId
-  });
-});
-```
-
-**Note:** The error handling middleware should be placed after all routes but before the 404 handler, as error handlers must be the last middleware (except for 404 handlers).
-
-## **Task 3: Enhanced Middleware Features**
-
-The dog rescue team wants to add more robust middleware to their application. Implement these additional features:
-
-### **Request Size Limiting**
-- Add middleware to limit request body size to prevent large requests from crashing the server
-- Use `express.json({ limit: '1mb' })` for JSON request bodies
-- This middleware should come before your routes but after security headers
-
-**💡 Hint: Request Size Limiting**
-- The `limit` option in `express.json()` prevents the server from processing request bodies larger than the specified size
-- If a request exceeds the limit, Express will automatically return a 413 (Payload Too Large) error
-- The limit can be specified as a string like `'1mb'`, `'500kb'`, or `'10mb'`
-- Example: `app.use(express.json({ limit: '1mb' }));`
-- This helps protect your server from denial-of-service attacks where attackers send extremely large request bodies
-
-### **Content-Type Validation**
-- Add middleware that validates the `Content-Type` header for POST requests
-- If a POST request doesn't have `application/json` content type, return a 400 error with a helpful message
-- The error message should match the pattern: `Content-Type must be application/json`
-- Include the request ID in the error response (as `requestId` in the JSON response body)
-- The error response should be: `{ error: "Content-Type must be application/json", requestId: "..." }`
-- **Important:** This validation should only apply to POST requests - GET requests should not be validated
-- This middleware should run after body parsing middleware but before routes
-
-**💡 Hint: Content-Type Validation Middleware**
-- Check if the request method is POST: `req.method === 'POST'`
-- Get the Content-Type header: `req.get('Content-Type')` or `req.headers['content-type']`
-- Check if it equals `'application/json'` (case-insensitive comparison is recommended)
-- If validation fails, send a 400 response with the error message and requestId
-- If validation passes (or it's not a POST request), call `next()` to continue
-- Example structure:
-  ```js
-  app.use((req, res, next) => {
-    if (req.method === 'POST') {
-      const contentType = req.get('Content-Type');
-      if (!contentType || !contentType.includes('application/json')) {
-        return res.status(400).json({
-          error: 'Content-Type must be application/json',
-          requestId: req.requestId
-        });
-      }
-    }
-    next();
-  });
-  ```
-
-### **404 Handler**
-- Add a proper 404 handler that runs after all routes (this should be the very last middleware)
-- It should return a JSON response with status 404 and include the request ID:
-  ```js
-  {
-    "error": "Route not found",
-    "requestId": "your-request-id"
-  }
-  ```
-- The requestId should be accessed from `req.requestId` (set by your request ID middleware)
-
-## **Task 4: Advanced Error Handling**
-
-Implement sophisticated error handling using custom error classes:
-
-### **Custom Error Classes**
-- Create a new file called `errors.js` in the `week-3-middleware` folder
-- Create a `ValidationError` class that extends `Error` with a status code property (400)
-- Create a `NotFoundError` class for 404 errors
-- Create an `UnauthorizedError` class for 401 errors
-- Export all error classes from the `errors.js` file
-- Import and use these error classes in your `app.js` and `routes/dogs.js` files
-
-**Note:** While `UnauthorizedError` is not tested in assignment3b, you should create it as you'll need it for future assignments that implement authentication.
-
-**💡 Hint: How to Create Custom Error Classes**
-
-In JavaScript, you can create custom error classes by extending the built-in `Error` class. Here's how:
-
-```js
-// errors.js
 class ValidationError extends Error {
   constructor(message) {
-    super(message); // Call the parent Error constructor with the message
-    this.name = 'ValidationError'; // Set the error name (used for error identification)
-    this.statusCode = 400; // Add a custom property for the HTTP status code
+    super(message);
+    this.name = "ValidationError";
+    this.statusCode = 400;
   }
 }
 
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
     this.statusCode = 404;
   }
 }
@@ -414,7 +451,7 @@ class NotFoundError extends Error {
 class UnauthorizedError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'UnauthorizedError';
+    this.name = "UnauthorizedError";
     this.statusCode = 401;
   }
 }
@@ -422,177 +459,129 @@ class UnauthorizedError extends Error {
 module.exports = {
   ValidationError,
   NotFoundError,
-  UnauthorizedError
+  UnauthorizedError,
 };
 ```
 
-**Key Points:**
-- `extends Error` makes your class inherit from JavaScript's built-in Error class
-- `super(message)` calls the parent constructor to set the error message
-- `this.name` should match the class name (this helps error handlers identify the error type)
-- `this.statusCode` is a custom property you add for HTTP status codes
-- Export the classes so they can be imported in other files
+### 18. Use Custom Errors in `routes/dogs.js`
 
-**Usage Example:**
-```js
-// In routes/dogs.js
-const { ValidationError, NotFoundError } = require('../errors');
+In `week-3-middleware/routes/dogs.js`:
 
-// Throw a ValidationError
-if (!name || !email || !dogName) {
-  throw new ValidationError("Missing required fields");
-}
+- Import `ValidationError` and `NotFoundError`
+- In `POST /adopt`, throw or pass a `ValidationError` if required fields are missing
+- In `POST /adopt`, throw or pass a `NotFoundError` if the dog does not exist or is not available
+- Keep the successful `201` response unchanged
 
-// Throw a NotFoundError
-if (!dog || dog.status !== "available") {
-  throw new NotFoundError("Dog not found or not available");
-}
+Required message patterns:
+
+```text
+Missing required fields
+not found or not available
 ```
 
-**Important:** You will need to modify `routes/dogs.js` to throw these custom errors:
+### 19. Improve Advanced Error Handling
 
-1. **Add validation for required fields:**
-   - In the `/adopt` POST route, first check if required fields are present
-   - If `name`, `email`, or `dogName` are missing, throw a `ValidationError` with the exact message: `"Missing required fields"`
-   - This will result in a 400 Bad Request response
+Update the error handler in `week-3-middleware/app.js`:
 
-2. **Add validation for dog existence and availability:**
-   - After checking required fields, check if the requested dog exists and is available
-   - Find the dog in the `dogData` array (imported from `../dogData.js`) by matching the `dogName` from the request body with the dog's `name` property in the array
-   - If the dog is not found in the array OR if the dog's `status` is not "available", throw a `NotFoundError` with a message that matches the pattern `/not found or not available/`
-   - Example messages that would match: `"Dog not found or not available"` or `"Dog not found or not available for adoption"`
-   - This will result in a 404 Not Found response
+- Use `err.statusCode` when available
+- Default to status `500`
+- Use `console.warn()` for `4xx` errors
+- Use `console.error()` for `5xx` errors
+- Include `error` and `requestId` in every error response
 
-3. **Error message requirements:**
-   - **The error messages must match exactly** - the test checks for specific patterns in the error messages
-   - For ValidationError: The message must match `/Missing required fields/`
-   - For NotFoundError: The message must match `/not found or not available/`
-   - If your error messages don't match these patterns, the tests will fail
+The test expects log messages to include:
 
-4. **Implementation details:**
-   - The error should be thrown (not returned with `res.status`), so that the error handling middleware can catch it
-   - Make sure to import the error classes at the top of `routes/dogs.js`
-   - **Note:** The success response (status 201 with message) should remain unchanged - only modify the error handling logic
+```text
+WARN:
+ERROR:
+```
 
-### **Error Handling Middleware**
-- Add middleware to catch different error types and return appropriate HTTP status codes:
-  - `ValidationError` → 400 Bad Request
-  - `NotFoundError` → 404 Not Found  
-  - `UnauthorizedError` → 401 Unauthorized
-  - Default errors → 500 Internal Server Error
-- Log errors with different severity levels based on the error type:
-  - **4xx errors (400, 401, 404):** Use `console.warn()` to log these errors
-    - `ValidationError` (400) → Log with `console.warn("WARN: ValidationError", error.message)` or `console.warn("WARN: ValidationError " + error.message)`
-    - `UnauthorizedError` (401) → Log with `console.warn("WARN: UnauthorizedError", error.message)` or `console.warn("WARN: UnauthorizedError " + error.message)`
-    - `NotFoundError` (404) → Log with `console.warn("WARN: NotFoundError", error.message)` or `console.warn("WARN: NotFoundError " + error.message)`
-  - **5xx errors (500):** Use `console.error()` to log these errors
-    - Default errors (500) → Log with `console.error("ERROR: Error", error.message)` or `console.error("ERROR: Error " + error.message)`
-- **Important:** The logged message must contain "WARN:" for 4xx errors and "ERROR:" for 5xx errors (the test uses `stringMatching` to check if the logged string contains these patterns)
-- Ensure all error responses include the request ID for debugging
-- All error responses should be JSON objects with `error` and `requestId` properties
-
-**💡 Hint: Error Handling Middleware Structure**
-
-Error handling middleware has 4 parameters: `(err, req, res, next)`. Express recognizes it as an error handler because it has 4 parameters.
+Example error-handler shape:
 
 ```js
 app.use((err, req, res, next) => {
-  // Determine the status code from the error
   const statusCode = err.statusCode || 500;
-  
-  // Log based on error type
+
   if (statusCode >= 400 && statusCode < 500) {
-    // 4xx errors: client errors (use console.warn)
-    // This includes ValidationError (400), UnauthorizedError (401), NotFoundError (404)
-    console.warn(`WARN: ${err.name}`, err.message);
+    console.warn(`WARN: ${err.name} - ${err.message}`);
   } else {
-    // 5xx errors: server errors (use console.error)
-    console.error(`ERROR: Error`, err.message);
+    console.error(`ERROR: ${err.name} - ${err.message}`);
   }
-  
-  // Send error response
+
   res.status(statusCode).json({
-    error: err.message || 'Internal Server Error',
-    requestId: req.requestId
+    error: statusCode === 500 ? "Internal Server Error" : err.message,
+    requestId: req.requestId,
   });
 });
 ```
 
-**Key Points:**
-- Check `err.name` or `err.statusCode` to identify the error type
-- Use `err.statusCode` if available, otherwise default to 500
-- For 4xx errors (400-499), use `console.warn()` with "WARN:" prefix
-- For 5xx errors (500+), use `console.error()` with "ERROR:" prefix
-- Always include `requestId` from `req.requestId` in the error response
-- The error response should have `error` and `requestId` properties
+Run the advanced dog middleware tests:
 
-### **Security Headers**
-- Add middleware that sets basic security headers:
-  - `X-Content-Type-Options: nosniff`
-  - `X-Frame-Options: DENY`
-  - `X-XSS-Protection: 1; mode=block`
-- **Important:** This middleware should run for all responses, so place it early in your middleware chain (after request ID and logging, but before body parsing)
-- These headers help protect against common web vulnerabilities
+```bash
+npm run tdd assignment3c
+```
 
-## **Task 5: Testing Your Implementation**
+## Suggested File Structure
 
-Test all your new middleware features:
+By the end of Assignment 3, your files should look like this:
 
-- **Basic Functionality:** Ensure all existing routes still work
-- **Content-Type Validation:** Test that invalid content types return proper error responses
-- **Error Handling:** Test different error types return appropriate status codes
-- **Security Headers:** Check that security headers are present in all responses
-- **404 Handling:** Test that unmatched routes return proper 404 responses
+```text
+node-homework/
+  app.js
+  controllers/
+    userController.js
+  routes/
+    userRoutes.js
+  middleware/
+    not-found.js
+    error-handler.js
 
-### Checking Your Work
+  week-3-middleware/
+    app.js
+    dogData.js
+    errors.js
+    routes/
+      dogs.js
+    public/
+      images/
+```
 
-You start the server for this exercise with `npm run week3`.  You stop it with a Ctrl-C.  You run `npm run tdd assignment3b` to run the test for this exercise.  Also use Postman to test.  Confirm the responses in Postman and the logs in your server terminal match the expectations in the deliverables.
+## Testing Your Work
 
-### **💡 Tips for Passing the TDD Tests (Part B)**
+Run the required core tests:
 
-If your Postman tests are working but the TDD tests are failing, here's a troubleshooting approach:
+```bash
+npm run tdd assignment3a
+npm run tdd assignment3b
+```
 
-1. **Examine the Test File:**
-   - Open `tdd/assignment3b.test.js` in your repository
-   - Read through the test cases to understand exactly what the tests expect
-   - Pay attention to the exact error messages, status codes, and response body formats
+If you attempt the optional advanced dog middleware tasks, also run:
 
-2. **Check Test Error Messages:**
-   - When a test fails, read the error message carefully
-   - The test error messages will tell you exactly what the test expects:
-     - The exact status code
-     - The exact error message text in the response body
-     - The exact format of the response (JSON structure)
-     - The exact log message format
-   - Compare your implementation with these expectations and adjust accordingly
+```bash
+npm run tdd assignment3c
+```
 
-3. **Review the Main Instructions:**
-   - Make sure you've implemented all requirements from **Task 4: Advanced Error Handling**:
-     - Custom error classes (ValidationError, NotFoundError, UnauthorizedError)
-     - Error handling middleware with proper logging (console.warn for 4xx, console.error for 5xx with "WARN:" and "ERROR:" prefixes)
-     - Validation for dog existence in `routes/dogs.js` (see Task 4, section 2)
-   - Verify that error messages match the exact patterns specified in Task 4
 
 ## Video Submission
 
-Record a short video (3–5 minutes) on YouTube (unlisted), Loom, or similar platform. Share the link in your submission form.
+Record a short video (3-5 minutes) on YouTube, Loom, or similar platform. Share the link in your submission form.
 
 **Video Content**: Answer 3 questions from Lesson 3:
 
-1. **What is the architecture of an Express application and how do its components work together?**
-   - Explain the main architectural components: app instance, middleware, route handlers, and error handlers
-   - Discuss the order of middleware execution and why it matters
-   - Demonstrate the difference between middleware and route handlers
+1. **How does middleware order affect an Express app?**
+   - Explain why `express.json()` comes before routes that read `req.body`
+   - Explain why not-found middleware goes after real routes
+   - Explain why error-handler middleware goes at the end
 
-2. **How do you handle HTTP requests and responses in Express?**
-   - Explain the structure of HTTP requests (method, path, headers, body)
-   - Show how to access request data (req.method, req.path, req.body, req.query)
-   - Demonstrate response methods (res.json(), res.send(), res.status())
+2. **What are built-in middleware and custom middleware used for?**
+   - Explain what `express.json()` does
+   - Explain what `express.static()` does
+   - Explain one custom middleware example from this assignment
 
-3. **What is REST and how does it relate to Express applications?**
-   - Explain REST principles and HTTP methods
-   - Show how to design RESTful API endpoints
-   - Discuss HTTP status codes and proper API responses
+3. **How should an Express app handle errors?**
+   - Explain not-found responses
+   - Explain error-handling middleware
+   - Explain why consistent JSON error responses are useful
 
 **Video Requirements**:
 - Keep it concise (3-5 minutes)
@@ -600,26 +589,18 @@ Record a short video (3–5 minutes) on YouTube (unlisted), Loom, or similar pla
 - Speak clearly and explain concepts thoroughly
 - Include the video link in your assignment submission
 
-## **Submit Your Assignment on GitHub**
+## To Submit an Assignment
 
-📌 **Follow these steps to submit your work:**
+1. Do these commands:
 
-#### **1️⃣ Add, Commit, and Push Your Changes**
+   ```bash
+   git add -A
+   git commit -m "some meaningful commit message"
+   git push origin assignment3
+   ```
 
-- Within your node-homework folder, do a git add and a git commit for the files you have created, so that they are added to the `assignment3` branch.
-- Push that branch to GitHub.
-
-#### **2️⃣ Create a Pull Request**
-
-- Log on to your GitHub account.
-- Open your `node-homework` repository.
-- Select your `assignment3` branch. It should be one or several commits ahead of your main branch.
-- Create a pull request.
-
-#### **3️⃣ Submit Your GitHub Link**
-
-- Your browser now has the link to your pull request. Copy that link.
-- Paste the URL into the **assignment submission form**.
-- **Don't forget to include your video link in the submission form!**
-
-
+2. Go to your `node-homework` repository on GitHub.
+3. Select your `assignment3` branch.
+4. Create a pull request. The target of the pull request should be the main branch of your GitHub repository.
+5. Once the pull request is created, your browser contains the URL of the PR. Include that link in your homework submission.
+6. Do not forget to include your video link in the submission form.

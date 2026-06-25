@@ -1,5 +1,3 @@
-const { StatusCodes } = require("http-status-codes");
-
 const errorHandlerMiddleware = (err, req, res, next) => {
   console.error(
     "Internal server error: ",
@@ -9,7 +7,7 @@ const errorHandlerMiddleware = (err, req, res, next) => {
 
   if (!res.headersSent) {
     return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .status(500)
       .json({ message: "An internal server error occurred." });
   }
 };

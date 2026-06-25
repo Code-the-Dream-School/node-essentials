@@ -95,7 +95,7 @@ const setJwtCookie = (req, res, user) => {
 
 You see that the JWT has the elements we said we needed, and that the cookie has different flags for production and test.
 
-Sometimes additional information is stored in the JWT so that the back end can make additional security checks.  (Of course, the front end has no access to the JWT.)  For example, in role based access control (RBAC), the user role might be stored in the JWT.
+Sometimes additional information is stored in the JWT so that the back end can make additional security checks.  (the front end has no access to the JWT.)  For example, in role based access control (RBAC), the user role might be stored in the JWT.
 
 The `jwt.sign()` method can be invoked synchronously (as above), or you can pass an optional callback, 
 in which case it occurs asynchronously.  All other things being equal, asynchronous calls are better, because they allow
@@ -107,7 +107,7 @@ You can also modify logoff to clear the
 cookie using `res.clearCookie("jwt", cookieFlags(req))`.  
 #### **Be careful:**
 You need to set the cookie flags when clearing the cookie to the same values used for setting it, or the 
-cookie won't be cleared when you deploy to the Internet.  Of course, you don't want to set `maxAge` when clearing the cookie.
+cookie won't be cleared when you deploy to the Internet.  You don't want to set `maxAge` when clearing the cookie.
 
 ## **The Middleware for the JWT**
 
@@ -314,7 +314,6 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 2. **What security vulnerabilities does your authentication system prevent?**
    - Explain CSRF protection and show your CSRF token implementation
    - Demonstrate how HttpOnly cookies work vs localStorage
-   - Show your CORS configuration and explain why it's important
    - Walk through your rate limiting and input sanitization
 
 3. **How do you handle user sessions and maintain security across requests?**

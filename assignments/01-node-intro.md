@@ -12,30 +12,41 @@
 
 ## Assignment Guidelines
 
+NOTE: The AI review tool (known as AirHub) can check code and structure, but it does not run your code in a server environment to verify that aspect runs properly.  We will have human reviewers checking this aspect, so you may receive a passing assignment from AirHub that could still need revisions after a human has checked that your work runs properly in the correct environment. If your AI and human reviewer feedbacks don't match, trust the human review.
+
 1. **Setup**
    - You should have already done 'Getting Started' instructions, which sets up your Node-Homework Directory.
    - Work inside the `assignment1` folder for all your answers and code for this assignment.
 2. **Create a branch:**
    - Create a new branch for your work on assignment 1 (e.g., `assignment1`).
    - Make all your changes and commits on this branch.
-4. **Before you test:**
+3. **Before you test:**
    - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](?page=test-driven-development-(tdd)-testing-guide)
    - Watch this video that goes over Test Driven Development: [How to Read Tests](https://www.youtube.com/watch?v=fxe1yNSC6H4)
-3. **Run the tests:**
-   - After completing the tasks, run the tests using:
+4. **Run the tests:**
+   - This assignment has a **Core** part (required) and an **Advanced** part (optional), matching the lesson.
+   - Run the core tests with:
      ```bash
-     npm run tdd assignment1
+     npm run tdd assignment1a
      ```
-   - Make sure all tests pass before submitting your work.
+   - If you finish the optional advanced part, also run:
+     ```bash
+     npm run tdd assignment1b
+     ```
+   - Make sure the core tests pass before submitting your work. The advanced tests are optional.
 
 ## Assignment Tasks
 
-**Setup Note:** Before starting, make sure you have a  `sample-files` directory in your `assignment1` folder. This directory will be used for file operations in tasks 3 and 4.
+**Setup Note:** Before starting, make sure you have a  `sample-files` directory in your `assignment1` folder. This directory is used for file operations in the core file tasks (3 and 4) and the optional advanced streams task (5).
 
 **Important:** Follow the exact formatting requirements specified in each task. The automated tests expect specific console output formats, so pay attention to spacing, capitalization, and punctuation in your console.log statements.
 
+## Core Tasks (Required)
+
+These tasks are required. The core tests run with `npm run tdd assignment1a`.
+
 ### 1. Node.js Fundamentals
-- In a markdown file (`node-fundamentals.md`), answer the following:
+- A `node-fundamentals.md` file is already in your `assignment1` folder, with the questions below and `Answer here..` placeholders. Open it and write your answers in your own words (replace each placeholder):
   - What is Node.js?
   - How does Node.js differ from running JavaScript in the browser?
   - What is the V8 engine, and how does Node use it?
@@ -59,7 +70,7 @@
   - Converts the callback code to use Promises, then async/await
   - Uses `try/catch` for error handling
   - **Important:** For each async pattern (callback, promise, async/await), your console output should include the phrase `Hello, async world!` to match the file content and test expectations.
-  - **File Setup:** In your `sample-files` directory, create a `sample.txt` file containing exactly "Hello, async world!" (without quotes) for the async demo to read.
+  - **File Setup :** Do **not** manually create `sample.txt` ahead of time. Your `async-demo.js` should create `sample-files/sample.txt` programmatically with exactly `Hello, async world!`, then read that file in the callback, promise, and async/await examples.
 
 **Console Output Examples:**
 When you run your async-demo.js, you should see output like:
@@ -68,14 +79,19 @@ Callback read: Hello, async world!
 Promise read: Hello, async world!
 Async/Await read: Hello, async world!
 ```
+#### If You Get Stuck
 
+Converting between callbacks, Promises, and async/await can be tricky. If you hit an error or your output doesn't match what's expected, try this prompt with an AI chatbot instead of asking for the full solution:
+
+> "I'm converting a Node.js fs.readFile callback into a Promise-based version, then to async/await. Here's my current code: [paste your code]. I'm getting this error: [paste your error]. Can you ask me 3 questions that will help me figure out what's wrong on my own?"
+
+This keeps you in control. The AI helps you debug, you do the fixing.
 
 ### 4. Node Core Modules
 - Create a script (`core-modules-demo.js`) that:
   - Uses the `os` module to log system information (platform, CPU, memory)
   - Uses the `path` module to join two paths and log the result
-  - Uses the `fs.promises` API to write and then read a file (`demo.txt`)
-  - Creates a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log the first 40 characters (or any summary) to the console. When the stream ends, log a message like "Finished reading large file with streams." Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
+  - Uses the `fs.promises` API to write and then read a file (`sample-files/demo.txt`). Be sure to write it inside the `sample-files` folder so the tests can find it.
 
 **Console Output Examples:**
 When you run your core-modules-demo.js, you should see output like:
@@ -85,9 +101,28 @@ CPU: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
 Total Memory: 17179869184
 Joined path: /path/to/sample-files/folder/file.txt
 fs.promises read: Hello from fs.promises!
+```
+
+That completes the core tasks. Run the core tests with `npm run tdd assignment1a`.
+
+## Advanced Tasks (Optional)
+
+This part is optional, just like the Advanced section of the lesson. You can skip it and still continue the course, but it is good extra practice.
+
+### 5. Streams for Large Files
+- In your `core-modules-demo.js` script, add streaming:
+  - Create a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log a line that starts with `Read chunk:` (for example, the first 40 characters of the chunk). When the stream ends, log exactly `Finished reading large file with streams.` Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
+
+**Important:** The test looks for the exact prefix `Read chunk:` on your chunk lines and the exact phrase `Finished reading large file with streams` for the end message. (This is the same wording used in the streams example in Lesson 1's Advanced section.)
+
+**Console Output Examples:**
+When the streaming part runs, you should also see output like:
+```
 Read chunk: This is a line in a large file...
 Finished reading large file with streams.
 ```
+
+If you complete this optional part, run the advanced tests with `npm run tdd assignment1b`.
 
 ## Testing Your Work
 
@@ -97,6 +132,13 @@ After completing each script, run it to make sure it produces the expected outpu
 node globals-demo.js
 node async-demo.js  
 node core-modules-demo.js
+```
+
+Then run the course tests:
+
+```bash
+npm run tdd assignment1a   # core (required)
+npm run tdd assignment1b   # advanced (optional)
 ```
 
 The automated tests will check that your output matches the expected format. If a test fails, check that your console.log statements use the exact spacing and capitalization shown in the examples above.

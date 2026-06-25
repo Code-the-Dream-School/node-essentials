@@ -65,7 +65,7 @@ datasource db {
 }
 ```
 
-**Important** You must also erase the `prisma.config.ts` file.  That is an artifact of the latest Prisma release, something that I think they screwed up.
+**Important** You must also erase the `prisma.config.ts` file. This is an artifact of the latest Prisma release that needs to be removed.
 
 Now you can generate the client, using this command:
 
@@ -104,7 +104,7 @@ model tasks {
 }
 ```
 
-Do you see how the model stanzas map to the SQL you used in `Step 1a` above?  Pay particular attention to the way the relation between tasks and users is specified.  Also, notice the `@@unique`, which describes the additional index you need.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
+Notice how the model stanzas map to the SQL you used in part 1.  Pay particular attention to the way the relation between tasks and users is specified.  Also, notice the `@@unique`, which describes the additional index you need.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
 
 ```
 // This is your Prisma schema file
@@ -292,7 +292,7 @@ const tasks = await prisma.tasks.findMany({
 
 #### d. Fix the Task Create Method
 
-This one is similar to register.  You want to create the task with a `userId` of `global.user_id`.
+This method follows the same pattern as register.  Create the task with a userId of global.user_id.
 
 #### e. Fix Task Update
 
@@ -449,7 +449,8 @@ git push origin assignment6
 4. Create a pull request with a descriptive title like "Assignment 6: Prisma ORM Integration"
 
 ### 3️⃣ Submit Your GitHub Link
-Your browser now has the link to your pull request. Copy that link, to be included in your homework submission form.  Include also a link to the pull request for assignment 5.
+- Your browser now has the link to your pull request. Copy that link.
+- Paste the URL into the **assignment submission form**.
 
 **Important:** Make sure your pull request includes:
 - All the modified files with Prisma integration
@@ -468,7 +469,7 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 **Video Content**: Short demos based on Lesson 6:
 
 1. **How do you connect Node.js to PostgreSQL and what are the benefits over in-memory storage?**
-   - Show your database connection setup in `db.js`
+   - Show your database connection setup in `db/prisma.js`
    - Explain connection pooling and why it's important
    - Walk through your database schema and explain foreign key relationships
 

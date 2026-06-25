@@ -1,6 +1,7 @@
 # **Lesson 7: Advanced Prisma ORM Features**
 
-> **⚠️ Warning: This is a long assignment that requires implementing multiple advanced Prisma features. Please set aside plenty of time to complete it thoroughly. The tasks build on each other, so make sure you understand each section before moving on.**
+> **Note: This assignment is comprehensive and explores several powerful features of Prisma. To get the most out of it, we recommend spacing your work out over multiple sessions. Because each task builds directly on the previous one, taking your time to master one section before moving to the next will set you up for success.**
+
 ## **Lesson Overview**
 
 You have learned to use Prisma ORM for basic CRUD operations in your app from Lesson 6.  Often, though, you need more advanced features.  This lesson will describe advanced Prisma features that will make your database operations more powerful and efficient.  The lesson explains eager loading, aggregations, transactions, batch operations, raw SQL, and performance optimization techniques.  You'll implement these features in the assignment.
