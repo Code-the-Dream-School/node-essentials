@@ -67,12 +67,15 @@ Tests verify:
 
 #### **Assignment 4** (Tasks and Validations)
 ```bash
-npm run tdd assignment4
+npm run tdd assignment4a
+npm run tdd assignment4b    # For optional advanced part
 ```
 Tests verify:
 - User registration, login, and logoff
 - Task CRUD operations
+- Protected task access and task ownership
 - Validation schemas work correctly
+- Optional advanced validation, patch update, and password security checks
 
 #### **Assignment 5** (SQL Introduction)
 ```bash
@@ -272,7 +275,7 @@ test('globals-demo.js outputs correct globals', () => {
 - Make sure it logs the exact strings the test expects
 - Pay attention to spacing and capitalization!
 
-### Example: Reading assignment4.test.js
+### Example: Reading assignment4a.test.js
 
 For controller tests (like Assignment 4), tests use `node-mocks-http`:
 
