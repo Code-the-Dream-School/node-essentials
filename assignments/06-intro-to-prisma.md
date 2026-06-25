@@ -1,4 +1,4 @@
-# Assignment 6: Prisma ORM Integration
+# **Assignment 6 — Prisma ORM Integration**
 
 ## Learning Objectives
 - Transform your PostgreSQL application from raw SQL to Prisma ORM
@@ -8,12 +8,12 @@
 - Implement advanced Prisma features like relationships and transactions
 
 ## Assignment Overview
-In this assignment, you will transform your existing PostgreSQL application (from Assignment 5) to use Prisma ORM instead of raw SQL queries. You'll gain better type safety, autocomplete, and maintainability while keeping the same functionality.
+In this assignment, you will update your PostgreSQL application from Assignment 5 so it uses Prisma ORM instead of raw SQL queries. The app should keep the same behavior, but your database code will move from hand-written SQL to Prisma Client methods.
 
-Be sure to create an assignment6 branch before you make any new changes. This branch should build on top of assignment5, so you create the assignment6 branch when assignment5 is the active branch.
+Create an `assignment6` branch before you make new changes. This branch should build on top of `assignment5`, so create it while `assignment5` is your active branch.
 
 **Prologue:**
-Right now you are using raw SQL queries with the `pg` library to interact with your PostgreSQL database. For this assignment, you want to replace all raw SQL queries with Prisma ORM methods, while maintaining the same functionality including password hashing and global user_id storage. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+Right now, your app uses raw SQL queries with the `pg` library. In this assignment, replace those raw SQL queries with Prisma ORM methods. Keep the same functionality, including password hashing and global user_id storage. The REST calls your application supports should still work the same way, so your Postman tests do not need to change.
 
 ## Prerequisites
 - Completed Assignment 5 with a working PostgreSQL application
@@ -33,7 +33,7 @@ npm install prisma @prisma/client
 npx prisma init
 ```
 
-The prisma init command above creates the prisma folder, and within it the shell of a `schema.prisma` file.  It also creates a `.env` file if you don't have one.  You need to fix `schema.prisma`.  The init generates:
+The `prisma init` command creates a `prisma` folder. Inside that folder, it creates the beginning of a `schema.prisma` file. It also creates a `.env` file if you do not already have one. You need to adjust `schema.prisma`. The generated version looks like this:
 
 ```
 generator client {
@@ -47,7 +47,7 @@ datasource db {
 }
 ```
 
-This would build your client in the wrong place.  You want it to be in the default location, which is within `node_modules`.  So change the file as follows:
+This would build your client in the wrong place. You want the client in the default location, which is inside `node_modules`. Change the file to this:
 
 ```
 generator client {
@@ -70,13 +70,13 @@ npx prisma generate
 
 #### b. Create the Schema
 
-You need model stanzas in the `schema.prisma`.  You want one such stanza for each table, and it describes the schema for the table. You already have the tables you want, as created by SQL statements in the first part of this lesson.  So, in this case, you can `introspect` the schema.  Run the following command:
+You need model stanzas in `schema.prisma`. Each model describes one database table. Since you already created the tables with SQL in Assignment 5, Prisma can read the existing database and create models from it. This is called introspection. Run:
 
 ```bash
 npx prisma db pull
 ```
 
-Take a look at your `prisma/schema.prisma` file.  You now have two model stanzas, like so:
+Open `prisma/schema.prisma`. You should now have two model stanzas, like these:
 
 ```
 model users {
@@ -99,7 +99,9 @@ model tasks {
 }
 ```
 
-Notice how the model stanzas map to the SQL you used in part 1.  Pay particular attention to the way the relation between tasks and users is specified.  Also, notice the `@@unique`, which describes the additional index you need.  The models above are ok ... but typically, you make them a little friendlier.  By convention, the name of the model is capitalized. and it is singular, not plural.  Also, the convention in JavaScript is that variable names are camel case.  But if we change the models to match this convention, we have a problem.  Prisma will look for tables named User and Task, and for columns like createdAt.  We fix this by adding `@map` for columns, and `@@map` for tables.  The final product is:
+Notice how the model stanzas map to the SQL tables you created earlier. Pay close attention to the relation between tasks and users. Also notice `@@unique`, which describes the additional index you need.
+
+The models above work, but they are not very friendly for JavaScript code. By convention, Prisma model names are capitalized and singular. JavaScript property names usually use camelCase. If you rename the models and fields to match those conventions, Prisma needs to know how those names map back to the existing database tables and columns. Use `@map` for columns and `@@map` for tables. The final result is:
 
 ```
 // This is your Prisma schema file
@@ -138,39 +140,41 @@ model Task {
 
 #### c. Migration
 
-You can create the schema following the pattern above. You first did the SQL commands to create the tables, then you introspected the schema, then you tweaked the names with mapping as needed.  Most people find that this is the hard way.  You can instead create the model definitions and use them to create or modify the table schema, using migrate.  You do the following:
+You can create the schema with the pattern above: create tables with SQL, introspect the schema, then adjust names with mapping. Most people find that this is the harder path.
+
+Going forward, you can instead write the Prisma model definitions and let Prisma create or modify the database schema with migrations. Do this:
 
 ```bash
 npx prisma migrate reset # answer yes when prompted.  This deletes all the data.
 npx prisma migrate dev --name firstMigration
 ```
 
-From this point on, you can make your schema changes with Prisma.  The sequence above drops the tables and recreates them according to the original schema.  There are ways to preserve the data during the switchover, but that's a little more complicated.  Prisma keeps track of the state of the schema as follows:
+From this point on, make schema changes with Prisma. The sequence above drops the tables and recreates them from your Prisma schema. There are ways to preserve data during a switchover, but that is more complicated. Prisma tracks schema state in three places:
 
 - The `prisma/schema.prisma` file is the authoritative source for what the database schema should be.
 - A special table in the database called `_prisma_migrations` keeps track of what has been done.
 - The `prisma/migrations` folder keeps track of what has to be done, i.e. the migrations that must be performed.
 
-There is plenty one can learn about this -- but you have enough information for now.
+There is much more to learn about migrations, but this is enough for now.
 
-As you may make schema changes in the future, you also want Prisma to manage the schema of the test database.  This time, do the following:
+Since you may make schema changes later, you also want Prisma to manage the test database schema. This time, run:
 
 ```bash
 DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate reset
 ```
 
-Here for `<TEST_DATABASE_URL>` you put in the value of that environment variable from your `.env` file.  Because you are doing a reset, all the data in the test database is deleted with this command, but that's ok. It brings the test database into sync with the models and with the migration history of the dev database.
+For `<TEST_DATABASE_URL>`, use the value from your `.env` file. This reset deletes all data in the test database, but that is okay. It brings the test database into sync with your models and the migration history from the development database.
 
 ---
 
 **Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
 
-From this point on, if you make a schema change, you change the model, do an `npx prisma migrate dev`, and then, for the test database, do the corresponding `npx prisma migrate deploy`.  You do not change the schema with ordinary SQL.  You'll use the `deploy` also with the production database you create for Internet deployment of your app in lesson 10.  You never use a schema `reset` with the production database - it deletes all the data.
+From this point on, if you make a schema change, change the Prisma model first. Then run `npx prisma migrate dev`. For the test database, run the corresponding `npx prisma migrate deploy`. Do not change the schema with ordinary SQL. You will also use `deploy` with the production database you create for Internet deployment in Lesson 10. Never use schema `reset` with the production database because it deletes all data.
 
 ### 2. Create Prisma Database Connection
 
 #### a. Create Database Client File
-Create `db/prisma.js`.  This is going to be the substitute for the `pg` pool.  This file should say:
+Create `db/prisma.js`. This will replace the `pg` pool as the shared database client. This file should contain:
 
 ```js
 const { PrismaClient } = require("@prisma/client");
@@ -187,13 +191,13 @@ const prisma = new PrismaClient(opts);
 module.exports = prisma;
 ```
 
-It can be a little opaque to figure out what an ORM like Prisma is doing.  The code above turns on logging of the queries it issues.  You'll actually see the SQL statements appear in the log as they are executed.  Obviously this should only happen in development mode.
+It can be hard to see what an ORM like Prisma is doing behind the scenes. The code above turns on query logging in development mode. You will see the SQL statements Prisma runs as they execute. This should only happen in development mode.
 
-In the log, you'll see each of the table names prefixed with "public".  This is the default database schema, which is only important if your database is multi-tenant -- which it isn't.
+In the log, each table name may be prefixed with "public". This is the default database schema. It only matters for more complex multi-tenant databases, which this project is not using.
 
 #### b. Fix Shutdown, Health Check, and Error Handling
 
-You now need to replace references to the `pg` pool them with references to the `prisma` client instance. You can do them incrementally, so that all operations work as you substitute prisma code one part at a time.
+Now replace references to the `pg` pool with references to the `prisma` client instance. You can do this incrementally. Update one operation at a time, test it, and then move to the next one.
 
 First, in app.js, add this statement:
 
@@ -201,7 +205,7 @@ First, in app.js, add this statement:
 const prisma = require("./db/prisma");
 ```
 
-Then, change the shutdown so that as well as ending the pg pool, it also does the following:
+Then update shutdown so that, in addition to ending the pg pool while it still exists, it also does this:
 
 ```javascript
     await prisma.$disconnect();
@@ -221,7 +225,7 @@ app.get('/health', async (req, res) => {
 });
 ```
 
-Also, you want to catch connection errors in your error handler, perhaps adding a statement to the top of your error handler like this:
+You also want your error handler to recognize Prisma connection errors. Add a check near the top of your error handler like this:
 
 ```js
 if (err.name === "PrismaClientInitializationError") {
@@ -229,15 +233,15 @@ if (err.name === "PrismaClientInitializationError") {
 }
 ```
 
-Once you've done this much, test the new health check to make sure it works.
+After this change, test the health check to make sure it still works.
 
 ### 3. Transform Your Controllers
 
-In the steps that follow, you can fix one controller method at a time and test that method.  Other methods will use `pg` until you have fixed them all.
+In the steps below, fix one controller method at a time and test that method. Other methods can keep using `pg` until you have converted them.
 
 #### a. Fix Logon
 
-You need to have a `require()` statement for prisma in the user controller, in addition to the one for the pool.  For logon, you need to find the user:
+Add a `require()` statement for Prisma in the user controller, in addition to the one for the pool while you are still converting. For logon, find the user:
 
 ```js
 email = email.toLowerCase() // Joi validation always converts the email to lower case
@@ -245,11 +249,11 @@ email = email.toLowerCase() // Joi validation always converts the email to lower
 const user = await prisma.user.findUnique({ where: { email }});
                             // also Prisma findUnique can't do a case insensitive search
 ```
-That may return null, in which case authentication fails.  If not, you still have to do a `comparePassword()`, which may or may not return true.
+That may return `null`. If it does, authentication fails. If a user is found, still run `comparePassword()` to check the password.
 
 #### b. Fix Register
 
-You need to catch the error that might occur if the email is already registered.  Like so:
+You need to catch the error that can happen when the email is already registered. Use this pattern:
 
 ```js
 // Do the Joi validation, so that value contains the user entry you want.
@@ -310,10 +314,9 @@ try {
 }
 ```
 
-With the pg package, you'd just get an empty array returned, if no matching task was found.  But Prisma throws the `P2025` error in this case.  You want to catch it at this point -- if you passed it to the global error handler, the caller would not get a useful message.
+With the `pg` package, you would usually get an empty array if no matching task was found. Prisma throws the `P2025` error in this case. Catch it here so the caller gets a useful 404 response instead of a generic server error.
 
-This is where that special unique index for [id, userId] is important!  Prisma does not
-let you do update() or delete() or findUnique() with two attributes in the where clause **unless** a uniqueness index is present for that combination of attributes.
+This is where the special unique index for [id, userId] matters. Prisma does not let you use update(), delete(), or findUnique() with two attributes in the where clause **unless** a uniqueness index exists for that combination of attributes.
 
 #### f. Update the Show Method
 
@@ -325,11 +328,11 @@ This works similar to update().  You need to use the delete() method, and catch 
 
 #### h. Remove All Pool References
 
-You no longer need the pool, as all operations now use Prisma.
+Once every operation uses Prisma, you no longer need the pool.
 
 ### 4. Testing Your Prisma Integration
 
-Test using Postman.  Everything should still work -- but remember that the migrate step deleted all the data, so you have to create each entry again.
+Test with Postman. Everything should still work, but remember that the migration reset deleted the data. You will need to create users and tasks again.
 
 Make sure all operations work as before.  They are:
 
@@ -343,7 +346,7 @@ Make sure all operations work as before.  They are:
 - logoff
 - health check
 
-As you did for pg, conduct a test to verify that one user can't read, modify, or delete another's tasks.
+As you did with `pg`, test that one user cannot read, modify, or delete another user's tasks.
 
 Then, run `npm run tdd assignment6` and make sure it completes without test failure.
 
@@ -502,5 +505,5 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 - Test each endpoint individually
 - Ask for help if you get stuck on specific concepts
 
-**Remember:** This assignment builds on Assignment 5. Make sure you have a working PostgreSQL application before adding Prisma ORM!
+**Remember:** This assignment builds on Assignment 5. Make sure you have a working PostgreSQL application before adding Prisma ORM.
 

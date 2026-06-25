@@ -48,22 +48,27 @@ Please don't spend time on React front end appearance.  That is not the purpose 
 
 ## Project Demo Details
 
-It is good practice to talk about what you have learned and know about project as you will be asked to talk about your experiences in job interviews. This is why we ask all students to give a short demo of their final projects. This demo is NOT graded and your performance in the **demo will have no bearing on your graduation**. Please record a 3-5 minute presentation that touches on all of the following:
+It is good practice to talk about what you have learned and know about project as you will be asked to talk about your experiences in job interviews. This is why we ask all students to give a short demo of their final projects. This demo is NOT graded and your performance in the **demo will have no bearing on your graduation**. Please record a 3-5 minute presentation that covers all of the following:
 
-\[ \] Provide a quick overview of the app.  
-\[ \] Show logging in and/or user creation. 
-\[ \] Demonstrate your app's CRUD functionality. The provided front end could be used and/or Postman.
-\[ \] Create a record in the database using the app. 
-\[ \] Show retrieval of task records, and/or update or delete of individual records, and talk about security protections.
-\[ \] Show any additional features of the app such as pagination, search functionality, or anything you may have included. 
-\[ \] Share what the most challenging part of the project and what you enjoyed working on the most or answer any of the following questions: 
+\[ \] A brief explanation of what your application does.
 
-- Did you encounter any problems? 
-- How did you resolve them? 
-- What resources did you use?
-- What did you have the most fun building? 
-- Did you reach your end goal? 
-- How would you want to continue your project and grow it further? 
+\[ \] User registration and/or login.
+
+\[ \] The application's CRUD functionality:
+- Create data.
+- Read data.
+- Update data.
+- Delete data.
+
+\[ \] The security protections you included, such as protected routes, hashed passwords, and secure authentication handling.
+
+\[ \] Any additional feature you implemented for the final project, such as pagination, filtering, role-based access control, Swagger documentation, or another back-end enhancement.
+
+\[ \] One technical challenge you encountered and how you solved it.
+
+\[ \] What you learned during the project and what you are most proud of.
+
+\[ \] What you would add next if you continued developing the application.
 
 ### How to Record Your Presentation
 

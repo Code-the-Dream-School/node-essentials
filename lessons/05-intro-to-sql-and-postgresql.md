@@ -30,10 +30,12 @@ By the end of this lesson, you will be able to:
 - Handle database connections and errors properly
 
 ## Overview
-In this lesson, you will learn how to integrate PostgreSQL with your Node.js Express application. You'll move from storing data in memory (which gets lost when the server restarts) to using a persistent database that keeps your data safe and accessible.
+In this lesson, you will connect your Express application to PostgreSQL. Up to this point, your app has stored data in memory. That works for practice, but memory storage disappears when the server restarts. PostgreSQL gives your app a real database, so the data can stay available after the Node process stops.
+
+This is the first of several changes to where your data lives and how your app tracks the logged-in user. For the big picture of how those pieces evolve across the whole course, see the [Data and Identity guide](../DATA-AND-IDENTITY-GUIDE.md).
 
 **Prologue:**
-Right now you are using `global.users` to store users and `global.tasks` to store a list of tasks for each. For this lesson, you want to eliminate all use of these globals, and to read and write from the database instead. (You still use `global.user_id` for now.)  The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+Right now, your app uses `global.users` to store users and `global.tasks` to store each user's tasks. In this lesson, you will remove those globals and read from and write to the database instead. You will still use `global.user_id` for now. The REST calls your application supports should keep working the same way, so your Postman tests do not need to change.
 
 **Prerequisites:** This lesson builds on the work you completed in **Week 4**, where you built a working Express application with in-memory storage. Make sure you have a functional Express app with user and task management before proceeding.
 
@@ -45,11 +47,11 @@ Right now you are using `global.users` to store users and `global.tasks` to stor
 
 **The Problem with In-Memory Storage**
 
-When you store data in JavaScript arrays or objects, that data exists only while your server is running. When you restart your server, all the data disappears.  Also, your server only has so much memory, much less than a production application would typically need to store.
+When you store data in JavaScript arrays or objects, that data exists only while your server is running. When you restart the server, the data disappears. Your server also has limited memory, much less than a production application usually needs.
 
 **Databases Solve This Problem**
 
-Databases store data on disk (or in the cloud), so your data persists even when your application stops running.
+Databases store data on disk or in the cloud, so your data can still be there after your application stops running.
 
 **Benefits of Database Storage:**
 - **Persistence**: Data survives server restarts
@@ -60,27 +62,31 @@ Databases store data on disk (or in the cloud), so your data persists even when 
 
 ## **5.1 What SQL is, and Why it is Used**
 
-SQL (Structured Query Language) is the standard language used to access relational databases such as MySQL, PostgreSQL, Microsoft SQL Server, Oracle Database, and others. In a relational database, the data is stored in tables, each of which looks like a spreadsheet. The database has a schema, and for each table in the database, the schema describes the columns, giving each column a name (like "email" or "age") and a data type such as INTEGER (for whole numbers), TEXT or REAL (for decimals). One can compare this to NoSQL databases like MongoDB, in which you can store any JSON document you like. Instead of viewing a strict database schema as a limitation, it is helpful to think of it as a strong foundation. It enforces clear rules that keep your data organized and reliable, even when dealing with massive amounts of information.
+SQL stands for Structured Query Language. It is the standard language used to work with relational databases such as MySQL, PostgreSQL, Microsoft SQL Server, Oracle Database, and others.
 
-MongoDB is a widely used database that pairs naturally with JavaScript applications, often allowing for a smoother introduction to database concepts. SQL involves a deeper dive into relational data structures and strict schemas, representing a broader topic with more complex logic to learn.
+In a relational database, data is stored in tables. A table looks a little like a spreadsheet: it has rows and columns. The database also has a schema. The schema describes each table, each column, and the type of data each column can hold. For example, a column might be named `email`, `age`, or `created_at`, and the data type might be INTEGER, TEXT, or REAL.
 
-Read the following introduction: <https://www.theodinproject.com/lessons/databases-databases-and-sql>. Or, if you know this stuff, jump to the bottom of that page and do the Knowledge Check. Be sure that you understand the concepts of Primary Key and Foreign Key.
+This is different from a NoSQL database like MongoDB, where records can look more like flexible JSON documents. A strict schema may feel limiting at first, but it is also a strong foundation. It gives the database clear rules, which helps keep data organized and reliable as the application grows.
 
-There are two important words left out of that introduction: Association and Transaction.
+MongoDB is widely used and often feels natural in JavaScript applications. SQL asks you to think more carefully about tables, relationships, and schemas. That makes it a little more work to learn, but it also teaches important ideas used in many production systems.
+
+Read the following introduction: <https://www.theodinproject.com/lessons/databases-databases-and-sql>. If you already know this material, you can jump to the Knowledge Check at the bottom of that page. Make sure you understand the ideas of Primary Key and Foreign Key.
+
+There are two important words that introduction does not cover enough for this course: association and transaction.
 
 ### **Associations**
 
-An association exists between tables if one table has a foreign key that points to the other. Consider the following cases:
+An association exists between tables when one table has a foreign key that points to another table. Here are three common cases:
 
 1. An application has a `users` table and a `user_profiles` table. Each record in the `user_profiles` table has a foreign key, which is the primary key of a record in the `users` table. This is a **one-to-one** association.
 2. An application has blogs. Each blog has a series of posts. The application might have a `blogs` table and a `posts` table. Each record in the `posts` table would have a foreign key for a `blogs` table record, indicating the blog to which it belongs. This is a **one-to-many** association, as one blog has many posts.
 3. A magazine publisher has magazines and subscribers. Each subscriber may subscribe to several magazines, and each magazine may have many subscribers. This creates a challenge.
 
-We can't put a list of subscribers into a magazine record. Relational database records can't contain lists. For a given magazine, we could create one record for each subscriber, but we'd be duplicating all the information that describes the magazine many times over. Similarly, there is no way for the `subscribers` table to contain records for each magazine for each subscriber. So, you need a table in the middle, sometimes called a **join table**. In this case, the join table might be `subscriptions`. Each subscription record has two foreign keys, one for the magazine and one for the subscriber. This is a **many-to-many** association.
+We cannot put a list of subscribers inside one magazine record. Relational database records do not work that way. We also do not want to duplicate the magazine information once for every subscriber. The solution is to add a table in the middle, often called a **join table**. In this example, the join table might be `subscriptions`. Each subscription record has two foreign keys: one for the magazine and one for the subscriber. This is a **many-to-many** association.
 
 ### **Transactions**
 
-A transaction is a write operation on an SQL database that guarantees consistency. Consider a banking operation. A user wants to transfer money from one account to another. The sequence of SQL operations is as follows (this is pseudocode of course):
+A transaction is a group of SQL operations that should succeed or fail together. Think about a banking operation where a user transfers money from one account to another. The steps might look like this:
 
 - Begin the transaction.
 - Read the amount in account A to make sure there's enough.
@@ -88,28 +94,32 @@ A transaction is a write operation on an SQL database that guarantees consistenc
 - Update that record to increase the balance by the desired amount.
 - Commit the transaction.
 
-The transaction maintains consistency. When the read occurs, that entry is locked. (This depends on the isolation level and other stuff we won't get into now.) That lock is important, as otherwise there could be another withdrawal from the account that happens after the read but before the update, and the account would go overdrawn. You also don't want the update that decreases the balance to complete while the update that increases the balance in the other account fails. That would anger the user, and justifiably so. With transactions, either both write operations succeed or neither succeeds.
+The transaction keeps the data consistent. When the account is read, that entry can be locked. The details depend on the isolation level, which is an advanced topic, but the reason matters now. Without the lock, another withdrawal could happen after the balance is checked but before the balance is updated. That could make the account overdrawn.
 
-The strength of relational databases, compared with NoSQL databases, is the efficient handling of structured and interrelated data and transactional operations on that data.
+You also do not want the first update to remove money from one account if the second update fails to add money to the other account. With a transaction, both write operations succeed or neither succeeds.
+
+This is one of the strengths of relational databases. They are good at structured data, relationships between data, and operations that must stay consistent.
 
 ### **Constraints**
 
-When a table is defined in the schema, one or several **constraints** on the values may also be specified.
+When a table is defined in the schema, you can also define **constraints**. A constraint is a rule the database enforces.
 
-- Datatype constraints: One constraint comes from the datatype of the column: you can't put a TEXT value in an INTEGER column, etc.
+- Datatype constraints: One constraint comes from the datatype of the column. For example, you cannot put a TEXT value in an INTEGER column.
 - NOT NULL constraint: When present, it means that whenever a record is created or updated, that column in the record must have a value.
 - UNIQUE constraint: You wouldn't want several users to have the same ID for example.
-- FOREIGN KEY constraint. In the blog example above, each post must belong to a blog, meaning that the post record has the blog's primary key as a foreign key. Otherwise you'd have a post that belonged to no blog, a worthless situation.
+- FOREIGN KEY constraint. In the blog example above, each post must belong to a blog. The post record has the blog's primary key as a foreign key. Otherwise, you could have a post that belongs to no blog.
 
-If you try to create a record that doesn't comply with constraints, or update one in violation of constraints, you get an error.
+If you create or update a record in a way that breaks a constraint, the database returns an error.
 
 ### **Different Relational Databases**
 
-There are a variety of different implementations of relational databases.  All support SQL, but each is optimized for a particular use case.  For very large data volumes and transaction rates, you might use Amazon Aurora, BigQuery, or various others.  Be aware that SQL implementations vary.  SQL statments that work for one implementation may not work unchanged in a different one.  In this class, you use PostgreSQL, in part because it is freely available and runs both on your local laptop and in the cloud.
+There are many implementations of relational databases. They all support SQL, but each one is optimized for different use cases. For very large data volumes or very high transaction rates, a company might use Amazon Aurora, BigQuery, or another database service.
+
+SQL implementations also vary. A SQL statement that works in one database may need changes before it works in another. In this class, you will use PostgreSQL because it is free, widely used, and can run both on your laptop and in the cloud.
 
 ### **PostgreSQL**
 
-PostgreSQL (often called "Postgres") is a powerful, open-source relational database management system. It's one of the most popular databases for web applications.  As part of your workspace setup, you installed PostgreSQL on your laptop, but database access can also be remote.  Later in the course, you will use a cloud resident implementation of PostgreSQL.
+PostgreSQL is often called Postgres. It is a powerful, open-source relational database management system, and it is commonly used for web applications. As part of your workspace setup, you installed PostgreSQL on your laptop. Later in the course, you will also use a cloud-hosted PostgreSQL database.
 
 **Key Features:**
 - **Open Source**: Free to use and modify
@@ -122,7 +132,9 @@ PostgreSQL (often called "Postgres") is a powerful, open-source relational datab
 
 ## **5.2 Learning and Practicing the SQL Language**
 
-SQL is the language used to access relational databases. You use it to do CRUD operations: Create, Read, Update, and Delete. You don't use SQL to implement program logic. Instead, from a language like JavaScript, you invoke SQL operations. The key verbs in SQL are as follows:
+SQL is the language used to access relational databases. You use it for CRUD operations: Create, Read, Update, and Delete.
+
+SQL is not where you write most of your application logic. Instead, JavaScript asks the database to run SQL operations. These are the key SQL verbs you will use:
 
 - SELECT: Used for queries, to read subsets of the data.
 - INSERT: Used to insert one or many records into a table.
@@ -134,9 +146,9 @@ SQL is the language used to access relational databases. You use it to do CRUD o
 - CREATE DATABASE, DROP DATABASE: create or drop a database.
 - CREATE TABLE, ALTER TABLE, DROP TABLE: manage the schema of the database, meaning the tables that comprise the database, the columns in each table, the datatypes for each column, primary and foreign keys, and constraints.
 
-Now, learn these and practice! Do **ALL** the exercises in the following tutorial: [https://sqlbolt.com/](https://sqlbolt.com/). Be sure to do the exercises for the additional topics on unions, intersections, exceptions, and subqueries.
+Now practice these ideas. Do **ALL** the exercises in this tutorial: [https://sqlbolt.com/](https://sqlbolt.com/). Be sure to do the additional topics on unions, intersections, exceptions, and subqueries.
 
-W3Schools provides a useful and comprehensive reference [here.](https://www.w3schools.com/sql/default.asp) However, the TryIt editor provided with the tutorial doesn't work for most operations.
+W3Schools also provides a useful SQL reference [here.](https://www.w3schools.com/sql/default.asp) The TryIt editor in that tutorial does not work for most operations, so use it mainly as a reference.
 
 ### **Check For Understanding**
 
@@ -200,13 +212,13 @@ W3Schools provides a useful and comprehensive reference [here.](https://www.w3sc
 
 ## **5.3 A Command Line Practice Environment**
 
-Your node-homework directory contains an SQL command line tool. Make that directory active, and then run the tool with:
+Your `node-homework` directory contains an SQL command-line tool. Make that directory active, then run the tool with:
 
 ```bash
 node sqlcommand.js
 ```
 
-This tool gives you SQL access to a Postgres SQL database you created when you set up the node-homework directory. There are five tables:
+This tool gives you SQL access to a Postgres database you created when you set up the `node-homework` directory. There are five tables:
 
 - customers
 - employees
@@ -214,13 +226,13 @@ This tool gives you SQL access to a Postgres SQL database you created when you s
 - products
 - orders
 
-The primary key for the customer table is customer_id, and this is an autoincremented integer. There are similar primary keys for each of the tables. From within the sqlcommand command line environment, enter:
+The primary key for the customer table is `customer_id`, and it is an auto-incremented integer. The other tables have similar primary keys. From inside the `sqlcommand` environment, enter:
 
 ```SQL
 SELECT * FROM customers LIMIT 5;
 ```
 
-This shows you the schema for the customers table. Run this same query for each of the other tables. You will notice some foreign keys in several of the tables. Based on the foreign keys, you should recognize that there are associations between these tables.
+This shows you the schema for the customers table. Run the same query for the other tables. You will notice foreign keys in several of them. Those foreign keys show the associations between the tables.
 
 ### **Check For Understanding**
 
@@ -240,7 +252,7 @@ This shows you the schema for the customers table. Run this same query for each 
 
 ### **Tips on sqlcommand**
 
-Here are some tips on using the sqlcommand command line interface:
+Here are some tips for using the `sqlcommand` command-line interface:
 
 - You can enter multiple lines of input. These will only be processed when you end a line with a `;`.
 - If you make a mistake, you can use the up and down arrows to recall your command, and you can edit it to correct the problem.
@@ -258,19 +270,21 @@ Here are some tips on using the sqlcommand command line interface:
 
 ### **A Many-To-Many Association, Multiple Table Joins, and Aliasing**
 
-Suppose you want to have a list of all the product_names ordered by the customer named "Williams-Mack". You need to use the customers table, because that contains the customer names. You need to use the orders table. For a given order, you can only find out which products were ordered by using the line_items table. And the product_name values are in the products table. So, you need to join all of these together, as follows:
+Suppose you want a list of all the `product_name` values ordered by the customer named "Williams-Mack". You need the `customers` table because it contains customer names. You need the `orders` table because it connects customers to orders. For each order, you need the `line_items` table to see which products were ordered. Finally, you need the `products` table because that is where `product_name` lives.
+
+So you need to join all of these tables together:
 
 ```SQL
 SELECT DISTINCT product_name FROM customers JOIN orders ON customer_id = customer_id JOIN line_items ON order_id = order_id JOIN products ON product_id = product_id WHERE customer_name = 'Williams-Mack';
 ```
 
-The DISTINCT filter handles the case where the customer orders a given product several times. Well, of course, the statement above does not work. Several of the tables have a customer_id column. Several have an order_id column, and several have a product_id column. So, you need to fully qualify the column names for ambiguous columns:
+The DISTINCT filter handles the case where the customer ordered the same product more than once. However, the statement above does not work yet. Several tables have a `customer_id` column. Several have an `order_id` column, and several have a `product_id` column. SQL needs to know which table each shared column name comes from, so you need to fully qualify the ambiguous column names:
 
 ```SQL
 SELECT DISTINCT product_name FROM customers JOIN orders ON customers.customer_id = orders.customer_id JOIN line_items ON orders.order_id = line_items.order_id JOIN products ON line_items.product_id = products.product_id WHERE customer_name = 'Williams-Mack';
 ```
 
-You don't need to fully qualify product_name, because product_name only exists in one table, so SQL knows which table you mean. The statement above will work, but it's a lot of typing! To make it shorter and easier to read, you can use **aliasing** — giving tables nickname letters. Aliasing means giving a table a short nickname (usually one letter) so you don't have to type the full table name over and over:
+You do not need to fully qualify `product_name`, because it only exists in one table. The statement above works, but it is a lot to type. To make it shorter and easier to read, you can use **aliasing**. Aliasing gives a table a short nickname, usually one letter, so you do not have to type the full table name over and over:
 
 ```SQL
 SELECT DISTINCT product_name FROM customers AS c JOIN orders AS o ON c.customer_id = o.customer_id JOIN line_items AS l ON o.order_id = l.order_id JOIN products AS p ON l.product_id = p.product_id WHERE customer_name = 'Williams-Mack';
@@ -294,9 +308,11 @@ Copy the statement above and run it in sqlcommand.
 
 ## **5.5 Using BEGIN, COMMIT, and RETURNING**
 
-In the examples in SQLBolt, you did not use transactions explicitly. As there was no BEGIN, a transaction was automatically opened and committed with each write operation. You will now practice a transaction in sqlcommand.
+In the SQLBolt examples, you did not use transactions explicitly. Since there was no BEGIN, the database automatically opened and committed a transaction for each write operation. Now you will practice a transaction in `sqlcommand`.
 
-Suppose you want to create an order for the customer named "Conrad-Harris". The order is to be associated with employee David Thornton, it should include 2 of "Fantastic Shoes" and 5 of Sausages. To create this order, you need to use the customer_id for "Conrad-Harris", the employee_id of David Thornton, and the product_id values for "Fantastic Shoes" and "Sausages". You need to create the orders record and two line_items records. You want to be sure that the creation of the orders record and both of the line_items records all happen or all fail, otherwise the database will be inconsistent.
+Suppose you want to create an order for the customer named "Conrad-Harris". The order is associated with employee David Thornton. It should include 2 of "Fantastic Shoes" and 5 of "Sausages".
+
+To create this order, you need the `customer_id` for "Conrad-Harris", the `employee_id` for David Thornton, and the `product_id` values for "Fantastic Shoes" and "Sausages". You also need to create one `orders` record and two `line_items` records. These writes should all happen together. If one succeeds and another fails, the database would be inconsistent.
 
 ### **Schema Violations and the Foreign Key Constraint**
 
@@ -306,19 +322,19 @@ Try this statement first:
 INSERT INTO orders (date) VALUES ('2025-03-11');
 ```
 
-This doesn't work, because the schema for the customer_id and employee_id columns specifies NOT NULL. What do you think will happen if you try the following? Try it and see.
+This does not work because the schema says `customer_id` and `employee_id` cannot be null. What do you think will happen if you try the following? Try it and see.
 
 ```SQL
 INSERT INTO orders (customer_id, employee_id, date) VALUES (9000, 9001, '2025-03-11');
 ```
 
-This doesn't work, because you are violating the foreign key constraint. There is no customers record with customer_id = 9000. How about this:
+This does not work because it violates the foreign key constraint. There is no customers record with `customer_id = 9000`. How about this:
 
 ```SQL
 DELETE FROM customers WHERE customer_name = 'Conrad-Harris';
 ```
 
-This doesn't work either. This customer has an order. If the customer record were deleted, there would be an order record with no corresponding customer record, again violating the foreign key constraint.
+This does not work either. This customer has an order. If the customer record were deleted, there would be an order record with no matching customer record. That would also violate the foreign key constraint.
 
 ### **Steps to create the Order**
 
@@ -328,7 +344,7 @@ This doesn't work either. This customer has an order. If the customer record wer
 4. Create the two line_items records.
 5. Commit the transaction.
 
-There is one more trick, which is to use `RETURNING`. When you create the orders record, you do not specify the order_id. That is assigned automatically. But, you need to know the order_id to create the line_items records. So, you specify `RETURNING order_id` on the INSERT statement for the order. You can return a list of columns, or use `*` to get all columns, for any INSERT, UPDATE, or DELETE operations you do.
+There is one more useful tool here: `RETURNING`. When you create the `orders` record, you do not specify the `order_id`. The database assigns it automatically. But you need that `order_id` to create the `line_items` records. So you add `RETURNING order_id` to the INSERT statement for the order. For INSERT, UPDATE, or DELETE operations, you can return a list of columns or use `*` to return all columns.
 
 ### **Check for Understanding**
 
@@ -361,11 +377,13 @@ SELECT * FROM line_items WHERE order_id = 252;
 
 ### **Why Start the Transaction Before the Selects?**
 
-Actually, in this case, you don't need to. But suppose you are doing a bank transfer. You want to be sure that when you do the transfer, there is enough money in the source account, so you do a SELECT to check, within the transaction. If the isolation level for the transaction is SERIALIZABLE, that locks the record in the table, so that it can't change before the transfer occurs. If there isn't enough money, the right step is to rollback the transaction and tell the user that the transaction can't be completed. But, in the case above, the customer_id, the product_id, and the employee_id aren't going to change.
+In this order example, you do not really need to start the transaction before the SELECT statements. But imagine a bank transfer again. You would want to check the source account balance inside the transaction before transferring money. If the transaction isolation level is SERIALIZABLE, that record is locked so it cannot change before the transfer happens. If there is not enough money, the right step is to roll back the transaction and tell the user the transfer cannot be completed.
+
+In the order example above, the `customer_id`, `product_id`, and `employee_id` values are not likely to change while you are working.
 
 ### **Advanced Topic: Locking and Database Isolation Levels**
 
-The actual behavior of the database during the transaction depends on the configured **isolation level**.  This is an advanced topic.  Sooner or later, every back end developer that uses SQL has to understand about isolation levels, and you may be asked about it during a job interview.  But, for now, the following section is optional.  The default isolation level for your Posgres database ensures the behavior you need for this project.
+The actual behavior of the database during a transaction depends on the configured **isolation level**. This is an advanced topic. Eventually, every back end developer who uses SQL needs to understand isolation levels, and you may be asked about them in an interview. For now, this section is optional. The default isolation level for your Postgres database gives you the behavior you need for this project.
 
 <details>
 <summary style="font-size: 1.3em;">Understanding Isolation Levels</summary>
@@ -433,37 +451,39 @@ The default isolation level for the Postgres database you are using is READ COMM
 
 ## **5.6 SQL in a Node Application**
 
-There are several ways to do SQL in Node. You can use the `node-postgres` (pg) package. That one basically issues the SQL statements you specify. You have two examples of pg programs in your node-homework folder:
+There are several ways to run SQL from Node. In this lesson, you will use the `node-postgres` package, usually called `pg`. The `pg` package sends the SQL statements you write to PostgreSQL. You have two example `pg` programs in your `node-homework` folder:
 
 - load-db.js. This connects to the database, creates the tables with the appropriate column names, data types, and schema constraints, and populates each table with values from CSV files, which are in the csv folder of your node-homework directory.
 - sqlcommand.js.
 
-Have a look at each of these programs, so that you can see how the node-postgres package (pg) works to perform SQL operations.
+Look through each of these programs so you can see how `pg` performs SQL operations.
 
- Spend a little time with this. It's a good idea to learn how to use the pg package. It is also common for Node application development to use an Object-Relational Mapper (ORM). The ORM makes the schema management and data manipulation a lot easier.  You don't need to write SQL statements for much of the ORM access.  Conversely, you can't learn SQL if you only use the ORM.
+Spend a little time with this. It is useful to know how `pg` works. Many Node applications also use an Object-Relational Mapper, or ORM. An ORM can make schema management and data manipulation easier because you do not write SQL for every operation. At the same time, you cannot really learn SQL if you only use an ORM.
 
 **At this point, please proceed to your assignment.  Do the exercises in Assignment 5a.  When those are complete, resume reading this lesson.
 
 ## **5.7 Converting Your Tasks App From the Memory Store to PostgreSQL**
 
-Now that you understand what SQL does, it's time to program with it.  You'll do this initially using the `pg` package.
+Now that you understand what SQL does, it is time to use it from your app. You will start with the `pg` package.
 
 ### **Configuring the Connection**
 
-Database connections require a connection string -- a URL.  You created several during Assignment 0, and they are stored in your `.env` file.  This includes the host, the database name, the SSL mode, and your user id and password.  Obviously, the latter must be kept secret, so you only store it in the `.env` file, never in code, and you must take care that the `.env` file is listed in the `.gitignore`.  You don't use SSL for the local connection, but you will for the cloud resident database.
+Database connections require a connection string, which is a URL. You created several connection strings during Assignment 0, and they are stored in your `.env` file. The connection string includes the host, database name, SSL mode, user ID, and password. The password must stay secret, so it belongs in `.env`, never in your source code. Make sure `.env` is listed in `.gitignore`. You do not use SSL for the local connection, but you will use SSL for the cloud database.
 
-In your app, you want to centralize the management of the database connection.  You do this for two reasons:
+In your app, you want to centralize database connection management for two reasons:
 
 - When you stop the server, you need to bring all database connections to a graceful end.
 - You want to have a pool of reused connections for efficiency.
 
-You'll have a dedicated module in a db folder for the purpose.
+You will create a dedicated module in a `db` folder for this purpose.
 
 ## **5.8 Understanding Schema**
 
-The schema of a relational database is the list of tables and their properties.  Each table has a name and a list of columns.  Each column has a name and a datatype: String, Int, Boolean, Timestamp, etc.. One column is typically the primary key.  The schema also describes database constraints: columns where the values can't be null, or columns where all values must be unique.  Relations between tables may be defined.  This implement the associations previously described, and for relations, there may be one or several foreign keys, i.e. pointers to the corresponding entries in a different table.
+The schema of a relational database describes the tables and their properties. Each table has a name and a list of columns. Each column has a name and a datatype, such as String, Int, Boolean, or Timestamp. One column is usually the primary key.
 
-The following SQL statements create the tables with various schema elements.
+The schema also describes constraints. For example, some columns cannot be null, and some columns must contain unique values. The schema can also define relationships between tables. These relationships implement the associations described earlier, usually with one or more foreign keys that point to records in another table.
+
+The following SQL statements create the tables with those schema elements.
 
 **Users Table:**
 ```sql
@@ -501,7 +521,7 @@ The additional index is needed for assignment 6.
 
 ## **5.9 Using the pg Package in Your Node App.**
 
-You will use the `pg` package, which you'll install as part of the assignment.  In an Express application, you can have many concurrent requests.  You don't want to create a database connection for each of them.  So, you'll use a pool.  In your assignment, you will put the following code in a `pg-pool` module in the `db` folder
+You will use the `pg` package, which you will install as part of the assignment. In an Express application, many requests can happen at the same time. You do not want to create a brand-new database connection for each request. Instead, you will use a pool. In your assignment, you will put the following code in a `pg-pool` module in the `db` folder.
 
 ```javascript
 const { Pool } = require('pg');
@@ -524,10 +544,10 @@ module.exports = pool;
 - **`sslmode`**: Postgres hosting platforms (like the Neon one you will use) require SSL, and will have a connection string that specifies the sslmode. For local development, your socket is local so you don't need SSL.
 - **`module.exports`**: Makes the pool available to other files
 
-You also need the `pool.on('error' ...` event handling in case an idle pool connection throws an error.  Otherwise this can disrupt your node process.
+You also need the `pool.on('error' ...` event handling in case an idle pool connection throws an error. Without this, an unexpected pool error can disrupt your Node process.
 
 ### Why Use Connection Pooling?
-Instead of creating a new connection for each database operation, a pool maintains several connections and reuses them. This is more efficient and faster than creating connections on demand.
+Instead of creating a new connection for each database operation, a pool keeps several connections ready and reuses them. This is faster and more efficient than opening a new connection every time.
 
 **Important:** When stopping your application, use `await pool.end()` to close all connections cleanly and prevent connection leaks.  In your assignment, you'll add this logic to the shutdown handling for your app.
 
@@ -535,7 +555,7 @@ Instead of creating a new connection for each database operation, a pool maintai
 
 ## **5.10 Queries**
 
-You'll do database queries in your controllers.  Here are some sample queries:
+You will run database queries in your controllers. Here are some sample queries:
 
 ```js
 const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -545,13 +565,13 @@ const newUser = await pool.query(`INSERT INTO users (email, name, hashed_passwor
   );
 ```
 
-What happens is this: When you issue the `pool.query()`, you get a connection from the pool.  It may not be connected to an actual socket yet, in which case it is connected as you issue the query.  
+When you call `pool.query()`, the pool gives you a connection. If that connection is not connected to an actual socket yet, it connects when you issue the query.
 
-The query itself is just an SQL statement, except notice the `($1, $2, $3)`.  These are parameters you pass to the query, which are substituted.  Of course, you could use string interpolation to put the values in ... **but you better not!**  That would make your code vulnerable to an SQL injection attack, where the attacker adds hostile SQL in the middle of your statement.  With parameterized queries, SQL parameters are sanitized before they are substituted, and dangerous stuff is escaped.
+The query itself is just a SQL statement, but notice the `($1, $2, $3)` placeholders. These are parameters you pass to the query. You could use string interpolation to put values directly into the SQL string, but do not do that. It would make your code vulnerable to SQL injection, where an attacker adds hostile SQL inside your statement. With parameterized queries, values are treated as data and dangerous characters are escaped.
 
-After a client connection is retrieved from the pool, the query is run, and once it is complete and the results have been returned, the client connection is returned to the pool.  If the server gets busy, the `pool.query()` operation may have to wait for an available connection.
+After the pool provides a client connection, the query runs. When the query is complete and the results are returned, the connection goes back to the pool. If the server gets busy, `pool.query()` may wait until a connection is available.
 
-All well and good, but what about transactions?  The `pool.query()` operation performs a single query in an automatically performed transaction. Suppose you need to do a series of queries in a single transaction?  In that case, the process is a little more complicated.  The following sequence might occur in a banking application:
+What about transactions? `pool.query()` performs one query in an automatic transaction. If you need several queries to be part of one transaction, the process is a little more complicated. The following sequence might occur in a banking application:
 
 ```js
 async function runTransactionalWork() {
@@ -605,7 +625,7 @@ async function runTransactionalWork() {
   }
 }
 ```
-In sum, for transactions, you do:
+In summary, for transactions, you do this:
 
 - checkout client
 - begin transaction
@@ -639,7 +659,7 @@ const result = await pool.query(query, [email]);
 - Prevents malicious SQL from being executed
 
 ### User Ownership Validation
-Always verify that users can only access their own data:
+Always verify that users can access only their own data:
 
 ```javascript
 // Ensure user can only access their own tasks
@@ -654,7 +674,7 @@ if (result.rows.length === 0) {
 ```
 
 **Important Security Note:**
-You are going to use a globally stored user_id.  This is a temporary approach.  The global user_id approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix this in assignment 8.
+You are going to use a globally stored `user_id`. This is temporary. The global `user_id` approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access that logged-in user's tasks because there is only one global value. This matches the behavior from Lesson 4 for now, but a real application needs proper session management, JWT tokens, or another secure authentication approach. You will fix this in Assignment 8.
 
 ---
 
@@ -662,19 +682,19 @@ You are going to use a globally stored user_id.  This is a temporary approach.  
 
 ### Database Error Types
 
-Different types of errors can occur when working with databases.  Typically you let these fall through to the global error handler middleware.  
+Different types of errors can happen when working with databases. Usually, you let these errors fall through to the global error handler middleware.
 
-There are times when you will need to catch specific errors within your controller logic.  For example, if a user attempts to register with an email address that is already registered, you want to catch the error in the controller so that you can return an appropriate explanation to the user.
+Sometimes, though, you need to catch a specific error inside your controller. For example, if a user tries to register with an email address that is already registered, you want to catch that error in the controller so you can return a helpful message.
 
 **Connection Errors:**
 
-You want a special log message in your error handler for connection errors, in case you forget to start your Postgres service.
+You want a special log message in your error handler for connection errors, especially in case you forgot to start your Postgres service.
 
-You may also get query errors.  For example, queries could time out.  A request to the pool could fail because all connections are tied up. There could be an attempt to write something to the database that doesn't comply with the schema.  In general, you'd just log these to the console in your global error handler, and return the 500 return code and corresponding JSON internal server error message.
+You may also get query errors. A query could time out. A request to the pool could fail because all connections are busy. A write could fail because the data does not follow the schema. In general, you log these errors in your global error handler and return a `500` response with the corresponding JSON internal server error message.
 
 ### A Health Check API
 
-It is common to have a health check  API, so that you can see if the application is functioning.  You have an existing health check, but it should report a problem if connection to the database is not successful.
+It is common to have a health check API so you can see whether the application is functioning. You already have a health check, but now it should report a problem if the app cannot connect to the database.
 
 ---
 
@@ -706,13 +726,13 @@ It is common to have a health check  API, so that you can see if the application
 
 ## **Summary**
 
-In this lesson, you've learned:
-- **Why databases are essential** for web applications
-- **How PostgreSQL works** as a relational database
-- **How to connect Node.js** to PostgreSQL using the `pg` library
-- **How to implement database operations** in your controllers
-- **Security best practices** like parameterized queries
-- **Proper error handling** for database operations
+In this lesson, you learned:
+- Why databases are essential for web applications
+- How PostgreSQL works as a relational database
+- How to connect Node.js to PostgreSQL using the `pg` library
+- How to implement database operations in your controllers
+- Security best practices like parameterized queries
+- Proper error handling for database operations
 
 ### Next Steps
 1. **Complete Assignment 5** following this lesson.  You have done 5a, so complete 5b.

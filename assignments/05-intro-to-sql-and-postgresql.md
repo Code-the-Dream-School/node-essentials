@@ -2,12 +2,16 @@
 
 ## **Assignment Instructions**
 
-You create your homework file in the `node-homework` folder.
-First, create a new branch for this week's homework and name it `assignment5`.
+Create your homework files in the `node-homework` folder.
+First, create a new branch for this week's work and name it `assignment5`.
 
 ## **Assignment 5a**
 
-Start `sqlcommand` as you did for the lesson. For each of the following tasks, you should get your SQL statements running in `sqlcommand` first, and then add them to your homework file. It may be helpful to have two terminal sessions open in VSCode - one for `sqlcommand`, and another to run your homework.  Next, create a file named `assignment5-sql.txt` within the `assignment5` directory. Each line in this file should be an SQL command, as described in the tasks.  Lines beginning with `#` are treated as comments.  As you add SQL statements to this file, you can test them using the following command:
+Start `sqlcommand` the same way you did in the lesson. For each task below, first get the SQL statement working in `sqlcommand`. After it works, add it to your homework file.
+
+It may help to keep two terminal sessions open in VSCode: one for `sqlcommand`, and one for running the homework tests.
+
+Create a file named `assignment5-sql.txt` inside the `assignment5` directory. Each line in this file should be one SQL command, as described in the tasks. Lines that begin with `#` are treated as comments. As you add SQL statements to this file, test your work with:
 
 **💡 Tip:** When typing SQL commands in the `sqlcommand` terminal, add a space at the end of each line. Without trailing spaces, lines get concatenated together (e.g., `GROUP BY orders.order_idORDER BY` becomes invalid SQL).
 
@@ -15,19 +19,23 @@ Start `sqlcommand` as you did for the lesson. For each of the following tasks, y
 npm run tdd assignment5a
 ```
 
-This test should be run from the `node-homework` root folder.
+Run this test from the `node-homework` root folder.
 
 The [SQL section of W3Schools](https://www.w3schools.com/sql/default.asp) is a good reference to assist you with this assignment.
 
 ### **Preparation and Practice**
 
-Within `sqlcommand`, practice running various SQL statements: SELECT, INSERT, UPDATE, DELETE, BEGIN, COMMIT, ROLLBACK. Your practice SQL statements should also include statements that use JOIN, GROUP BY, ORDER BY, HAVING, SUM, COUNT, etc. Continue practicing until you feel confident in your SQL skills. Remember that you can reload the database as needed. Also, practice writing subqueries as well. Then proceed to the following tasks.
+Inside `sqlcommand`, practice several kinds of SQL statements: SELECT, INSERT, UPDATE, DELETE, BEGIN, COMMIT, and ROLLBACK. Also practice statements that use JOIN, GROUP BY, ORDER BY, HAVING, SUM, COUNT, and subqueries.
+
+Keep practicing until the SQL feels less mysterious. Remember that you can reload the database if you need to reset your data. Then move on to the tasks below.
 
 **Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until the full query works correctly. If you run into problems, ask for assistance from a mentor or via the Slack channel. If SQL is new to you, take your time with this section.
 
 ### **Task 1: Find the total price of each of the first 5 orders, ordered by order_id.**
 
-There are several steps. You'll need to use the `price` from the `products` table and the `quantity` from the `line_items` table, so you'll need to join these with the `orders` table. You need to `GROUP BY` the `order_id`. You are grouping `line_items`. Also, `ORDER BY` the `order_id`. You need to select the `order_id` and the sum of each product's price multiplied by the `line_items` quantity. The columns returned should be `order_id` and `total_price`. You should use aliasing to label the sum of `price` times `quantity` as `total_price`.
+There are several steps. You need the `price` from the `products` table and the `quantity` from the `line_items` table, so you will need to join those tables with the `orders` table.
+
+You are grouping `line_items` by `order_id`, so use `GROUP BY` with the `order_id`. Also use `ORDER BY` with the `order_id`. Your result should return two columns: `order_id` and `total_price`. Use aliasing so the sum of `price` times `quantity` is labeled `total_price`.
 
 When you have this running in `sqlcommand`, add the SQL statement to `assignment5-sql.txt`.
 
@@ -37,7 +45,9 @@ Run the `tdd` test until the first test completes.
 
 For each customer, find the average total price of their orders, and return the results ordered by customer name.
 
-This can be done with a subquery. You first have to get the total price of each order, so you can reuse the statement from Task 1 for the subquery, with some changes. You are going to `JOIN` the customers table, which you need for the `customer_name`, with the results of the subquery. The changes you need to make are:
+This can be done with a subquery. First, you need the total price of each order. You can reuse the idea from Task 1 inside the subquery, with a few changes.
+
+Then you will `JOIN` the customers table to the results of the subquery. You need the customers table because it contains `customer_name`. Make these changes from Task 1:
 
 - You need to return the `customer_id` in the subquery, because you are going to `JOIN` the customers table to the subquery ON customer_id.
 - You don't want `LIMIT` in the subquery, because you are going to get the total price for all orders.
@@ -51,13 +61,13 @@ So, part of your statement will be:
 
 After the ON clause, you `GROUP BY c.customer_id, customer_name` and `ORDER BY` the customer_name. Note that you have two `customer_id` columns after the join, one being `c.customer_id` and the other being `t.customer_id`, so you have to fully qualify your references to `customer_id`. Return the following columns: the customer name and the AVG of the `total_price`, aliased as `average_order_price`.
 
-It doesn't seem necessary to group by both `customer_id` and `customer_name`.  Since the `customer_id` values are unique, the `customer_name` field will be the same for each row when you group by `customer_id`.  But some SQL implementations don't figure this out up front, so they don't know which value to return.  You don't know that customer_name is unique, so you can't rely on that grouping.
+It may not seem necessary to group by both `customer_id` and `customer_name`. Since `customer_id` values are unique, the `customer_name` should be the same for each row in that customer group. But some SQL implementations do not assume that. They need you to list the non-aggregated selected columns in the `GROUP BY`. Also, you do not know that `customer_name` is unique, so you should not rely on grouping by name alone.
 
 Once you have this running in `sqlcommand`, add the statement to `assignment5-sql.txt`. Run the `tdd` test until the second test completes.
 
 ### **Task 3: Creating a New Order**
 
-Create a new order for the customer named Perez and Sons. The customer wants 10 of the 5 least expensive products. The employee to be associated with the order is Miranda Harris.
+Create a new order for the customer named Perez and Sons. This customer wants 10 of each of the 5 least expensive products. The employee associated with the order is Miranda Harris.
 
 Follow these steps:
 
@@ -78,7 +88,9 @@ Then run the `tdd` test until the third test completes.
 
 ### **Task 4: Aggregation with Having**
 
-Find all employees who are associated with more than five orders. You want the `first_name`, the `last_name`, and the count of the orders, which you return as `order_count`. To achieve this, perform a `JOIN` on the employees and orders tables. Then use `GROUP BY`, `COUNT`, and `HAVING` to filter the results, and sort them by `last_name`. Get this statement working in `sqlcommand`, and then add it to the assignment file.
+Find all employees who are associated with more than five orders. Return the `first_name`, the `last_name`, and the count of orders as `order_count`.
+
+To do this, `JOIN` the employees and orders tables. Then use `GROUP BY`, `COUNT`, and `HAVING` to filter the results. Sort the results by `last_name`. Get this statement working in `sqlcommand`, then add it to the assignment file.
 
 Hint 1: You can't do `GROUP BY first_name, last_name` because you don't know that employees have unique names. You have to group by `employee_id`.  On the other hand, because you are returning the first_name and last_name in your SELECT, and you aren't aggregating on these fields, you need them in the `GROUP BY` as well.  You need `GROUP BY employees.employee_id, first_name, last_name`, because SQL might not figure out up front that there can't be several different first_name or last_name values in a group of rows when these are grouped only by employee_id.
 
@@ -105,10 +117,16 @@ npm run tdd assignment5a
 - Test your API endpoints with real database persistence
 
 ## Assignment Overview
-In this assignment, you will modify your existing Express application to use PostgreSQL instead of in-memory storage. You'll transform your working Express app that stores data in memory to one that persists data in a real database.
+In this assignment, you will update your existing Express application so it uses PostgreSQL instead of in-memory storage. Your app should keep the same API behavior, but the data will now persist in a real database.
 
 **Prologue:**
-Right now you are using globals to store users and a list of tasks for each. For this assignment, you want to eliminate all use of `global.users` and `global.tasks`, and read and write from the database instead. The REST calls your application supports should still work the same way, so that your Postman tests don't need to change.
+Right now, your app uses globals to store users and each user's tasks. For this assignment, remove all use of `global.users` and `global.tasks`. Read from and write to the database instead. The REST calls your application supports should still work the same way, so your Postman tests do not need to change.
+
+## A Quick Word About Environment Variables and Secrets
+
+Starting with this assignment, your app needs to know how to reach your database. That information includes a password, so it does not belong in your code. The standard solution is to keep it in an **environment variable**, loaded from a `.env` file that you never commit to git.
+
+You set up your databases and your `.env` file back in Week 0, and this assignment assumes both exist. If you need a refresher on what environment variables are, how `.env` and `dotenv` work, and why you keep separate development and test databases, read the [Environment Variables and Secrets guide](../ENVIRONMENT-VARIABLES-GUIDE.md) before continuing.
 
 ## Prerequisites
 - Completed previous lessons with a working Express application
@@ -136,7 +154,7 @@ npm install pg dotenv
 
 #### b. Is Your PostgreSQL Service Running?
 
-You installed Postgres and created the databases you need in Assignment 0.  Depending on how you configured Postgres, it may start automatically when you restart your system, or it may not.  So, check to make sure it is running as follows:
+You installed Postgres and created the databases you need in Assignment 0. Depending on your setup, Postgres may or may not start automatically when you restart your computer. Check that it is running before you continue:
 
 For Mac:
 
@@ -153,7 +171,7 @@ sudo service start postgresql
 
 For Windows, you open the Windows Services panel and start the postgresql service if it is not running.
 
-Remember these steps.  If your app quits running, perhaps your database service is not running!
+Remember these steps. If your app suddenly stops working, one possible cause is that the database service is not running.
 
 #### c. Create Database Tables
 
@@ -188,18 +206,18 @@ For Mac and Linux:
 psql <DATABASE_URL> -f schema.sql
 ```
 
-where `DATABASE_URL` is the value you saved in your `.env` file during assignment 0.  On Windows, the command is little longer:
+where `DATABASE_URL` is the value you saved in your `.env` file during Assignment 0. On Windows, the command is a little longer:
 
 ```bash
 "C:\Program Files\PostgreSQL\17\bin\psql.exe" <DATABASE_URL> -f schema.sql
 ```
 The above assumes you have Postgres 17 -- adjust the number as needed.
 
-You should see messages that tables were created.  This creates the schema for the production database.
+You should see messages that the tables were created. This creates the schema for the production database.
 
 #### d. Create Database Tables in the Test Database
 
-You also need to create the schema for your test database.  This is used for the assignment TDD and also for your automated testing assignment in a later week.  The `psql` command is the same as the above, but you use the value of the `TEST_DATABASE_URL` from your `.env` file.
+You also need to create the schema for your test database. The assignment TDD uses this database, and you will use it again in a later automated testing assignment. The `psql` command is the same as above, but use the `TEST_DATABASE_URL` value from your `.env` file.
 
 ### 2. Database Connection Implementation
 
@@ -226,7 +244,7 @@ This code was explained in the lesson.
 
 #### b: Modify app.js: Graceful Shutdown
 
-When your Node process ends, it might hang if database connections are not cleaned up.  Somewhere in the file, add this line:
+When your Node process ends, it might hang if database connections are not cleaned up. Somewhere in the file, add this line:
 
 ```js
 const pool = require("./db/pg-pool");
@@ -238,7 +256,7 @@ Then, in your shutdown function add this line (there is a comment in the code to
 await pool.end();
 ```
 
-Otherwise your Node process may hang on exit.  You want it to release all database connections.
+Without this, your Node process may hang on exit. You want the app to release all database connections.
 
 #### b. Modify app.js: Health Check
 
@@ -265,29 +283,33 @@ Add the following line to the top of your error handler middleware:
   }
 ```
 
-If the database service is not up, you want to know.  Your error handler will handle other database errors as well.
+If the database service is not running, you want the console message to make that clear. Your error handler will still handle other database errors too.
 
 ### 3. Modify Controllers for Database Operations
 
-You are going to substitute database calls for globals, except for `global.user_id`.  Let's start with logon in the user controller.  You will see that there aren't many try/catch stanzas.  That's because, for the most part, you can let the global error handler take care of error handling.
+You are going to replace the global arrays with database calls. For now, you will still use `global.user_id`. Start with logon in the user controller.
 
-Your calls to the `pg` pool are asynchronous.  If some of your controller functions are not declared async you will need to change that.  You will need to call `next(err)` in some controller functions, in which case they must be declared with `req, res, next` as their parameters.
+You will not see many try/catch blocks in these examples. For most database errors, you can let the global error handler take care of the response.
+
+Calls to the `pg` pool are asynchronous. If some controller functions are not declared `async`, you will need to change that. Some controller functions may also need to call `next(err)`, so those functions must receive `req`, `res`, and `next` as parameters.
 
 #### a. Changing Login
 
-In userController.js, you need to have a require statement to give access to the pool, so put that near the top.  You currently do a find() on the storedUser array.  Well, you have to eliminate that.  This is the equivalent, assuming you have extracted email and password from the req.body:
+In `userController.js`, add a require statement near the top so the controller can access the pool. Right now, your code probably uses `find()` on the stored user array. Replace that with a database query. Assuming you have extracted `email` and `password` from `req.body`, the query looks like this:
 
 ```javascript
 const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 ```
 
-The `result.rows` array might have 0 length, in which case authentication fails: you send back the 401 and the appropriate message.  Otherwise, you use your existing `comparePassword()` function to see if the password in the body of the request matches `result.rows[0].hashed_password`.  If it doesn't, you send the 401 and the authentication failed message.  But, if it does, you send a 200 and the appropriate message -- and you also put `result.rows[0].id` in global.user_id.
+The `result.rows` array may have length 0. If so, authentication fails, and you send back the 401 with the appropriate message.
+
+If a user was found, use your existing `comparePassword()` function to check whether the request password matches `result.rows[0].hashed_password`. If it does not match, send the 401 and authentication failed message. If it does match, send a 200 and the appropriate message. Also put `result.rows[0].id` in `global.user_id`.
 
 So: make those changes to the logon function now.
 
 #### b: Changing Registration
 
-Right now, you do a find() on the array in the memory store to see if the user is already registered.  If not, you add the user entry to the memory store.  When you switch to the database, you can do that in one step.  For this operation and all that follow, you still need to do Joi validation of your objects before writing them to the database.
+Right now, your code probably uses `find()` on the memory-store array to see if the user is already registered. If the user is not found, it adds the user to the memory store. With the database, you can let the INSERT do that work. For this operation and all later write operations, still run Joi validation before writing to the database.
 
 ```javascript
   const { error, value } = userSchema.validate(req.body, { abortEarly: false });
@@ -316,7 +338,7 @@ Right now, you do a find() on the array in the memory store to see if the user i
 // object.  Be sure to also set global.user_id with the id of the user record you just created. 
 ```
 
-Do not return the hashed_password or user_id of the user just created.  These should be removed before you send the response.  You should return a body with only the name and email.
+Do not return the `hashed_password` or `user_id` for the user you just created. Those values should stay internal. Return only the name and email in the response body.
 
 #### c. Changing Logoff.
 
@@ -328,7 +350,7 @@ No change needed!
 
 #### e. Changing Task Management: POST /api/tasks (create)
 
-You will see that the attribute names change a little bit.  That is because lowercase column names are used in the database.
+You will see that some attribute names change a little. That is because the database uses lowercase, snake_case column names.
 
 Here is how it's done with `pg`. The code below only shows the part you have to change.  Joi validation and the res.json() part are the same:
 
@@ -340,15 +362,15 @@ const task  = await pool.query(`INSERT INTO tasks (title, is_completed, user_id)
   // You don't need a try/catch because the global error handler will handle the errors
 ```
 
-The attribute names change a little bit here. `isCompleted` becomes `is_completed`, because we use lower case column names in the database.
+The attribute names change a little here. `isCompleted` becomes `is_completed`, because the database uses lowercase column names.
 
-Note: You should not return the user_id.  That is a foreign key, and should only be known internally.  When using `global.tasks` you had to take out the userId value, but with the database, you can specify which columns to return, so you don't need that additional step.  
+Note: Do not return the `user_id`. It is a foreign key and should only be used internally. When you used `global.tasks`, you had to remove the `userId` value before sending the response. With the database, you can specify which columns to return, so you do not need that extra step.
 
-Of course, this operation could throw an error, for example if the database is down.  You do not need a try/catch in your controller for this, as your global error handler will take care of it.
+This operation can still throw an error, for example if the database is down. You do not need a try/catch here because your global error handler can handle it.
 
 #### f. Changing Task Management: GET /api/tasks (index)
 
-In each of these task operations, the WHERE cause must filter on th `user_id`, so that a given user can't access a different user's task entries.  For `index()` you need:
+In each task operation, the WHERE clause must filter on `user_id`, so one user cannot access another user's tasks. For `index()` you need:
 
 ```javascript
 const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
@@ -360,7 +382,7 @@ Again, in case of success, you should not return the user_id.
 
 #### g. Changing Task Management: PATCH /api/tasks/:id (update)
 
-This one's a little tricky.  You might update the title, or the is_completed, or both.  How can you assemble an SQL statement that would handle all these cases?
+This one is a little tricky. You might update the title, `is_completed`, or both. The question is how to build an SQL statement that handles all of those cases.
 
 Note also: The WHERE clause for the update statement has to filter on both req.params.id (the task record to be updated) and also on global.user_id.  If you don't include global.user_id in the filter, one user could update another user's task records.
 
@@ -377,15 +399,15 @@ const updatedTask = await pool.query(`UPDATE tasks SET ${setClauses}
   [...Object.values(taskChange), req.params.id, global.user_id]);
 ```
 
-This looks a little complicated, and there are other ways to do it if you only have two fields that might change, but if you have many fields, you'd need to do something like this. In the case of success, you want to return the updated object -- but not including the user_id.
+This looks a little complicated. If only two fields can change, there are simpler approaches. But if many fields can change, you need a pattern like this. On success, return the updated object, but do not include the `user_id`.
 
 #### h. Changing DELETE /api/tasks/:id (deleteTask)
 
-Another one for you to do.  Remember to filter on user_id as well as the task id.
+This is another method for you to update. Remember to filter on `user_id` as well as the task id.
 
 #### i. Changing GET /api/tasks/:id (show)
 
-Same deal. Remember to filter on user_id as well as the task id.
+Same idea here. Remember to filter on `user_id` as well as the task id.
 
 Keep going until all dependency on the global arrays are gone.
 
@@ -404,14 +426,14 @@ Make sure all operations work as before.  They are:
 - logoff
 - health check
 
-Further, test to make sure that a user can't show, update, or delete a task that belongs to a different user.
+Also test that one user cannot show, update, or delete a task that belongs to a different user.
 
 ### 5. Run the TDD 
 
 Run `npm run tdd assignment5b`.  Make sure all tests complete correctly.
 
 **Important Security Note:**
-The global user_id storage approach used here is **NOT secure** for production applications. It means that once someone logs in, anyone else can access the logged-in user's tasks because there's only one global value. This is used here to match the behavior from lesson 4, but in a real application, you would use proper session management, JWT tokens, or other secure authentication methods.  You will fix the problem in assignment 8.
+The global user_id storage approach used here is **NOT secure** for production applications. Once someone logs in, anyone else could access that logged-in user's tasks because there is only one global value. This is used here to match the behavior from Lesson 4, but a real application needs proper session management, JWT tokens, or another secure authentication method. You will fix this problem in Assignment 8.
 
 ### Code Quality Requirements
 - Use async/await consistently
@@ -429,7 +451,7 @@ Test all endpoints with Postman or curl:
 5. **Error Handling**: Test invalid inputs and database errors
 6. **Security**: Verify user ownership validation and password hashing
 
-For the security testing, you should try Postman tests where you GET, UPDATE, or DELETE an entry that belongs to another user.  You would log on as user 1, do a GET for `/tasks`, and record the id of an entry belonging to that user.  You would then log on as user 2, and try to get, update, and delete the task with that ID.  All should fail with a message that the entry was not found.  This is how you can be sure that access control is enforced.
+For the security testing, use Postman to try to GET, UPDATE, or DELETE a task that belongs to another user. Log on as user 1, do a GET for `/tasks`, and record the id of one of that user's tasks. Then log on as user 2 and try to get, update, and delete the task with that id. All of those attempts should fail with a message that the entry was not found. This is how you can check that access control is working.
 
 ---
 
