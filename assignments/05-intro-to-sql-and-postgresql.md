@@ -126,7 +126,7 @@ Right now, your app uses globals to store users and each user's tasks. For this 
 
 Starting with this assignment, your app needs to know how to reach your database. That information includes a password, so it does not belong in your code. The standard solution is to keep it in an **environment variable**, loaded from a `.env` file that you never commit to git.
 
-You set up your databases and your `.env` file back in Week 0, and this assignment assumes both exist. If you need a refresher on what environment variables are, how `.env` and `dotenv` work, and why you keep separate development and test databases, read the [Environment Variables and Secrets guide](../ENVIRONMENT-VARIABLES-GUIDE.md) before continuing.
+You set up your databases and your `.env` file back in Week 0, and this assignment assumes both exist. If you need a refresher on what environment variables are, how `.env` and `dotenv` work, and why you keep separate development and test databases, read the [Environment Variables and Secrets guide](https://github.com/Code-the-Dream-School/node-essentials/blob/e751ad5007be66a9a562d48d8223a081bd9c3cd3/ENVIRONMENT-VARIABLES-GUIDE.md) before continuing.
 
 ## Prerequisites
 - Completed previous lessons with a working Express application
