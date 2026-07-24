@@ -105,11 +105,11 @@ fs.promises read: Hello from fs.promises!
 
 That completes the core tasks. Run the core tests with `npm run tdd assignment1a`.
 
-## Advanced Tasks (Optional)
+## Stretch Goals (Optional)
 
 This part is optional, just like the Advanced section of the lesson. You can skip it and still continue the course, but it is good extra practice.
 
-### 5. Streams for Large Files
+### Stretch Goal: Streams for Large Files
 - In your `core-modules-demo.js` script, add streaming:
   - Create a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log a line that starts with `Read chunk:` (for example, the first 40 characters of the chunk). When the stream ends, log exactly `Finished reading large file with streams.` Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
 
