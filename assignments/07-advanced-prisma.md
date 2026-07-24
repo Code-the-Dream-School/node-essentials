@@ -105,7 +105,7 @@ const tasks = await prisma.task.findMany({
 - This fetches user information in the same query, eliminating the N+1 problem
 - The test expects tasks to have a `User` property with `name` and `email`
 
-#### b. Optional: Add User Show Method
+#### b. Stretch Goal: Add User Show Method (Optional)
 
 **Note:** This is completely optional and not required. There was no user show method in Assignment 6, and `assignment7.test.js` does not test for it. The test file only imports `logon`, `register`, and `logoff` from `userController` (line 16), and there are no tests that call a user show method. However, if you want to practice eager loading with user-to-task relationships, you can optionally add this method as an extra exercise.
 
@@ -277,9 +277,9 @@ const totalTasks = await prisma.task.count({
 - If `find` is not provided, return all tasks (with pagination)
 - The `contains` operator with `mode: 'insensitive'` translates to `ILIKE '%searchTerm%'` in PostgreSQL
 
-**Optional:** You may also implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials. The `find` filter is required.
+**Optional Stretch Goal:** You may also implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials. The `find` filter is required.
 
-#### c. Add Sorting Support (Optional)
+#### c. Stretch Goal: Add Sorting Support (Optional)
 
 The task index endpoint can support sorting by different fields using `sortBy` and `sortDirection` query parameters. This lets users control how their tasks are ordered.
 
@@ -821,7 +821,7 @@ const user = await prisma.user.findUnique({
 });
 ```
 
-#### b. Add Fields Query Parameter Support (Optional)
+#### b. Stretch Goal: Add Fields Query Parameter Support (Optional)
 
 You can enhance endpoints so clients can specify which fields they need. This is optional. If you implement it, parse the fields query parameter and build the select object dynamically.
 
