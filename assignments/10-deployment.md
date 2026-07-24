@@ -82,7 +82,8 @@ Here's the code you'll need to add to the register method, just before userSchem
 
 11. Try testing a register request with Postman. It will fail. Change the request to include the RECAPTCHA_BYPASS in the "X-Recaptcha-Test" header, and it should work.
 
-12. Try `npm run test`. This runs your tests from assignment 9. Some of them will fail. Why? Optional: fix your tests so they complete correctly by adding the header you need.
+12. Try `npm run test`. This runs your tests from assignment 9. Some of them will fail. Why?
+Optional Stretch Goal: fix your tests so they complete correctly by adding the header you need.
 
 You have now run the TDD for this assignment and the Postman test. These are not complete tests of reCAPTCHA because they use the bypass instead of a real token. You will correct that in the next lesson.
 
