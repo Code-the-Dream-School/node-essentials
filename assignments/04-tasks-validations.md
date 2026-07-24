@@ -587,13 +587,15 @@ node-homework/
     taskSchema.js
 ```
 
-## Advanced Knowledge (Optional)
+---
+
+## Stretch Goals (Optional)
 
 The following ideas give more context. They are useful, but the core tasks above are what you need to complete the assignment.
 
 If you work through this optional advanced section, use `npm run tdd assignment4b` to check the deeper validation, patch update, and password security cases.
 
-### `Object.assign()` and Patch Updates
+### Stretch Goal: `Object.assign()` and Patch Updates
 
 PATCH means partial update.
 
@@ -611,7 +613,7 @@ You do not want to replace the whole task with only that object. You only want t
 
 After using it, still remove `userId` from the response.
 
-### Password Security Details
+### Stretch Goal: Password Security Details
 
 The hashing helpers store a value in this format:
 
@@ -627,7 +629,7 @@ You do not need to memorize these internals. The important rule is to use truste
 
 The same idea applies to other sensitive data. Do not store credit card numbers, government ID numbers, or other private information unless the app truly needs it and you understand the legal and security requirements.
 
-### Validation Boundaries
+### Stretch Goal: Validation Boundaries
 
 Joi validates request data before your app stores it.
 
@@ -635,7 +637,7 @@ Joi does not replace authorization. A task body can be valid and still belong to
 
 Later, database constraints will add another layer of protection.
 
-### Status Code Nuance
+### Stretch Goal: Status Code Nuance
 
 For this assignment:
 
@@ -645,13 +647,15 @@ For this assignment:
 
 Some APIs use `403` when a logged-in user is not allowed to access a resource. This assignment can use `404` for another user's task so the API does not reveal whether that task exists.
 
-### Future Authentication Direction
+### Stretch Goal: Future Authentication Direction
 
 `global.user_id` is only a learning scaffold.
 
 Later, the app should know which client made the request. Common production patterns include sessions, cookies, and tokens.
 
 You do not need to implement those in Assignment 4. The important idea is that the current global login will be replaced later.
+
+---
 
 ## Video Submission
 

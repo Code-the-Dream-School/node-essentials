@@ -356,13 +356,15 @@ That completes the core tasks. Run the core tests with:
 npm run tdd assignment2a
 ```
 
-## Advanced Tasks (Optional)
+---
+
+## Stretch Goals (Optional)
 
 This part is optional, just like the Advanced section of the lesson. You can skip it and still continue the course, but it is good extra practice.
 
 The advanced tasks focus on edge cases. An **edge case** is a situation outside the happy path, such as a bad URL, the wrong method, or invalid JSON.
 
-### 6. Raw HTTP Unknown Route
+### 6. Stretch Goal: Raw HTTP Unknown Route
 
 In `assignment2/sampleHTTP.js`, add a response for unknown routes.
 
@@ -386,7 +388,7 @@ Test it in your browser:
 http://localhost:8000/not-here
 ```
 
-### 7. Raw HTTP Invalid JSON
+### 7. Stretch Goal: Raw HTTP Invalid JSON
 
 In `assignment2/sampleHTTP.js`, improve your `POST /echo` route so invalid JSON does not crash the server.
 
@@ -426,7 +428,7 @@ For example:
 
 Your server should return a `400` response instead of crashing.
 
-### 8. Express Unknown Route
+### 8. Stretch Goal: Express Unknown Route
 
 In your root `app.js`, add a final fallback route for unknown Express paths.
 
@@ -450,7 +452,7 @@ http://localhost:3000/unknown
 
 You should get a `404` response.
 
-### 9. Optional Server Lifecycle Polish
+### 9. Stretch Goal: Server Lifecycle Polish
 
 This part is not required for the automated tests, but it is good practice for real server code.
 
@@ -542,6 +544,8 @@ npm run tdd assignment2b   # advanced (optional)
 ```
 
 If a test fails, check file names and route paths first. The tests expect exact names, including `sampleHTTP.js` with uppercase `HTTP`.
+
+---
 
 ## Video Submission
 

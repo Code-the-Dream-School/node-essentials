@@ -361,13 +361,15 @@ Run the dog rescue middleware tests:
 npm run tdd assignment3b
 ```
 
-## Advanced Dog Middleware Tasks (Optional)
+---
+
+## Stretch Goals: Advanced Dog Middleware Tasks (Optional)
 
 These tasks are more advanced than the first dog rescue tasks. They are still part of the dog rescue middleware app.
 
 Continue working inside the separate `week-3-middleware` folder.
 
-### 14. Add Security Headers
+### 14. Stretch Goal: Add Security Headers
 
 Add middleware that sets these headers on all responses:
 
@@ -377,7 +379,7 @@ X-Frame-Options: DENY
 X-XSS-Protection: 1; mode=block
 ```
 
-### 15. Add Request Size Limiting
+### 15. Stretch Goal: Add Request Size Limiting
 
 Update JSON parsing to limit body size:
 
@@ -385,7 +387,7 @@ Update JSON parsing to limit body size:
 app.use(express.json({ limit: "1mb" }));
 ```
 
-### 16. Add Content-Type Validation
+### 16. Stretch Goal: Add Content-Type Validation
 
 Add middleware that checks POST requests.
 
@@ -403,7 +405,7 @@ Content-Type must be application/json
 
 `415 Unsupported Media Type` is a more specific HTTP status for unsupported content types, but this assignment and its tests use `400 Bad Request`.
 
-### 17. Add Custom Error Classes
+### 17. Stretch Goal: Add Custom Error Classes
 
 Inside `week-3-middleware`, create:
 
@@ -463,7 +465,7 @@ module.exports = {
 };
 ```
 
-### 18. Use Custom Errors in `routes/dogs.js`
+### Stretch Goal: 18. Use Custom Errors in `routes/dogs.js`
 
 In `week-3-middleware/routes/dogs.js`:
 
@@ -479,7 +481,7 @@ Missing required fields
 not found or not available
 ```
 
-### 19. Improve Advanced Error Handling
+### Stretch Goal: 19. Improve Advanced Error Handling
 
 Update the error handler in `week-3-middleware/app.js`:
 
@@ -520,6 +522,8 @@ Run the advanced dog middleware tests:
 ```bash
 npm run tdd assignment3c
 ```
+
+---
 
 ## Suggested File Structure
 
