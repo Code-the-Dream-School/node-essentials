@@ -433,7 +433,7 @@ Run the tests and make sure all of them pass.
 
 ## **Tests of the User Controller**
 
-Because this assignment is long, the user.controller.test.js file is **optional**. Be sure to implement the actual network operations testing that follows this section. Even if you do not implement the tests in this section, read the descriptions so you understand how they would work.
+Because this assignment is long, the user.controller.test.js file is **an optional stretch goal**. Be sure to implement the actual network operations testing that follows this section. Even if you do not implement the tests in this section, read the descriptions so you understand how they would work.
 
 We want to test logon, but logon sets a cookie. If that cookie is not set, authentication is not working, so we need to test it. The first problem is that a res object returned by `httpMocks.createResponse()` does not keep track of cookies. So we create an enhanced mock response object. This one, created by MockRequestWithCookies, tracks 'Set-Cookie' operations.
 
