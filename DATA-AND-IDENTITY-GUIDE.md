@@ -98,12 +98,12 @@ The key difference: `req` is a **separate object for every request**, so each re
 
 If you see `global.user_id` in older lesson code and `req.user.id` in later code, that is exactly the transition described here. When you reach Lesson 8, expect to search your controllers for `global.user_id` and replace it.
 
-## **Part 3 — One Database Becomes Three**
+## **Part 3 — One Database Becomes Several**
 
-Once your data lives in a database, you are actually juggling more than one: a **development** database you work in by hand, a separate **test** database the automated tests delete and re-create, and later a **production** database in the cloud for real users. Keeping them straight is one of the most common sources of confusion in the course.
+Once your data lives in a database, you are actually juggling more than one. In Lesson 5, there is a SQL practice database for `sqlcommand` and Assignment 5a, plus the task app development database. There is also a separate **test** database the automated tests delete and re-create, and later a **production** database in the cloud for real users. Keeping them straight is one of the most common sources of confusion in the course.
 
 The full explanation, which connection string is which, why test must be separate, and what you must never run against production, lives in the [Environment Variables and Secrets guide](./ENVIRONMENT-VARIABLES-GUIDE.md).
 
 ## **The One-Paragraph Summary**
 
-Your data starts in memory (Lessons 1–4), moves to a local PostgreSQL database you query with raw SQL (Lesson 5), then with Prisma (Lessons 6–7), and finally to a cloud database when you deploy (Lesson 10). Your app's sense of "who is logged in" starts as a single global variable (Lessons 4–7) and becomes real per-request authentication with JWTs and cookies in Lesson 8. Along the way you maintain three separate databases, development, test, and production, and most mysterious bugs come down to being connected to a different one than you thought.
+Your data starts in memory (Lessons 1–4), moves to local PostgreSQL databases you query with raw SQL (Lesson 5), then with Prisma (Lessons 6–7), and finally to a cloud database when you deploy (Lesson 10). Your app's sense of "who is logged in" starts as a single global variable (Lessons 4–7) and becomes real per-request authentication with JWTs and cookies in Lesson 8. Along the way you maintain separate databases for practice data, development, testing, and production, and most mysterious bugs come down to being connected to a different one than you thought.

@@ -15,6 +15,8 @@ Create an `assignment6` branch before you make new changes. This branch should b
 **Prologue:**
 Right now, your app uses raw SQL queries with the `pg` library. In this assignment, replace those raw SQL queries with Prisma ORM methods. Keep the same functionality, including password hashing and global user_id storage. The REST calls your application supports should still work the same way, so your Postman tests do not need to change.
 
+For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](../DATA-AND-IDENTITY-GUIDE.md).
+
 ## Prerequisites
 - Completed Assignment 5 with a working PostgreSQL application
 - Basic understanding of database concepts and SQL
