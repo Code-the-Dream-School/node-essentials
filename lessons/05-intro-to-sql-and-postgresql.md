@@ -468,7 +468,7 @@ Now that you understand what SQL does, it is time to use it from your app. You w
 
 ### **Configuring the Connection**
 
-Database connections require a connection string, which is a URL. You created several connection strings during Assignment 0, and they are stored in your `.env` file. The connection string includes the host, database name, SSL mode, user ID, and password. The password must stay secret, so it belongs in `.env`, never in your source code. Make sure `.env` is listed in `.gitignore`. You do not use SSL for the local connection, but you will use SSL for the cloud database.
+Database connections require a connection string, which is a URL. You created several local PostgreSQL connection strings during Assignment 0, and they are stored in your `.env` file. The connection string includes the host, database name, user ID, and sometimes a password or connection options. Any password must stay secret, so it belongs in `.env`, never in your source code. Make sure `.env` is listed in `.gitignore`. In Lesson 10, you will use Neon connection strings for deployment.
 
 In your app, you want to centralize database connection management for two reasons:
 

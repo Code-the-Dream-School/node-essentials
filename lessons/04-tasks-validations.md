@@ -50,6 +50,8 @@ global.user_id = null;
 
 That temporary setup lets you practice the backend patterns before the app moves to PostgreSQL and Prisma later.
 
+For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](../DATA-AND-IDENTITY-GUIDE.md).
+
 ## **4.2 Authentication and Authorization**
 
 Authentication and authorization are related, but they are not the same.

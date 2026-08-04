@@ -38,6 +38,8 @@ Otherwise it returns a 401 (unauthorized).
 
 Your app currently uses a global user id to simulate logon and access control. In this assignment, you will remove that approach.
 
+For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](../DATA-AND-IDENTITY-GUIDE.md).
+
 ## **What do we Need in the JWT?**
 
 > **📚 Concept Review**: Before implementing JWT tokens, make sure you understand what they are and how they work.

@@ -23,8 +23,9 @@ The value is not written in your code. It comes from the environment, which mean
 In development, the easiest way to set environment variables is a `.env` file in the root of your project. It is a plain text file where each line is a `NAME=value` pair:
 
 ```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/node_dev
-TEST_DATABASE_URL=postgresql://user:password@localhost:5432/node_test
+DB_URL=<connection string for the SQL practice database>
+DATABASE_URL=<connection string for the task app development database>
+TEST_DATABASE_URL=<connection string for the task app test database>
 ```
 
 The [`dotenv`](https://www.npmjs.com/package/dotenv) package reads that file and copies each value into `process.env` when your app starts. That is why you install `dotenv` and call it near the top of your database connection file, before you read any values:
@@ -52,7 +53,8 @@ If a secret is ever committed by accident, treat it as compromised: rotate (chan
 
 This is one of the most common sources of confusion in the course, so name it clearly. You are juggling more than one database connection string:
 
-- **`DATABASE_URL`** — your **development** database, the one you work in by hand. Your Postman experiments and everyday data live here.
+- **`DB_URL`** — the SQL practice database used by `sqlcommand`, `load-db.js`, and Assignment 5a. This database has the sample business tables such as customers, orders, products, and line items.
+- **`DATABASE_URL`** — your task app **development** database, the one you use with Postman and everyday app data. This database has the app tables such as users and tasks.
 - **`TEST_DATABASE_URL`** — a **separate test** database used only by the automated tests. The tests delete and re-create data freely, so it **must** point at a different database than your development one. If a test ever wipes data you cared about, this is usually why.
 - **A production database** — added in the deployment assignment (Lesson 10). It lives in the cloud and serves real users. Be extremely careful with it. Commands that reset a database, like `npx prisma migrate reset`, must never be run against production.
 

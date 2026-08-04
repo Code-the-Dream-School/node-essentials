@@ -11,7 +11,7 @@ Start `sqlcommand` the same way you did in the lesson. For each task below, firs
 
 It may help to keep two terminal sessions open in VSCode: one for `sqlcommand`, and one for running the homework tests.
 
-Create a file named `assignment5-sql.txt` inside the `assignment5` directory. Each line in this file should be one SQL command, as described in the tasks. Lines that begin with `#` are treated as comments. As you add SQL statements to this file, test your work with:
+Create a file named `assignment5-sql.txt` inside the `assignment5` directory. Each line in this file should be one SQL command, as described in the tasks. Lines that begin with `#` are treated as comments. Assignment 5a uses the sample SQL practice database from the lesson, so `DB_URL` must be set in your `.env` file. As you add SQL statements to this file, test your work with:
 
 **💡 Tip:** When typing SQL commands in the `sqlcommand` terminal, add a space at the end of each line. Without trailing spaces, lines get concatenated together (e.g., `GROUP BY orders.order_idORDER BY` becomes invalid SQL).
 
@@ -27,7 +27,7 @@ The [SQL section of W3Schools](https://www.w3schools.com/sql/default.asp) is a g
 
 Inside `sqlcommand`, practice several kinds of SQL statements: SELECT, INSERT, UPDATE, DELETE, BEGIN, COMMIT, and ROLLBACK. Also practice statements that use JOIN, GROUP BY, ORDER BY, HAVING, SUM, COUNT, and subqueries.
 
-Keep practicing until the SQL feels less mysterious. Remember that you can reload the database if you need to reset your data. Then move on to the tasks below.
+Keep practicing until the SQL feels less mysterious. Remember that you can reload the sample database with `node load-db.js` if you need to reset your data. Then move on to the tasks below.
 
 **Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until the full query works correctly. If you run into problems, ask for assistance from a mentor or via the Slack channel. If SQL is new to you, take your time with this section.
 
@@ -122,11 +122,23 @@ In this assignment, you will update your existing Express application so it uses
 **Prologue:**
 Right now, your app uses globals to store users and each user's tasks. For this assignment, remove all use of `global.users` and `global.tasks`. Read from and write to the database instead. The REST calls your application supports should still work the same way, so your Postman tests do not need to change.
 
+For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](../DATA-AND-IDENTITY-GUIDE.md).
+
 ## A Quick Word About Environment Variables and Secrets
 
 Starting with this assignment, your app needs to know how to reach your database. That information includes a password, so it does not belong in your code. The standard solution is to keep it in an **environment variable**, loaded from a `.env` file that you never commit to git.
 
-You set up your databases and your `.env` file back in Week 0, and this assignment assumes both exist. If you need a refresher on what environment variables are, how `.env` and `dotenv` work, and why you keep separate development and test databases, read the [Environment Variables and Secrets guide](https://github.com/Code-the-Dream-School/node-essentials/blob/e751ad5007be66a9a562d48d8223a081bd9c3cd3/ENVIRONMENT-VARIABLES-GUIDE.md) before continuing.
+You set up your local PostgreSQL databases and your `.env` file back in Assignment 0, and this assignment assumes they already exist. Your `.env` file should contain connection strings for those databases. The variable names are:
+
+```bash
+DB_URL=<connection string for the SQL practice database>
+DATABASE_URL=<connection string for the task app development database>
+```
+
+- `DB_URL` is used by `sqlcommand`, `load-db.js`, and Assignment 5a. This database contains the sample business tables such as customers, orders, products, and line items.
+- `DATABASE_URL` is used by your Express app in Assignment 5b. This database contains the task app tables such as users and tasks.
+
+If you need a refresher on what environment variables are, how `.env` and `dotenv` work, and why you keep separate development and test databases, read the [Environment Variables and Secrets guide](https://github.com/Code-the-Dream-School/node-essentials/blob/e751ad5007be66a9a562d48d8223a081bd9c3cd3/ENVIRONMENT-VARIABLES-GUIDE.md) before continuing.
 
 ## Prerequisites
 - Completed previous lessons with a working Express application
@@ -160,7 +172,8 @@ For Mac:
 
 ```bash
 psql --version # check version
-brew services start postgresql@14 # You might have 15 or some different version
+brew services list | grep postgresql # find the installed service name
+brew services start postgresql@17 # replace postgresql@17 with the service name from the previous command
 ```
 
 For Linux:
@@ -169,7 +182,7 @@ For Linux:
 sudo service start postgresql
 ```
 
-For Windows, you open the Windows Services panel and start the postgresql service if it is not running.
+For Windows, open the Windows Services panel and start the PostgreSQL service if it is not running.
 
 Remember these steps. If your app suddenly stops working, one possible cause is that the database service is not running.
 
@@ -258,7 +271,7 @@ await pool.end();
 
 Without this, your Node process may hang on exit. You want the app to release all database connections.
 
-#### b. Modify app.js: Health Check
+#### c. Modify app.js: Health Check
 
 Modify the health check endpoint to verify database connectivity:
 
@@ -273,7 +286,7 @@ app.get("/health", async (req, res) => {
 });
 ```
 
-#### c. Modify Your Error Handler
+#### d. Modify Your Error Handler
 
 Add the following line to the top of your error handler middleware:
 

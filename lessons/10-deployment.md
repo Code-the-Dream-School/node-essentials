@@ -101,7 +101,7 @@ local Node app -> Neon database -> Render back end -> deployed front end config 
 
 First, you will make sure your local app can talk to the cloud database. Then you will deploy the back end to Render and give Render the environment variables it needs. After that, you will point the provided front end at the deployed back end. Finally, you will test the deployed application with Postman and the front end.
 
-1. You need a cloud-hosted database. An application in the cloud cannot reach your local database because your laptop does not have a public database address. You will use neon.tech. You will create a free account and a database. When you create the database, you will get a URL that includes the database password.
+1. You need a cloud-hosted database. An application in the cloud cannot reach your local database because your laptop does not have a public database address. You will use Neon. You will create a free account and a database. When you create the database, you will get a URL that includes the database password.
 
 2. You will point your current Node application at the Neon database. This is a change to your `.env` file. Remember that the URL includes a password. The `.env` file is the place for that secret.
 
