@@ -371,7 +371,7 @@ Here is how it's done with `pg`. The code below only shows the part you have to 
 // you do your Joi validation, and you have a validated task object. Then:
 const task  = await pool.query(`INSERT INTO tasks (title, is_completed, user_id) 
   VALUES ( $1, $2, $3 ) RETURNING id, title, is_completed`,
-  [value.title, value.is_completed, global.user_id]);
+  [value.title, value.isCompleted, global.user_id]);
   // You don't need a try/catch because the global error handler will handle the errors
 ```
 
