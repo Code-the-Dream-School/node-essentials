@@ -38,7 +38,7 @@ Otherwise it returns a 401 (unauthorized).
 
 Your app currently uses a global user id to simulate logon and access control. In this assignment, you will remove that approach.
 
-For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](?page=how-data-and-identity-evolve-across-the-course).
+For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](https://github.com/Code-the-Dream-School/node-essentials/blob/c08666680ccaecf9279bf9fdd4790c193f7c046b/DATA-AND-IDENTITY-GUIDE.md).
 
 ## **What do we Need in the JWT?**
 
