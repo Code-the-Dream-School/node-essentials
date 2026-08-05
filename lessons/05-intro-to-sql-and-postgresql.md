@@ -466,6 +466,10 @@ Spend a little time with this. It is useful to know how `pg` works. Many Node ap
 
 Now that you understand what SQL does, it is time to use it from your app. You will start with the `pg` package.
 
+The main change is where the data lives. Earlier, your app stored users and tasks in JavaScript global variables. That was useful for learning Express, but the data disappeared when the server stopped. Now the users and tasks will live in PostgreSQL tables.
+
+For now, the app still uses `global.user_id` to remember which user is logged in. This is temporary. It is not how a production app should handle login, but it keeps this lesson focused on reading and writing database rows from your controllers. Later in the course, you will replace this with a better login system.
+
 ### **Configuring the Connection**
 
 Database connections require a connection string, which is a URL. You created several local PostgreSQL connection strings during Assignment 0, and they are stored in your `.env` file. The connection string includes the host, database name, user ID, and sometimes a password or connection options. Any password must stay secret, so it belongs in `.env`, never in your source code. Make sure `.env` is listed in `.gitignore`. In Lesson 10, you will use Neon connection strings for deployment.
@@ -564,6 +568,10 @@ const newUser = await pool.query(`INSERT INTO users (email, name, hashed_passwor
     [email, name, hashed_password]
   );
 ```
+
+Notice the word `RETURNING` in the `INSERT` example. When PostgreSQL creates a new row, it may also create a new id for that row. You should not guess what that id will be. `RETURNING` means, "After you insert this row, give me these columns back." Then your code can use the id PostgreSQL actually created.
+
+This matters whenever one step creates data that the next step needs. For example, if you insert a new order and then need to insert line items for that order, the line items need the new `order_id`. The safe approach is to use `RETURNING order_id` when you insert the order, then use that returned id when you insert the line items.
 
 When you call `pool.query()`, the pool gives you a connection. If that connection is not connected to an actual socket yet, it connects when you issue the query.
 

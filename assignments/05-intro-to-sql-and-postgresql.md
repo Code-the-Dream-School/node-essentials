@@ -31,6 +31,20 @@ Keep practicing until the SQL feels less mysterious. Remember that you can reloa
 
 **Note:** These tasks require SQL statements that are somewhat complicated. Implement the statements incrementally — get one part working, then add more clauses, until the full query works correctly. If you run into problems, ask for assistance from a mentor or via the Slack channel. If SQL is new to you, take your time with this section.
 
+### **Understanding What Assignment 5a Is Asking For**
+
+In this part of the assignment, getting the right data is only part of the job. The shape of the result matters too. A SQL query returns rows and columns. The tests check those rows and columns, so the column names, row order, and grouped results need to match what the task asks for.
+
+For example, if a task asks for `order_id` and `total_price`, then those should be the two column names in your result. If a task says the rows should be ordered by `order_id`, then the `ORDER BY` is part of the answer. If a task says to find the first 5 orders, then `LIMIT 5` is also part of the answer.
+
+Task 1 asks for the total price of each order. The database does not store that total in one column. Instead, each order has line items. Each line item has a quantity, and each product has a price. For each line item, the cost is the product price times the quantity. Then SQL adds those line item costs together to get one total for the order. That is why you use `GROUP BY`: you are asking SQL to make one total for each order.
+
+Task 2 builds on that same idea. First, SQL needs to find the total price of each order. Then SQL can group those order totals by customer and find the average order price for each customer. The subquery helps because the inside query answers, "What is each order worth?" Then the outside query answers, "What is each customer's average?"
+
+Task 3 is different because you are creating new rows. When PostgreSQL creates a new order, it also creates a new `order_id`. Do not guess that id, and do not type in a fixed order id from your own database. Instead, use `RETURNING order_id` on the `INSERT` statement. That means, "After you create this order, give me back the new id." Then use that returned id when you insert the line items for the new order.
+
+So for 5a, slow down and check the exact result the task asks for: the column names, the row order, the grouping, and any id created by an `INSERT`.
+
 ### **Task 1: Find the total price of each of the first 5 orders, ordered by order_id.**
 
 There are several steps. You need the `price` from the `products` table and the `quantity` from the `line_items` table, so you will need to join those tables with the `orders` table.
@@ -302,6 +316,22 @@ If the database service is not running, you want the console message to make tha
 
 You are going to replace the global arrays with database calls. For now, you will still use `global.user_id`. Start with logon in the user controller.
 
+#### **Understanding What Assignment 5b Is Asking For**
+
+In Assignment 5b, you are not building a brand-new app. You are taking the app you already have and changing where the data is stored.
+
+Before this assignment, the app probably stored users in `global.users` and tasks in `global.tasks`. That means the data lived inside the Node process. If the server stopped, the data disappeared. In this assignment, users and tasks should live in PostgreSQL tables instead. The controller functions still respond to the same kinds of requests, but they now use SQL to read and write the data.
+
+One thing does not change yet: the app still uses `global.user_id` to remember which user is logged in. That is expected for Assignment 5. It is not how a production app should handle login, but it keeps this assignment focused on one main skill: using PostgreSQL from your controllers. Do not add sessions, JWT tokens, cookies, or a new login system for this assignment. Those ideas come later.
+
+For `userController`, think about the flow one request at a time. When a user registers, the controller first checks that the request body is valid. Then it hashes the password, so the plain password is not saved. Then it inserts the user into the `users` table. PostgreSQL gives back the new user row, and the controller uses that row to set `global.user_id` and send a `201` response.
+
+When a user logs on, the controller looks up the user by email. If no user is found, the login fails. If the user is found, the controller compares the password from the request with the hashed password from the database. If the password is correct, the controller sets `global.user_id` and sends `200`. If the email or password is wrong, it sends `401`.
+
+For `taskController`, remember that every task belongs to one user. The `tasks` table has a `user_id` column for this reason. When a controller gets, updates, or deletes a task, the SQL should check both the task id and `global.user_id`. If a task exists but belongs to another user, the current user should not be able to access it. From this API's point of view, that should look like "task not found," so the controller should send `404`.
+
+The tests for 5b expect simple behavior. Return `201` when something is created. Return `200` when a request works. Return `400` when the request body is invalid. Return `404` when a task is not found for the current user. Keep the returned JSON simple too: for tasks, return fields such as `id`, `title`, and `is_completed`, but do not return `user_id`.
+
 You will not see many try/catch blocks in these examples. For most database errors, you can let the global error handler take care of the response.
 
 Calls to the `pg` pool are asynchronous. If some controller functions are not declared `async`, you will need to change that. Some controller functions may also need to call `next(err)`, so those functions must receive `req`, `res`, and `next` as parameters.
@@ -444,6 +474,14 @@ Also test that one user cannot show, update, or delete a task that belongs to a 
 ### 5. Run the TDD 
 
 Run `npm run tdd assignment5b`.  Make sure all tests complete correctly.
+
+### **How to Read a Failing Test**
+
+When a test fails, do not treat the message as just a red error. Treat it as a clue. The test name usually tells you what behavior it was checking. The expected value tells you what your code or SQL should have returned.
+
+For Assignment 5a, first check the shape of your SQL result. Make sure the column names match the task. Then check the row order. Then check the grouping. A query can return the right numbers but still fail if the column name is different, the rows are sorted differently, or the grouping creates too many or too few rows.
+
+For Assignment 5b, start with the status code. If the test expected `201` but got `200`, the database insert might have worked, but the response still does not match the API behavior the test expects. If the test expected `404` when another user tries to access a task, check the SQL in that controller. It probably needs to filter by `global.user_id` as well as the task id.
 
 **Important Security Note:**
 The global user_id storage approach used here is **NOT secure** for production applications. Once someone logs in, anyone else could access that logged-in user's tasks because there is only one global value. This is used here to match the behavior from Lesson 4, but a real application needs proper session management, JWT tokens, or another secure authentication method. You will fix this problem in Assignment 8.
