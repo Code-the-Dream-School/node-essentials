@@ -60,7 +60,7 @@ This is one of the most common sources of confusion in the course, so name it cl
 
 Whenever something behaves in a way you cannot explain, ask the most useful debugging question first: **"Which database am I actually connected to right now?"** A surprising amount of confusion comes from running against the wrong one.
 
-For the bigger picture of how storage and these databases evolve across the course, see the [Data and Identity guide](?page=how-data-and-identity-evolve-across-the-course).
+For the bigger picture of how storage and these databases evolve across the course, see the [Data and Identity guide](?page=data-and-identity-guide).
 
 ## **Where This Started**
 

@@ -136,7 +136,7 @@ In this assignment, you will update your existing Express application so it uses
 **Prologue:**
 Right now, your app uses globals to store users and each user's tasks. For this assignment, remove all use of `global.users` and `global.tasks`. Read from and write to the database instead. The REST calls your application supports should still work the same way, so your Postman tests do not need to change.
 
-For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](?page=how-data-and-identity-evolve-across-the-course).
+For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](?page=data-and-identity-guide).
 
 ## A Quick Word About Environment Variables and Secrets
 

@@ -50,7 +50,7 @@ global.user_id = null;
 
 That temporary setup lets you practice the backend patterns before the app moves to PostgreSQL and Prisma later.
 
-For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](?page=how-data-and-identity-evolve-across-the-course).
+For the big picture of how storage and login identity change across the course, see the [Data and Identity guide](?page=data-and-identity-guide).
 
 ## **4.2 Authentication and Authorization**
 
