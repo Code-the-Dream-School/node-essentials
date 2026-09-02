@@ -653,7 +653,7 @@ describe("register a user ", () => {
       email: "jdeere@example.com",
       password: "Pa$$word20",
     };
-    saveRes = await agent.post("/user/register").send(newUser);
+    saveRes = await agent.post("/users/register").send(newUser);
     expect(saveRes.status).toBe(201);
   });
 })
