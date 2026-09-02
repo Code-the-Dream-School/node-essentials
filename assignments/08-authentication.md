@@ -194,9 +194,9 @@ You should see:
 1. The `csrfToken` returned in the response body.  
 2. The `jwt` cookie being set.  
 
-At this point, your Postman tests for task routes and `/api/users/logoff` will not work properly because the `csrfToken` is not being sent in the `X-CSRF-TOKEN` header. Try testing them to confirm the issue.
+At this point, your saved Postman requests for task routes and `/api/users/logoff` will not work properly because the `csrfToken` is not being sent in the `X-CSRF-TOKEN` header. Try sending them to confirm the issue.
 
-You need to capture `csrfToken` when it is returned from `register` or `logon`. Open the `logon` request in Postman and find the Tests tab. Add this code:
+You need to capture `csrfToken` when it is returned from `register` or `logon`. Open the `logon` request in Postman. Select **Scripts**, then **Post-response** (shown as **After Response** in some Postman versions), and add this code:
 
 ```js
 const jsonData = pm.response.json();

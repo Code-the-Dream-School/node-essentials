@@ -64,13 +64,25 @@ datasource db {
 
 **Important** You must also erase the `prisma.config.ts` file. This is an artifact of the latest Prisma release that needs to be removed.
 
+#### b. Confirm Which Local Database Prisma Uses
+
+Prisma is not a separate database. It connects to the local task app development database you used in Assignment 5. The datasource in `schema.prisma` reads `DATABASE_URL` from `.env`, so commands such as `prisma db pull`, `prisma migrate`, and `prisma studio` use the database named by that connection string.
+
+Before running Prisma commands:
+
+1. Make sure your local PostgreSQL service is running. On Mac or Linux, `pg_isready` should report `accepting connections`. On Windows, the PostgreSQL service should show `Running` in the Windows Services panel.
+2. Check that `DATABASE_URL` in `.env` points to your local task app development database, not the SQL practice database, test database, or a different database.
+3. Remember that `npx prisma migrate reset` deletes all data in the selected database. Always verify the URL first.
+
+Refer to **The PostgreSQL Service** section in Week 0 if you need to check or restart PostgreSQL, and review the Week 0 `.env` instructions if you need to verify your local connection strings.
+
 Now you can generate the client, using this command:
 
 ```bash
 npx prisma generate
 ```
 
-#### b. Create the Schema
+#### c. Create the Schema
 
 You need model stanzas in `schema.prisma`. Each model describes one database table. Since you already created the tables with SQL in Assignment 5, Prisma can read the existing database and create models from it. This is called introspection. Run:
 
@@ -78,14 +90,14 @@ You need model stanzas in `schema.prisma`. Each model describes one database tab
 npx prisma db pull
 ```
 
-Open `prisma/schema.prisma`. You should now have two model stanzas, like these:
+Open `prisma/schema.prisma`. You should now have two model stanzas, like these. At this point, the model names and relation types are lowercase because Prisma copied the names from your PostgreSQL tables; you will rename them in the next step.
 
 ```
 model users {
   id             Int      @id @default(autoincrement())
   email          String   @unique @db.VarChar(255)
   name           String   @db.VarChar(30)
-  hashedpassword String   @db.VarChar(255)
+  hashed_password String  @db.VarChar(255)
   created_at     DateTime @default(now()) @db.Timestamp(6)
   tasks          tasks[]
 }
@@ -101,9 +113,18 @@ model tasks {
 }
 ```
 
-Notice how the model stanzas map to the SQL tables you created earlier. Pay close attention to the relation between tasks and users. Also notice `@@unique`, which describes the additional index you need.
+This first schema uses the names Prisma found in your database. That is why the model names are the lowercase, plural names `users` and `tasks`, and column names such as `hashed_password` contain underscores.
 
-The models above work, but they are not very friendly for JavaScript code. By convention, Prisma model names are capitalized and singular. JavaScript property names usually use camelCase. If you rename the models and fields to match those conventions, Prisma needs to know how those names map back to the existing database tables and columns. Use `@map` for columns and `@@map` for tables. The final result is:
+The relation lines can be confusing because the field name and model name are next to each other:
+
+- In `tasks tasks[]`, the first `tasks` is the field name. The second `tasks` refers to the `tasks` model. The brackets `[]` mean that one user can have many tasks.
+- In `users users @relation(...)`, the first `users` is the field name. The second `users` refers to the `users` model.
+
+These lowercase relation types are correct because they must match the lowercase model names in this first schema. Changing only the types to `Task[]` and `User` would cause an error because models with those names have not been created yet.
+
+Next, rename the models and fields to make them easier to use in JavaScript. Prisma model names are usually singular and begin with a capital letter, such as `User` and `Task`. Field names usually begin with a lowercase letter and use camelCase, such as `hashedPassword`, `tasks`, and `user`.
+
+Renaming something in Prisma does not rename it in PostgreSQL. `@map` connects a renamed Prisma field to its original database column, while `@@map` connects a renamed Prisma model to its original database table. The final result is:
 
 ```
 // This is your Prisma schema file
@@ -124,7 +145,7 @@ model User {
   name           String   @db.VarChar(30)
   hashedPassword String   @db.VarChar(255) @map("hashed_password")
   createdAt     DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  Task          Task[]
+  tasks          Task[]
   @@map("users")
 }
 
@@ -134,13 +155,27 @@ model Task {
   isCompleted Boolean  @default(false) @map("is_completed")
   userId      Int       @map("user_id")
   createdAt   DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  User       User    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user        User    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@unique([id, userId])
   @@map("tasks")
 }
 ```
 
-#### c. Migration
+#### d. View the Database with Prisma Studio
+
+Prisma Studio gives you a visual interface for the tables and records described by `schema.prisma`. From the root of `node-homework`, run:
+
+```bash
+npx prisma studio
+```
+
+Studio uses `DATABASE_URL`, just like the other Prisma commands, and normally opens in your browser at `http://localhost:5555`. Select a model to view its records and relationships.
+
+Changes made in Studio are real database changes. Before adding, editing, or deleting records, confirm that `DATABASE_URL` points to your local development database. Stop Studio with `Ctrl+C` when you are finished.
+
+If your models do not appear, make sure PostgreSQL is running, verify `DATABASE_URL`, and run `npx prisma db pull` again.
+
+#### e. Migration
 
 You can create the schema with the pattern above: create tables with SQL, introspect the schema, then adjust names with mapping. Most people find that this is the harder path.
 
@@ -162,16 +197,22 @@ There is much more to learn about migrations, but this is enough for now.
 Since you may make schema changes later, you also want Prisma to manage the test database schema. This time, run:
 
 ```bash
-DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate reset
+DATABASE_URL="<paste the TEST_DATABASE_URL value from .env>" npx prisma migrate reset
 ```
 
-For `<TEST_DATABASE_URL>`, use the value from your `.env` file. This reset deletes all data in the test database, but that is okay. It brings the test database into sync with your models and the migration history from the development database.
+Prisma reads only `DATABASE_URL` from `schema.prisma`. This command temporarily gives `DATABASE_URL` the connection string stored as `TEST_DATABASE_URL` in your `.env` file, so the reset affects the test database. It does not change your `.env` file. This reset deletes all data in the test database, but that is okay. It brings the test database into sync with your models and the migration history from the development database.
 
 ---
 
-**Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships.  Every time you do a migration for the development database, you do it for the test database as well, with the command above.
+**Important:** You must run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to be updated to reflect any changes to your models, fields, or relationships. Use the reset command above only for the initial test database setup.
 
-From this point on, if you make a schema change, change the Prisma model first. Then run `npx prisma migrate dev`. For the test database, run the corresponding `npx prisma migrate deploy`. Do not change the schema with ordinary SQL. You will also use `deploy` with the production database you create for Internet deployment in Lesson 10. Never use schema `reset` with the production database because it deletes all data.
+From this point on, if you make a schema change, change the Prisma model first. Then run `npx prisma migrate dev`. Apply each new migration to the test database with:
+
+```bash
+DATABASE_URL="<paste the TEST_DATABASE_URL value from .env>" npx prisma migrate deploy
+```
+
+Do not change the schema with ordinary SQL. You will also use `deploy` with the production database you create for Internet deployment in Lesson 10. Never use schema `reset` with the production database because it deletes all data.
 
 ### 2. Create Prisma Database Connection
 

@@ -210,7 +210,25 @@ W3Schools also provides a useful SQL reference [here.](https://www.w3schools.com
 
    This would change all records in the Employees table, as there is no WHERE clause. Note, however, that this does not work in SQLBolt, because of the limitations of that tutorial.
 
-## **5.3 A Command Line Practice Environment**
+## **5.3 PostgreSQL Command-Line Tools**
+
+### **Quick `psql` Reference**
+
+In Week 0, you used `psql`, PostgreSQL's interactive command-line program, to create your databases. These common commands help you inspect a PostgreSQL server:
+
+- `\l` — list databases
+- `\c database_name` — connect to a database
+- `\dt` — list tables in the current database
+- `\d table_name` — describe a table
+- `\conninfo` — show your current connection
+- `\?` — show help for `psql` commands
+- `\q` — exit `psql`
+
+Commands that begin with a backslash are `psql` commands and do not need a semicolon. SQL statements do need a semicolon. `Ctrl+C` cancels the current input or query and returns you to the `psql` prompt; it does not exit `psql`.
+
+The `sqlcommand.js` practice tool used below is a separate course tool. In that tool, `Ctrl+C` does exit the program.
+
+### **Practicing SQL with `sqlcommand.js`**
 
 Your `node-homework` directory contains an SQL command-line tool. Make that directory active, then run the tool with:
 
@@ -218,7 +236,7 @@ Your `node-homework` directory contains an SQL command-line tool. Make that dire
 node sqlcommand.js
 ```
 
-This tool gives you SQL access to a Postgres database you created when you set up the `node-homework` directory. There are five tables:
+This tool uses `DB_URL` from your `.env` file to connect to the SQL practice database you created when you set up the `node-homework` directory. The practice database has five tables:
 
 - customers
 - employees
@@ -256,7 +274,7 @@ Here are some tips for using the `sqlcommand` command-line interface:
 
 - You can enter multiple lines of input. These will only be processed when you end a line with a `;`.
 - If you make a mistake, you can use the up and down arrows to recall your command, and you can edit it to correct the problem.
-- If you do INSERT, UPDATE, or DELETE operations, you are changing your real data, the Postgres database that you created at neon.com. You can restore the database to its original state by running:
+- If you do INSERT, UPDATE, or DELETE operations, you are changing data in the SQL practice database identified by `DB_URL`. You can restore that database to its original state by running:
 
   ```bash
   node load-db.js

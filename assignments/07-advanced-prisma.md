@@ -62,8 +62,10 @@ npx prisma migrate dev --name add_priority_field
 Then apply the migration to your test database:
 
 ```bash
-DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy
+DATABASE_URL="<paste the TEST_DATABASE_URL value from .env>" npx prisma migrate deploy
 ```
+
+Prisma reads only `DATABASE_URL` from `schema.prisma`. This command temporarily gives `DATABASE_URL` the connection string stored as `TEST_DATABASE_URL` in your `.env` file, so the migration is applied to the test database without changing your `.env` file.
 
 **Important:** Run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to know about changes to your models, fields, or relationships. Every time you migrate the development database, migrate the test database too with the command above.
 
