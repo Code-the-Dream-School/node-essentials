@@ -24,7 +24,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
    - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](?page=test-driven-development-(tdd)-testing-guide)
    - Watch this video that goes over Test Driven Development: [How to Read Tests](https://www.youtube.com/watch?v=fxe1yNSC6H4)
 4. **Run the tests:**
-   - This assignment has a **Core** part (required) and an **Advanced** part (optional), matching the lesson.
+   - This assignment has a **Core** part (required) and an **Optional** part, matching the lesson.
    - Run the core tests with:
      ```bash
      npm run tdd assignment1a
@@ -33,7 +33,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
      ```bash
      npm run tdd assignment1b
      ```
-   - Make sure the core tests pass before submitting your work. The advanced tests are optional.
+   - Make sure the core tests pass before submitting your work. The tests for the optional tasks are not required.
 
 ## Assignment Tasks
 
@@ -105,15 +105,15 @@ fs.promises read: Hello from fs.promises!
 
 That completes the core tasks. Run the core tests with `npm run tdd assignment1a`.
 
-## Stretch Goals (Optional)
+## Optional Tasks
 
-This part is optional, just like the Advanced section of the lesson. You can skip it and still continue the course, but it is good extra practice.
+This part is optional. You can skip it and still continue the course, but it is good extra practice.
 
 ### 5. (Optional) Streams for Large Files
 - In your `core-modules-demo.js` script, add streaming:
   - Create a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log a line that starts with `Read chunk:` (for example, the first 40 characters of the chunk). When the stream ends, log exactly `Finished reading large file with streams.` Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
 
-**Important:** The test looks for the exact prefix `Read chunk:` on your chunk lines and the exact phrase `Finished reading large file with streams` for the end message. (This is the same wording used in the streams example in Lesson 1's Advanced section.)
+**Important:** Your output must include lines starting with the exact prefix `Read chunk:` and must end with the exact phrase `Finished reading large file with streams.`
 
 **Console Output Examples:**
 Example -- the words that follow `Read chunk:` will vary, but `Read chunk:` and the second line should appear in your output as stated above
@@ -140,7 +140,7 @@ Then run the course tests:
 
 ```bash
 npm run tdd assignment1a   # core (required)
-npm run tdd assignment1b   # advanced (optional)
+npm run tdd assignment1b   # optional tasks
 ```
 
 The automated tests will check that your output matches the expected format. If a test fails, check that your console.log statements use the exact spacing and capitalization shown in the examples above.
@@ -202,7 +202,7 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 
 ### Optional Deliverables/Tasks
 
-Signaled in the assignment as "Stretch Goals (Optional)." **Do not fail a student for omitting these.**
+Signaled in the assignment as "Optional Tasks." **Do not fail a student for omitting these.**
 
 - **Task 5 — (Optional) Streams for Large Files** — adds streaming to `core-modules-demo.js`: creates `sample-files/largefile.txt`, reads it with `fs.createReadStream` using a `highWaterMark` option, logs lines starting with `Read chunk:` for each chunk, and logs `Finished reading large file with streams.` when done. `Use exactly as written`: the `Read chunk:` prefix and the exact end-of-stream message. `Example — adapt to your own content`: the text that follows `Read chunk:` will vary based on the file's contents.
 
