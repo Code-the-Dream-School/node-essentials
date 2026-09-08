@@ -364,7 +364,7 @@ This part is optional, just like the Advanced section of the lesson. You can ski
 
 The advanced tasks focus on edge cases. An **edge case** is a situation outside the happy path, such as a bad URL, the wrong method, or invalid JSON.
 
-### 6. Stretch Goal: Raw HTTP Unknown Route
+### 6. (Optional) Raw HTTP Unknown Route
 
 In `assignment2/sampleHTTP.js`, add a response for unknown routes.
 
@@ -388,7 +388,7 @@ Test it in your browser:
 http://localhost:8000/not-here
 ```
 
-### 7. Stretch Goal: Raw HTTP Invalid JSON
+### 7. (Optional) Raw HTTP Invalid JSON
 
 In `assignment2/sampleHTTP.js`, improve your `POST /echo` route so invalid JSON does not crash the server.
 
@@ -428,7 +428,7 @@ For example:
 
 Your server should return a `400` response instead of crashing.
 
-### 8. Stretch Goal: Express Unknown Route
+### 8. (Optional) Express Unknown Route
 
 In your root `app.js`, add a final fallback route for unknown Express paths.
 
@@ -452,7 +452,7 @@ http://localhost:3000/unknown
 
 You should get a `404` response.
 
-### 9. Stretch Goal: Server Lifecycle Polish
+### 9. (Optional) Server Lifecycle Polish
 
 This part is not required for the automated tests, but it is good practice for real server code.
 
@@ -592,3 +592,30 @@ Answer 3 questions from Lesson 2:
 4. Create a pull request. The target of the pull request should be the `main` branch of your GitHub repository.
 5. Once the pull request is created, your browser contains the URL of the PR. Include that link in your homework submission.
 6. Do not forget to include your video link in the submission form.
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+- **Task 1 — Event Emitter and Listener** — `assignment2/events.js` creates an `EventEmitter` with exactly one listener for the `"time"` event that logs the received message, and exports the emitter with `module.exports = emitter`. When run directly with Node, it emits `"time"` every 5 seconds, gated by `if (require.main === module)`. `Use exactly as written (later tasks/tests depend on these)`: the `module.exports = emitter` line and the `require.main === module` guard — the tests import this file and must not trigger the timer.
+- **Task 2 — Raw Node HTTP Server** — `assignment2/sampleHTTP.js` listens on port `8000`. `GET /time` returns status `200`, `Content-Type: application/json`, and a body shaped `{ "time": "..." }` (the time value itself is not literal — any valid time string is acceptable). `GET /timePage` returns status `200`, `Content-Type: text/html; charset=utf-8`, and the exact `htmlString` given in the assignment. `Use exactly as written`: the file name `sampleHTTP.js` (exact casing) and the `htmlString` content for `/timePage`.
+- **Task 3 — Raw Node POST Route** — `POST /echo` in `sampleHTTP.js` reads the body via the `"data"`/`"end"` events, parses it with `JSON.parse()`, and returns it wrapped in `{ "weReceived": <parsed body> }`. `Example — adapt to your own test body`: the sample request/response bodies shown (`"Hello from Postman"`) illustrate the echo behavior; the response should mirror whatever valid JSON body is sent, not that literal text.
+- **Task 4 — First Express Application** — root-level `app.js` with `GET /` returning `"Hello, World!"`, `POST /testpost` returning status `200` with JSON `{ "message": "POST route works" }`, and `module.exports = { app, server }`. `Use exactly as written (tests depend on this)`: the `{ app, server }` export shape — tests use it to send requests and close the server.
+- **Task 5 — Organize the Express App Layout** — `controllers/timeController.js` exports `getTime` and `echoBody`; `routes/timeRoutes.js` wires `GET /time` and `POST /echo` to those functions; `app.js` mounts that router at `/api`. `Use exactly as written (later tests depend on these names/paths)`: the function names `getTime`/`echoBody` and the resulting routes `GET /api/time` and `POST /api/echo`, per the assignment's opening note that automated tests expect specific file names and routes.
+- **Video submission** — a 3–5 minute video answering the three listed questions (Event Emitters/Listeners, HTTP module vs. Express, Express project layout).
+- **Submission** — work pushed to an `assignment2` branch with a pull request against main; PR link and video link included in the submission form.
+
+### Optional Deliverables/Tasks
+
+Signaled in the assignment as "Stretch Goals (Optional)." **Do not fail a student for omitting these.**
+
+- **Task 6 — (Optional) Raw HTTP Unknown Route** — in `sampleHTTP.js`, any request not matching `/time`, `/timePage`, or `/echo` returns status `404`, `Content-Type: application/json`, and body `{ "message": "That route is not available." }`. `Use exactly as written, if attempted`: the message text.
+- **Task 7 — (Optional) Raw HTTP Invalid JSON** — in `sampleHTTP.js`, `POST /echo` wraps `JSON.parse()` in try/catch; on failure, returns status `400`, `Content-Type: application/json`, body `{ "message": "Invalid JSON." }`. `Use exactly as written, if attempted`: the message text.
+- **Task 8 — (Optional) Express Unknown Route** — root `app.js` adds a catch-all `app.all("*", ...)` fallback returning status `404` with a JSON message for unmatched Express routes.
+- **Task 9 — (Optional) Server Lifecycle Polish** — the assignment itself states this part is not required for the automated tests. Handling `server.on("error", ...)` (e.g. `EADDRINUSE`) and graceful shutdown on `SIGINT`/`SIGTERM` is good practice but should never be treated as a failure if absent.
+
+</details>
+
