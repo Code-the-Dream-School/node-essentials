@@ -73,11 +73,11 @@ These tasks are required. The core tests run with `npm run tdd assignment1a`.
   - **File Setup :** Do **not** manually create `sample.txt` ahead of time. Your `async-demo.js` should create `sample-files/sample.txt` programmatically with exactly `Hello, async world!`, then read that file in the callback, promise, and async/await examples.
 
 **Console Output Examples:**
-When you run your async-demo.js, you should see output like:
+The first line of this example output is from running the callback async pattern, the second from the promise async pattern, and the third from the async/await async pattern.
 ```
-Callback read: Hello, async world!
-Promise read: Hello, async world!
-Async/Await read: Hello, async world!
+Hello, async world!
+Hello, async world!
+Hello, async world!
 ```
 #### If You Get Stuck
 
@@ -94,7 +94,7 @@ This keeps you in control. The AI helps you debug, you do the fixing.
   - Uses the `fs.promises` API to write and then read a file (`sample-files/demo.txt`). Be sure to write it inside the `sample-files` folder so the tests can find it.
 
 **Console Output Examples:**
-When you run your core-modules-demo.js, you should see output like:
+Example — your platform, CPU, memory, and path will differ; this shows the expected types of information only.
 ```
 Platform: darwin
 CPU: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
@@ -109,14 +109,14 @@ That completes the core tasks. Run the core tests with `npm run tdd assignment1a
 
 This part is optional, just like the Advanced section of the lesson. You can skip it and still continue the course, but it is good extra practice.
 
-### 5. Stretch Goal: Streams for Large Files
+### 5. (Optional) Streams for Large Files
 - In your `core-modules-demo.js` script, add streaming:
   - Create a file called `largefile.txt` in your `sample-files` folder. You can do this by writing a loop that writes many lines to the file (e.g., 100 lines of any text). Demonstrate reading `largefile.txt` using a readable stream (`fs.createReadStream`). For each chunk read, log a line that starts with `Read chunk:` (for example, the first 40 characters of the chunk). When the stream ends, log exactly `Finished reading large file with streams.` Use the `highWaterMark` option in `fs.createReadStream` to control the chunk size (e.g., set it to 1024 for 1KB chunks). You can experiment with different values to see how it affects the number of chunks and the output.
 
 **Important:** The test looks for the exact prefix `Read chunk:` on your chunk lines and the exact phrase `Finished reading large file with streams` for the end message. (This is the same wording used in the streams example in Lesson 1's Advanced section.)
 
 **Console Output Examples:**
-When the streaming part runs, you should also see output like:
+Example -- the words that follow `Read chunk:` will vary, but `Read chunk:` and the second line should appear in your output as stated above
 ```
 Read chunk: This is a line in a large file...
 Finished reading large file with streams.
@@ -186,4 +186,25 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 3. Once the pull request (PR) is created, your browser contains the URL of the PR. Copy that to your clipboard.  Include that link in your homework submission.
 4. **Don't forget to include your video link in the submission form!**
 
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+- **Task 1 — Node.js Fundamentals** — `node-fundamentals.md` filled in with the student's own answers (not the `Answer here..` placeholders) to all five questions, including a CommonJS example and an ES Modules example.
+- **Task 2 — Exploring Node Globals** — `globals-demo.js` logs `__dirname`, `__filename`, `process.pid`, `process.platform`, and a custom global variable. `Use exactly as written (later tasks depend on these names)`: the exact `console.log` label text, capitalization ("Process ID", "Platform"), and one space after each colon, as specified in the task.
+- **Task 3 — Asynchronous JavaScript** — `async-demo.js` programmatically creates `sample-files/sample.txt` with the content `Hello, async world!`, then reads it via callback, Promise, and async/await, with try/catch error handling and callback-hell explained in comments. `Use exactly as written`: the phrase `Hello, async world!` must appear in the output for each of the three patterns. The sample console output block is `Example — illustrative formatting only`.
+- **Task 4 — Node Core Modules** — `core-modules-demo.js` uses `os` to log platform/CPU/memory, uses `path` to join and log two paths, and uses `fs.promises` to write and read `sample-files/demo.txt`. The console output example is `Example — adapt to your own system`: platform, CPU, memory, and path values will differ per machine; only the types of information logged should match, not the literal values.
+- **Video submission** — a 3–5 minute video answering the three listed questions about Node.js vs. browser JS, CommonJS vs. ES Modules, and Node/browser environment differences.
+- **Submission** — work pushed to an `assignment1`-style branch with a pull request against main; PR link and video link included in the submission form.
+
+### Optional Deliverables/Tasks
+
+Signaled in the assignment as "Stretch Goals (Optional)." **Do not fail a student for omitting these.**
+
+- **Task 5 — (Optional) Streams for Large Files** — adds streaming to `core-modules-demo.js`: creates `sample-files/largefile.txt`, reads it with `fs.createReadStream` using a `highWaterMark` option, logs lines starting with `Read chunk:` for each chunk, and logs `Finished reading large file with streams.` when done. `Use exactly as written`: the `Read chunk:` prefix and the exact end-of-stream message. `Example — adapt to your own content`: the text that follows `Read chunk:` will vary based on the file's contents.
+
+</details>
 
