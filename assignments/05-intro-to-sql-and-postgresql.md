@@ -147,10 +147,12 @@ You set up your local PostgreSQL databases and your `.env` file back in Assignme
 ```bash
 DB_URL=<connection string for the SQL practice database>
 DATABASE_URL=<connection string for the task app development database>
+TEST_DATABASE_URL=<connection string for the task app test database>
 ```
 
 - `DB_URL` is used by `sqlcommand`, `load-db.js`, and Assignment 5a. This database contains the sample business tables such as customers, orders, products, and line items.
 - `DATABASE_URL` is used by your Express app in Assignment 5b. This database contains the task app tables such as users and tasks.
+- `TEST_DATABASE_URL` is used by the provided TDD tests and, later, your own automated tests. It must point to a separate task app database because tests can modify or clear its data.
 
 If you need a refresher on what environment variables are, how `.env` and `dotenv` work, and why you keep separate development and test databases, read the [Environment Variables and Secrets guide](https://github.com/Code-the-Dream-School/node-essentials/blob/e751ad5007be66a9a562d48d8223a081bd9c3cd3/ENVIRONMENT-VARIABLES-GUIDE.md) before continuing.
 
@@ -185,20 +187,24 @@ You installed Postgres and created the databases you need in Assignment 0. Depen
 For Mac:
 
 ```bash
-psql --version # check version
-brew services list | grep postgresql # find the installed service name
-brew services start postgresql@17 # replace postgresql@17 with the service name from the previous command
+brew services list | grep postgresql
 ```
+
+The service should say `started`. If it is stopped, run `brew services start <service-name>`, replacing `<service-name>` with the PostgreSQL service shown in the list. Do not type the angle brackets.
 
 For Linux:
 
 ```bash
-sudo service start postgresql
+sudo service postgresql status
 ```
 
-For Windows, open the Windows Services panel and start the PostgreSQL service if it is not running.
+The status should say `active (running)`. If it is stopped, run `sudo service postgresql start`.
 
-Remember these steps. If your app suddenly stops working, one possible cause is that the database service is not running.
+On Mac or Linux, you can also run `pg_isready`. A working local service reports `accepting connections`.
+
+For Windows, open the Windows Services panel, find the PostgreSQL service, and check that its status is `Running`. If it is stopped, right-click it and select **Start**.
+
+These checks are also documented in Week 0. Remember them: if your app or a database command suddenly cannot connect, one possible cause is that the database service is not running.
 
 #### c. Create Database Tables
 
@@ -230,21 +236,35 @@ Once that file is created, run the following command:
 For Mac and Linux:
 
 ```bash
-psql <DATABASE_URL> -f schema.sql
+psql "<paste the DATABASE_URL value from .env>" -f schema.sql
 ```
 
-where `DATABASE_URL` is the value you saved in your `.env` file during Assignment 0. On Windows, the command is a little longer:
+Replace `<paste the DATABASE_URL value from .env>` with the complete `DATABASE_URL` connection string from your `.env` file, keeping the quotation marks around it. Do not include the angle brackets. On Windows, the command is a little longer:
 
 ```bash
-"C:\Program Files\PostgreSQL\17\bin\psql.exe" <DATABASE_URL> -f schema.sql
+"C:\Program Files\PostgreSQL\17\bin\psql.exe" "<paste the DATABASE_URL value from .env>" -f schema.sql
 ```
 The above assumes you have Postgres 17 -- adjust the number as needed.
 
-You should see messages that the tables were created. This creates the schema for the production database.
+You should see messages that the tables were created. This creates the schema for the task app development database specified by `DATABASE_URL`.
 
 #### d. Create Database Tables in the Test Database
 
-You also need to create the schema for your test database. The assignment TDD uses this database, and you will use it again in a later automated testing assignment. The `psql` command is the same as above, but use the `TEST_DATABASE_URL` value from your `.env` file.
+You also need to create the schema for your test database. The provided TDD tests use this database, and you will use it again in a later automated testing assignment.
+
+For Mac and Linux:
+
+```bash
+psql "<paste the TEST_DATABASE_URL value from .env>" -f schema.sql
+```
+
+For Windows:
+
+```bash
+"C:\Program Files\PostgreSQL\17\bin\psql.exe" "<paste the TEST_DATABASE_URL value from .env>" -f schema.sql
+```
+
+Again, replace `<paste the TEST_DATABASE_URL value from .env>` with the complete `TEST_DATABASE_URL` connection string, keeping the quotation marks around it. This creates the same tables in the separate test database without affecting the development database.
 
 ### 2. Database Connection Implementation
 

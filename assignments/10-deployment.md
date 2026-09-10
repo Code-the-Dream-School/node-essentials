@@ -114,7 +114,7 @@ Open browser developer tools on the front end page and click the Network tab. Th
 
 ## **Task 3: Switching Your Back End to a Cloud Resident Postgres Database**
 
-You are going to deploy your back end to the cloud. An application running in the cloud cannot connect to your local database. Create a database on Neon.tech, then switch your application so it uses that database instead of your local one.
+You are going to deploy your back end to the cloud. An application running in the cloud cannot connect to your local database. Create a database on Neon.tech, then switch your application so it uses that database instead of your local one. This Neon database is your production database. You will test it from your local app first, then configure Render to use the same connection string.
 
 1. Create a free account on Neon.tech, unless you already have one.
 
@@ -147,7 +147,7 @@ You are going to deploy your back end to the cloud. An application running in th
     5. For Run Command, use: `npm start`
     6. Make sure AutoDeploy is set to off. Otherwise, it will redeploy every time you change the main branch.
     7. Make sure the instance type is set to Free.
-    8. Configure your environment variables. Your `.env` file is not in Github, so this is how you provide secrets to Render. You can use `Add from .env` to copy from your existing .env file. The ones you need are the DATABASE_URL, the JWT_SECRET, the RECAPTCHA_SECRET, and, for testing, the RECAPTCHA_BYPASS.
+    8. Configure your environment variables. Your `.env` file is not in Github, so this is how you provide secrets to Render. You can use `Add from .env` to copy the values you need from your existing `.env` file. Set `DATABASE_URL` to the Neon connection string, not a local database URL. You also need `JWT_SECRET`, `RECAPTCHA_SECRET`, and, for testing, `RECAPTCHA_BYPASS`. Do not add `DB_URL` or `TEST_DATABASE_URL` to Render; those variables are only for local coursework and automated tests.
 
 4. Click on Deploy Web Service. Build and deploy are slow on the free plan, so this may take several minutes.
 
