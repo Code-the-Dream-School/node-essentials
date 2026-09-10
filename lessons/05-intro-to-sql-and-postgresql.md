@@ -537,7 +537,7 @@ CREATE TABLE tasks (
 - **`UNIQUE`**: No two users can have the same email
 - **`REFERENCES users(id)`**: Creates a foreign key relationship
 - **`DEFAULT CURRENT_TIMESTAMP`**: Automatically sets the current time
-- **CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)** Creates an additional index.  
+- **`CONSTRAINT task_id_user_id_unique UNIQUE (id, user_id)`**: Creates an additional index.  
 
 The additional index is needed for assignment 6. 
 

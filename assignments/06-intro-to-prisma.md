@@ -212,7 +212,7 @@ From this point on, if you make a schema change, change the Prisma model first. 
 DATABASE_URL="<paste the TEST_DATABASE_URL value from .env>" npx prisma migrate deploy
 ```
 
-Do not change the schema with ordinary SQL. You will also use `deploy` with the production database you create for Internet deployment in Lesson 10. Never use schema `reset` with the production database because it deletes all data.
+Do not change the schema with manual SQL statements. You will also use `deploy` with the production database you create for Internet deployment in Lesson 10. Never use schema `reset` with the production database because it deletes all data.
 
 ### 2. Create Prisma Database Connection
 
