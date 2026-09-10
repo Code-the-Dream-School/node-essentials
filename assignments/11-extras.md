@@ -10,7 +10,7 @@ Make your changes on an `assignment11` branch of your node-homework repository. 
 
 ## **Prepare Your Final Presentation**
 
-Please record a 3-5 minute presentation that follows the expectations in the [final project rubric](../final-project-rubric.md). Your presentation does not need to be long, but it should give your reviewer a clear tour of what you built and what you learned.
+Please record a 3-5 minute presentation that follows the expectations in the final project rubric. You can access the rubric by selecting "General Information > Final Project Rubric" from your lesson page. Your presentation does not need to be long, but it should give your reviewer a clear tour of what you built and what you learned.
 
 Your presentation should cover:
 
