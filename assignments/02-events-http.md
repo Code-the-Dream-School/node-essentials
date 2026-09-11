@@ -26,7 +26,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
    - For testing POST requests and API endpoints, use the **Postman VS Code Extension**.
    - If you need a walkthrough, review the Postman section in Lesson 2 before starting the POST tasks.
 4. **Run the tests**
-   - This assignment has a **Core** part (required) and an **Advanced** part (optional), matching the lesson.
+   - This assignment has a **Core** part (required) and an **Optional** part, matching the lesson.
    - Run the core tests with:
      ```bash
      npm run tdd assignment2a
@@ -35,7 +35,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
      ```bash
      npm run tdd assignment2b
      ```
-   - Make sure the core tests pass before submitting your work. The advanced tests are optional.
+   - Make sure the core tests pass before submitting your work. The tests for the optional tasks are not required.
 
 ## Assignment Tasks
 
@@ -59,7 +59,7 @@ In this file:
 
 The tests import your emitter, so the emitter must be exported.
 
-Your file should include this basic structure:
+Copy this code exactly as written. The test file loads events.js and expects three things: an event named "time", a listener that logs "Time received:" followed by the message, and module.exports = emitter so the test can reach your emitter.
 
 ```js
 const EventEmitter = require("events");
@@ -72,7 +72,7 @@ emitter.on("time", (message) => {
 module.exports = emitter;
 ```
 
-Then add code that emits the `"time"` event every 5 seconds when you run the file directly with Node:
+Then add this code to emit the `"time"` event every 5 seconds when the file is run directly with Node. Use the `require.main === module` guard exactly as shown:
 
 ```js
 if (require.main === module) {
@@ -219,7 +219,7 @@ Express is not part of Node itself. Your repository may already have it installe
 npm install express
 ```
 
-Start with this basic Express app:
+Use this Express app code. The routes, responses, and the `{ app, server }` export must match exactly — the tests depend on them:
 
 ```js
 const express = require("express");
@@ -290,7 +290,7 @@ controllers/
 
 The `controllers/timeController.js` file should export route handler functions.
 
-Add these two handlers:
+Use exactly as written — the function names getTime and echoBody and the response shapes are required:
 
 ```js
 function getTime(req, res) {
@@ -311,7 +311,9 @@ module.exports = {
 };
 ```
 
-The `routes/timeRoutes.js` file should connect route paths to those controller functions.
+The router you create next imports these functions by name, which is why the names cannot change.
+
+The `routes/timeRoutes.js` file should connect route paths to those controller functions. Use this code exactly as written. The route paths `/time` and `/echo` must not change:
 
 ```js
 const express = require("express");
@@ -358,9 +360,9 @@ npm run tdd assignment2a
 
 ---
 
-## Stretch Goals (Optional)
+## Optional Tasks
 
-This part is optional, just like the Advanced section of the lesson. You can skip it and still continue the course, but it is good extra practice.
+This part is optional. You can skip it and still continue the course, but it is good extra practice.
 
 The advanced tasks focus on edge cases. An **edge case** is a situation outside the happy path, such as a bad URL, the wrong method, or invalid JSON.
 
@@ -374,7 +376,7 @@ If the request does not match `/time`, `/timePage`, or `/echo`, return:
 - Content-Type: `application/json`
 - Body shape: `{ "message": "That route is not available." }`
 
-Example response body:
+Exact response body (use this message text):
 
 ```json
 {
@@ -524,6 +526,8 @@ node-homework/
     sampleHTTP.js
 ```
 
+You will also have your `assignment1/` folder from Week 1 — that is expected.
+
 ## Testing Your Work
 
 After completing each script, run it to make sure it behaves as expected:
@@ -540,7 +544,7 @@ Then run the course tests:
 
 ```bash
 npm run tdd assignment2a   # core (required)
-npm run tdd assignment2b   # advanced (optional)
+npm run tdd assignment2b   # optional tasks
 ```
 
 If a test fails, check file names and route paths first. The tests expect exact names, including `sampleHTTP.js` with uppercase `HTTP`.
@@ -610,7 +614,7 @@ Answer 3 questions from Lesson 2:
 
 ### Optional Deliverables/Tasks
 
-Signaled in the assignment as "Stretch Goals (Optional)." **Do not fail a student for omitting these.**
+Signaled in the assignment as "Optional Tasks." **Do not fail a student for omitting these.**
 
 - **Task 6 — (Optional) Raw HTTP Unknown Route** — in `sampleHTTP.js`, any request not matching `/time`, `/timePage`, or `/echo` returns status `404`, `Content-Type: application/json`, and body `{ "message": "That route is not available." }`. `Use exactly as written, if attempted`: the message text.
 - **Task 7 — (Optional) Raw HTTP Invalid JSON** — in `sampleHTTP.js`, `POST /echo` wraps `JSON.parse()` in try/catch; on failure, returns status `400`, `Content-Type: application/json`, body `{ "message": "Invalid JSON." }`. `Use exactly as written, if attempted`: the message text.
