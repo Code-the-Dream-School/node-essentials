@@ -34,7 +34,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
      ```bash
      npm run tdd assignment3b
      ```
-   - If you attempt the optional advanced dog middleware tasks, run:
+   - If you attempt the optional dog middleware tasks, run:
      ```bash
      npm run tdd assignment3c
      ```
@@ -59,7 +59,7 @@ This assignment has three learning parts and three test files:
      npm run tdd assignment3b
      ```
 
-3. **Advanced Dog Middleware Tasks** (optional)
+3. **Optional Dog Middleware Tasks**
    - It still uses the `week-3-middleware` app.
    - Test command:
      ```bash
@@ -112,7 +112,7 @@ logon
 logoff
 ```
 
-The tests require these exact function names.
+Use these exact function names.
 
 **About the globals in this assignment:** In Lesson 1, you learned that putting changing application data on `global` is usually bad practice. We are using `global.users`, `global.user_id`, and `global.tasks` here as a temporary in-memory database so you can practice controllers, routers, and middleware before we add a real database. In a later week, you will replace this fake database with PostgreSQL through Prisma, and you will see how little of your controller code has to change.
 
@@ -263,7 +263,7 @@ In `week-3-middleware/app.js`, export the Express app directly:
 module.exports = app;
 ```
 
-By the end of the dog rescue exercise, your middleware should follow the same order taught in Lesson 3:
+By the end of the dog rescue exercise, your middleware should follow this order:
 
 ```text
 request ID middleware
@@ -318,7 +318,7 @@ app.use((req, res, next) => {
 
 Add logging middleware after the request ID middleware.
 
-The log format should be:
+Use `console.log()` with this exact log format:
 
 ```text
 [timestamp]: METHOD PATH (requestId)
@@ -337,7 +337,7 @@ In `week-3-middleware/app.js`:
 - Add a 404 handler for unmatched routes
 - Add an error handler for unexpected errors
 
-The 404 response should include:
+The 404 response must include this exact JSON shape:
 
 ```json
 {
@@ -346,7 +346,7 @@ The 404 response should include:
 }
 ```
 
-The 500 response should include:
+The 500 response must include this exact JSON shape:
 
 ```json
 {
@@ -363,7 +363,7 @@ npm run tdd assignment3b
 
 ---
 
-## Advanced Dog Middleware Tasks (Optional)
+## Optional Dog Middleware Tasks
 
 These tasks are more advanced than the first dog rescue tasks. They are still part of the dog rescue middleware app.
 
@@ -559,7 +559,7 @@ npm run tdd assignment3a
 npm run tdd assignment3b
 ```
 
-If you attempt the optional advanced dog middleware tasks, also run:
+If you attempt the optional dog middleware tasks, also run:
 
 ```bash
 npm run tdd assignment3c
@@ -633,7 +633,7 @@ Covers Assignment 3A (main todo backend, `npm run tdd assignment3a`) and Assignm
 
 ### Optional Deliverables/Tasks
 
-Signaled in the assignment as "Advanced Dog Middleware Tasks (Optional)," checked only by the optional `npm run tdd assignment3c` test. **Do not fail a student for omitting these.** All work here stays inside `week-3-middleware/`.
+Signaled in the assignment as "Optional Dog Middleware Tasks," checked only by the optional `npm run tdd assignment3c` test. **Do not fail a student for omitting these.** All work here stays inside `week-3-middleware/`.
 
 - **Task 14 — (Optional) Add Security Headers** — sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block` on all responses.
 - **Task 15 — (Optional) Add Request Size Limiting** — limits JSON body size, e.g. `express.json({ limit: "1mb" })`.
