@@ -207,7 +207,7 @@ let saveData = null;
 let saveTaskId = null;
 ```
 
-The call to `dotenv` is needed to get the database URLs. But **before** you load the Prisma client, and **before** you load any code that loads the Prisma client, set the environment variable so it points to the test database.
+The call to `dotenv` loads both database URLs from `.env`. Prisma reads `DATABASE_URL`, so the next line copies the value of `TEST_DATABASE_URL` into `DATABASE_URL` for this test process only. It does not modify `.env`. You must make this assignment **before** loading the Prisma client or any code that loads it; otherwise, the tests could connect to your development database.
 
 There is one confusing point about the dotenv `config()` call. The `.env` file is in the root of the project, but this test file is not. The dotenv package resolves the path using the current working directory, not the location of the current file. You run jest from the root of the project, so that is the current working directory.
 
@@ -653,7 +653,7 @@ describe("register a user ", () => {
       email: "jdeere@example.com",
       password: "Pa$$word20",
     };
-    saveRes = await agent.post("/user/register").send(newUser);
+    saveRes = await agent.post("/api/users/register").send(newUser);
     expect(saveRes.status).toBe(201);
   });
 })
