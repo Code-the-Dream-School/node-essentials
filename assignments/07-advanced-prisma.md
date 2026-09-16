@@ -33,7 +33,7 @@ The REST calls your application supports should still work the same way, so your
 
 #### a. Update Prisma Schema
 
-Add a `priority` field to your Task model. Open `prisma/schema.prisma` and update the Task model:
+Add a `priority` field to your Task model. Open `prisma/schema.prisma` and update the Task model. Use exactly as written for the new `priority` line — the field name `priority`, default `"medium"`, and type `@db.VarChar(10)` must match:
 
 ```prisma
 model Task {
@@ -69,7 +69,7 @@ Prisma reads only `DATABASE_URL` from `schema.prisma`. This command temporarily 
 
 **Important:** Run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to know about changes to your models, fields, or relationships. Every time you migrate the development database, migrate the test database too with the command above.
 
-**Note:** After adding the priority field, make sure your task creation method in `taskController.js` includes `priority` in the `select` statement. The test expects tasks to have a `priority` field that defaults to "medium" if not specified. Your taskSchema validation should already handle this (it should have `priority: Joi.string().valid("low", "medium", "high").default("medium")`).
+**Note:** After adding the priority field, make sure your task creation method in `taskController.js` includes `priority` in the `select` statement. Tasks must have a `priority` field that defaults to "medium" when not specified. Your taskSchema validation must handle this — use `priority: Joi.string().valid("low", "medium", "high").default("medium")`.
 
 ### 2. Implement Eager Loading with Include
 
@@ -79,6 +79,7 @@ Update your existing task index method so it uses eager loading. In `taskControl
 
 **What is eager loading?** Instead of making a separate query for each task's user, you fetch the task and user information together in one query using `select` with nested relations.
 
+Example — adapt to your controller. The `select` fields and the nested `User` relation with `name` and `email` must match:
 
 ```js
 const tasks = await prisma.task.findMany({
@@ -105,9 +106,9 @@ const tasks = await prisma.task.findMany({
 - Use `select` (not `include`) when you want to specify exactly which fields to return
 - The `User` object is nested inside `select` because it's a relation
 - This fetches user information in the same query, eliminating the N+1 problem
-- The test expects tasks to have a `User` property with `name` and `email`
+- Each task in the response must include a `User` property with `name` and `email`
 
-#### b. Stretch Goal: Add User Show Method (Optional)
+#### b. Add User Show Method (Optional)
 
 **Note:** This is completely optional and not required. There was no user show method in Assignment 6, and `assignment7.test.js` does not test for it. The test file only imports `logon`, `register`, and `logoff` from `userController` (line 16), and there are no tests that call a user show method. However, if you want to practice eager loading with user-to-task relationships, you can optionally add this method as an extra exercise.
 
@@ -167,12 +168,12 @@ Update your task index method so it supports pagination. You need to:
 **What is pagination?** Instead of loading all tasks at once, pagination lets you load a smaller set of tasks at a time. This improves performance and makes the API easier for a frontend to use.
 
 **Important points:**
-- The test expects `tasks` array and `pagination` object in the response
-- The test expects pagination to have: `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
+- The response must include a `tasks` array and a `pagination` object
+- The pagination object must have: `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
 - Keep the eager loading you added earlier (User information with name and email)
 - Default to page 1 and limit 10 if not provided
 
-**Here is the complete implementation:**
+**Here is the complete implementation.** Example — adapt to your controller. The `skip`/`take` pagination, `orderBy`, and the `select` fields with nested `User` must match. You need to complete the pagination object and response:
 ```js
 // Parse pagination parameters
 const page = parseInt(req.query.page) || 1;
@@ -248,7 +249,7 @@ The task index endpoint must support searching by title with a `find` query para
 **Example URL:** `GET /api/tasks?find=meeting&page=1&limit=10`
 
 **Implementation:**
-Add filtering to your task index method. Build a `whereClause` object that includes the search filter when the `find` parameter is provided:
+Add filtering to your task index method. Build a `whereClause` object that includes the search filter when the `find` parameter is provided. Example — adapt to your controller. The `contains` with `mode: 'insensitive'` pattern must match:
 
 ```js
 // Build where clause with optional search filter
@@ -279,9 +280,9 @@ const totalTasks = await prisma.task.count({
 - If `find` is not provided, return all tasks (with pagination)
 - The `contains` operator with `mode: 'insensitive'` translates to `ILIKE '%searchTerm%'` in PostgreSQL
 
-**Optional Stretch Goal:** You may also implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials. The `find` filter is required.
+**Optional:** You may also implement additional filters such as `isCompleted`, `priority`, `min_date`, and `max_date` as shown in the lesson materials. The `find` filter is required.
 
-#### c. Stretch Goal: Add Sorting Support (Optional)
+#### c. Add Sorting Support (Optional)
 
 The task index endpoint can support sorting by different fields using `sortBy` and `sortDirection` query parameters. This lets users control how their tasks are ordered.
 
@@ -326,7 +327,7 @@ const tasks = await prisma.task.findMany({
 
 #### a. Create Analytics Controller
 
-Create a new file named `controllers/analyticsController.js`. Require Prisma at the top, just like you did in your other controllers in Assignment 6:
+Create a new file named `controllers/analyticsController.js`. Require Prisma at the top, just like you did in your other controllers in Assignment 6. Use exactly as written:
 
 ```js
 const prisma = require("../db/prisma");
@@ -344,11 +345,13 @@ Create a method for `GET /api/analytics/users/:id` that returns user statistics.
 **What is groupBy?** `groupBy` lets you count or aggregate rows by a field. For example, you can count how many tasks are completed and how many are incomplete.
 
 **Important points:**
-- The test expects `taskStats` to be an array with `isCompleted` and `_count` properties
-- The test expects `recentTasks` to include user information (name)
-- The test expects `weeklyProgress` to be an array of groupBy results
+- `taskStats` must be an array with `isCompleted` and `_count` properties
+- `recentTasks` must include user information (name)
+- `weeklyProgress` must be an array of groupBy results
 - For weekly progress, calculate a date 7 days ago using JavaScript's `Date` object
 - **404 Check Required:** After validating the user ID, check whether the user exists in the database. If the user does not exist, return a 404 status with an appropriate error message. You can use `prisma.user.findUnique()` before querying that user's tasks.
+
+Example — adapt to your controller. The `groupBy` calls with `by: ['isCompleted']` and `_count: { id: true }`, the `findMany` with nested `User` select, and the response field names `taskStats`, `recentTasks`, `weeklyProgress` must match:
 
 ```js
 // Parse and validate user ID
@@ -447,11 +450,12 @@ Create a method for `GET /api/analytics/users` that shows all users with task st
 5. Return users and pagination information
 
 **Important points:**
-- The test expects `users` array and `pagination` object in the response
-- The test expects each user to have `_count.Task` property
+- The response must include a `users` array and a `pagination` object
+- Each user must have a `_count.Task` property
 - You need to use `include` for relations when using `_count`, then transform the result
-- For pagination, the test expects `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
+- For pagination, the object must have: `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
 
+Example — adapt to your controller. The `include` with `_count` and `Task` relation, and the response field names `users` and `pagination` must match:
 
 ```js
 // Parse pagination parameters (similar to how you did in the task index method in section 3 above)
@@ -544,6 +548,8 @@ Update your user registration method in `userController.js` so it creates initia
 4. Fetch the created tasks to return them (query by userId and task titles)
 5. If transaction succeeds, set global.user_id and return the user with welcome tasks **and `transactionStatus: "success"`**
 6. Handle P2002 errors (duplicate email) appropriately, as you did in Assignment 6
+
+Use exactly as written — the welcome task titles (`"Complete your profile"`, `"Add your first task"`, `"Explore the app"`), their priorities, the `$transaction` pattern, and `transactionStatus: "success"` in the response must match:
 
 ```js
 // In your register method, after validation and password hashing:
@@ -645,12 +651,12 @@ Add a method to `taskController.js` for `POST /api/tasks/bulk`. You need to:
 **What is bulk create?** Instead of creating tasks one at a time, you can create several tasks in one database operation using `createMany`.
 
 **Important points:**
-- The test expects the request body to have a `tasks` array
-- The test expects `tasksCreated` and `totalRequested` in the response
-- The test expects status 201 on success, 400 for invalid data
+- The request body must have a `tasks` array
+- The response must include `tasksCreated` and `totalRequested`
+- Return status 201 on success, 400 for invalid data
 - You must validate each task using your taskSchema before inserting
 
-When you create multiple records from user input, validate each record before inserting anything:
+When you create multiple records from user input, validate each record before inserting anything. Use exactly as written — the validation loop, the `createMany` call, and the response field names `tasksCreated` and `totalRequested` must match:
 
 ```js
 // Bulk create with validation
@@ -728,11 +734,13 @@ Add a method to `analyticsController.js` for `GET /api/analytics/tasks/search`. 
 **Why use raw SQL?** Prisma's query builder is great for many queries, but this text search needs relevance ranking. `$queryRaw` lets you write that SQL directly.
 
 **Important points:**
-- The test expects query parameter `q` (at least 2 characters)
-- The test expects `results`, `query`, and `count` in the response
-- The test expects status 400 if query is too short (< 2 characters)
+- The endpoint accepts query parameter `q` (at least 2 characters)
+- The response must include `results`, `query`, and `count`
+- Return status 400 if the query is shorter than 2 characters
 - Always use parameterized queries (template literals) to prevent SQL injection
 - Use PostgreSQL column names in SQL but alias them to camelCase
+
+Example — adapt to your controller. The parameterized `$queryRaw` pattern, the SQL column aliases (`"isCompleted"`, `"createdAt"`, `"userId"`, `"user_name"`), and the response field names `results`, `query`, `count` must match:
 
 ```js
 // Validate search query
@@ -823,7 +831,7 @@ const user = await prisma.user.findUnique({
 });
 ```
 
-#### b. Stretch Goal: Add Fields Query Parameter Support (Optional)
+#### b. Add Fields Query Parameter Support (Optional)
 
 You can enhance endpoints so clients can specify which fields they need. This is optional. If you implement it, parse the fields query parameter and build the select object dynamically.
 
@@ -841,7 +849,7 @@ Review your endpoints and make sure they return appropriate 404 (Not Found) resp
 
 #### b. Update Error Handling in Controllers
 
-As you did in Assignment 6, make sure you catch Prisma-specific error codes where needed. For update and delete operations, catch P2025 errors, similar to how you handled them in Assignment 6:
+As you did in Assignment 6, make sure you catch Prisma-specific error codes where needed. For update and delete operations, catch P2025 errors. Example — adapt to your controller. The `P2025` error check and 404 response must match:
 
 ```js
 try {
@@ -1000,6 +1008,8 @@ project/
 └── package.json
 ```
 
+*You will also have your `assignment1/` through `assignment6/` folders from prior weeks, along with shared files (`app.js`, `middleware/`, `db/`, etc.) you have been building on since those assignments — that is expected.*
+
 ### Code Quality Requirements
 - Use async/await consistently
 - Implement proper Prisma error handling
@@ -1109,6 +1119,41 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 - Show actual code from your assignment
 - Explain concepts clearly while demonstrating
 - Keep demos focused and concise
+
+---
+
+---
+
+<details>
+<summary><strong>Grading Rubric</strong></summary>
+
+### Required
+
+1. **Priority field** — `prisma/schema.prisma` Task model includes a `priority` field with default `"medium"` and `@db.VarChar(10)` (use exactly as written in Task 1a)
+2. **Migration** — A migration adds the priority column to the tasks table (Task 1b)
+3. **Task index with eager loading** — `GET /api/tasks` returns tasks with a nested `User` object containing `name` and `email` (example in Task 2a — adapt to your controller)
+4. **Pagination** — `GET /api/tasks` returns a `tasks` array and a `pagination` object with `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev` (example in Task 3a — adapt to your controller)
+5. **Search filter** — `GET /api/tasks?find=<term>` filters tasks by title using case-insensitive `contains` (example in Task 3b — adapt to your controller)
+6. **User analytics** — `GET /api/analytics/users/:id` returns `taskStats` (groupBy `isCompleted`), `recentTasks` (with nested `User`), and `weeklyProgress`; returns 404 for nonexistent user (example in Task 4b — adapt to your controller)
+7. **Users with stats** — `GET /api/analytics/users` returns a `users` array (each with `_count.Task`) and a `pagination` object (example in Task 4c — adapt to your controller)
+8. **Transaction registration** — `POST /api/users/register` creates the user and 3 welcome tasks (`"Complete your profile"`, `"Add your first task"`, `"Explore the app"`) inside a `$transaction`; response includes `transactionStatus: "success"` (use exactly as written in Task 5a)
+9. **Bulk create** — `POST /api/tasks/bulk` accepts a `tasks` array, validates each entry, uses `createMany`, and returns `tasksCreated` and `totalRequested`; returns 400 for invalid data (use exactly as written in Task 5b)
+10. **Raw SQL search** — `GET /api/analytics/tasks/search?q=<term>` uses `$queryRaw` with parameterized queries; returns `results`, `query`, `count`; returns 400 if query is shorter than 2 characters (example in Task 6a — adapt to your controller)
+11. **Selective field loading** — User-related responses exclude `hashedPassword` (Task 7a)
+12. **404 checks** — Analytics user endpoint and task show endpoint return 404 for nonexistent resources (Task 8a)
+13. **Prisma error handling** — Update and delete operations catch `P2025` and return 404 (Task 8b)
+14. **Analytics routes** — `routes/analyticsRoutes.js` wires `GET /users/:id`, `GET /users`, `GET /tasks/search` behind auth middleware (Task 9)
+15. **Bulk route** — `POST /bulk` added to task routes before `/:id` (Task 9b)
+16. **Tests pass** — `npm run tdd assignment7` completes without failure
+
+### Optional
+
+- **User show method** — `GET /api/users/:id` with eager-loaded incomplete tasks (Task 2b)
+- **Sorting support** — `sortBy` and `sortDirection` query parameters on task index (Task 3c)
+- **Dynamic field selection** — `fields` query parameter for selective loading (Task 7b)
+- **Additional filters** — `isCompleted`, `priority`, `min_date`, `max_date` on task index (Task 3b note)
+
+</details>
 
 ---
 
