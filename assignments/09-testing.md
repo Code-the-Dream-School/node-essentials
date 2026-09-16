@@ -2,7 +2,7 @@
 
 ## **Assignment Instructions**
 
-Add this assignment to `node-homework`. Create an `assignment9` branch for your work, and create it from your `assignment8` branch so you have access to your previous work.
+Add this assignment to `node-homework`. This assignment builds on your work from Assignment 8. Either create your `assignment9` branch from `main` (after you have merged your assignment8 PR) or create your `assignment9` branch directly from `assignment8` (if you have not merged that work to main) so you have all your existing code from last week.
 
 This assignment uses the following packages. Most of them have already been installed:
 
@@ -15,7 +15,7 @@ This assignment uses the following packages. Most of them have already been inst
 
 Run `npm install --save-dev` for each package to make sure you have them.
 
-You have hopefully been using eslint to check your code for problems. Jest can confuse eslint because Jest tests use globals like `expect()` and `describe()` that you do not declare yourself. Add the following to `eslint.config.js` at the bottom of the `defineConfig` array to fix this problem:
+You have hopefully been using eslint to check your code for problems. Jest can confuse eslint because Jest tests use globals like `expect()` and `describe()` that you do not declare yourself. Add the following to `eslint.config.js` at the bottom of the `defineConfig` array to fix this problem. Use exactly as written:
 
 ```js
     {
@@ -35,7 +35,7 @@ You have hopefully been using eslint to check your code for problems. Jest can c
   },
 ```
 
-Create a `test` directory inside the `node-homework` folder. Then update `package.json` so the scripts stanza includes:
+Create a `test` directory inside the `node-homework` folder. Then update `package.json` so the scripts stanza includes. Use exactly as written:
 
 ```json
     "test": "NODE_ENV=test jest --testPathPatterns=test/ --verbose --maxWorkers=1 --detectOpenHandles",
@@ -44,7 +44,7 @@ Create a `test` directory inside the `node-homework` folder. Then update `packag
 
 This configuration runs the tests you create, but not the TDD provided with the course. You can now run `npm run test`, but it will not do anything yet because you have not created any tests.
 
-Inside the `test` directory, create a file named `validation.test.js`. All of your test files should end with `.test.js` so `jest` will find them. This file tests your validation schema, so it should start with:
+Inside the `test` directory, create a file named `validation.test.js`. All of your test files should end with `.test.js` so `jest` will find them. This file tests your validation schema, so it should start with what you see below. Use exactly as written — these import paths must match your file structure:
 
 ```js
 const { userSchema } = require("../validation/userSchema");
@@ -97,7 +97,7 @@ describe("user object validation tests", () => {
 });
 ```
 
-If the schema is working correctly, validation should return an error, and that error should show that the password is not good enough. The returned `error` should have an array of `detail` objects. Each detail has a `context`, and one of those contexts should have a key of `password`. So we can update the code to:
+If the schema is working correctly, validation should return an error, and that error should show that the password is not good enough. The returned `error` should have an array of `detail` objects. Each detail has a `context`, and one of those contexts should have a key of `password`. Use exactly as written — the test number `1.` in the `it()` description and the assertion pattern must match:
 
 ```js
 describe("user object validation tests", () => {
@@ -184,7 +184,7 @@ Next, test `controllers/taskController.js`. When you test a controller, the cont
 
 3. You consider **concurrency issues.** By default, several jest test files may run at the same time. If each one changes the test database, you can get conflicts and flaky failures. In your configuration, this will not happen because the test command uses `maxWorkers=1`. That prevents concurrency, but it also slows down the test process. In larger projects, another option is to make sure each test file only reads or writes to its own subset of the database. For this project, you could use different user and task records for each test file.
 
-Inside your test folder, create a file named `taskController.test.js`. It should start like this:
+Inside your test folder, create a file named `taskController.test.js`. Use exactly as written — the `DATABASE_URL` assignment must come before loading Prisma, and the imported function names must match your controller exports:
 
 ```js
 require("dotenv").config();
@@ -220,7 +220,7 @@ Jest provides a number of useful hooks:
 - afterAll
 - afterEach
 
-You can place these hooks outside any `describe()` stanza. In that case, they apply to the top-level stanzas. You can also place them inside a `describe()` stanza. In that case, they apply only inside that block. Here, `beforeAll()` will empty the database and create the user records needed for the tests. The next part of the test file looks like this:
+You can place these hooks outside any `describe()` stanza. In that case, they apply to the top-level stanzas. You can also place them inside a `describe()` stanza. In that case, they apply only inside that block. Here, `beforeAll()` will empty the database and create the user records needed for the tests. Use exactly as written:
 
 ```js
 beforeAll(async () => {
@@ -253,7 +253,7 @@ A route handler or middleware function might do the following:
 
 To know what happened, call the function and check the result. The function might be async. It might also call `res.json()` or `next()` from inside a callback. Your test needs to call the function and wait for it to finish. This gets tricky when completion happens inside a callback or when the code calls `next()`. If you are writing tests first, the source code might not even exist yet.
 
-You should use the following utility function:
+You should use the following utility function. Use exactly as written — save this as `test/waitForRouteHandlerCompletion.js`:
 
 ```js
 const waitForRouteHandlerCompletion = async (func, req, res) => {
@@ -317,7 +317,7 @@ Now that you have a valid task object for creation, run the test.
 
 You will notice that the test fails. If you check the logs, you can see that req.user is undefined. In the actual application, task creation is protected by JWT middleware, which sets up req.user. Because this test invokes the controller directly, it bypasses that middleware.
 
-This is still a valuable test case, but now it should expect and catch that specific error. Rename the test and adjust the code:
+This is still a valuable test case, but now it should expect and catch that specific error. Rename the test and adjust the code. Use exactly as written — the test number `14.` and `expect.assertions(1)` must match:
 
 ```js
    it("14. cant create a task without a user id", async () => {
@@ -431,9 +431,9 @@ This is a lot of tests, but larger projects often have test suites with thousand
 
 Run the tests and make sure all of them pass.
 
-## **Tests of the User Controller**
+## **Tests of the User Controller** (Optional)
 
-Because this assignment is long, the user.controller.test.js file is **an optional stretch goal**. Be sure to implement the actual network operations testing that follows this section. Even if you do not implement the tests in this section, read the descriptions so you understand how they would work.
+Because this assignment is long, the user.controller.test.js file is **optional**. Be sure to implement the actual network operations testing that follows this section. Even if you do not implement the tests in this section, read the descriptions so you understand how they would work.
 
 We want to test logon, but logon sets a cookie. If that cookie is not set, authentication is not working, so we need to test it. The first problem is that a res object returned by `httpMocks.createResponse()` does not keep track of cookies. So we create an enhanced mock response object. This one, created by MockRequestWithCookies, tracks 'Set-Cookie' operations.
 
@@ -614,7 +614,7 @@ module.exports = { app, server };
 
 This was added for supertest so the TDD would work. Now you will use those exports in your own tests.
 
-The new test file should start like this:
+The new test file should start like this. Use exactly as written — the `DATABASE_URL` assignment, the `request.agent(app)` setup, and the `server.close()` in `afterAll` must match:
 
 ```js
 require("dotenv").config();
@@ -642,7 +642,7 @@ Here is what this code does. It loads the environment variables and makes sure t
 
 **It is very important to stop the server at the end of the test using server.close().** If this does not happen, your app can be left as a zombie process. That is why the server value is exported from your app.
 
-Now for the first test of this type:
+Now for the first test of this type. Use exactly as written — the test number `46.` and the supertest agent pattern must match:
 
 ```js
 describe("register a user ", () => {
@@ -801,6 +801,36 @@ This is not a complete test of your tests, but it gives you useful feedback abou
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
+
+---
+
+---
+
+<details>
+<summary><strong>Grading Rubric</strong></summary>
+
+### Required
+
+1. **ESLint Jest config** — `eslint.config.js` includes the Jest plugin configuration (use exactly as written in the setup section)
+2. **Test script** — `package.json` has a `"test"` script that runs Jest against the `test/` directory with `NODE_ENV=test` (use exactly as written)
+3. **Validation test file** — `test/validation.test.js` exists with correct imports for `userSchema`, `taskSchema`, and `patchTaskSchema` (use exactly as written)
+4. **Validation tests 1–7** — User schema tests: trivial password rejected (1), email required (2), invalid email rejected (3), password required (4), name required (5), name length validated (6), valid object passes (7)
+5. **Validation tests 8–13** — Task schema tests: title required (8), `isCompleted` validated (9), `isCompleted` defaults to `false` (10), `true` preserved (11); patch schema: title not required (12), `isCompleted` stays undefined (13)
+6. **waitForRouteHandlerCompletion** — `test/waitForRouteHandlerCompletion.js` contains the utility function (use exactly as written)
+7. **Task controller test file** — `test/taskController.test.js` exists with correct setup: `DATABASE_URL` pointed to test database before Prisma loads, `beforeAll` clears and seeds the database, `afterAll` disconnects Prisma (use exactly as written)
+8. **Task controller tests 14–19** — Creation tests: no user ID throws TypeError (14), bogus user ID throws PrismaClientKnownRequestError (15), valid create returns 201 (16), returned title matches (17), `isCompleted` correct (18), no `userId` in response (19)
+9. **Task controller tests 20–27** — Retrieval tests: no user ID fails (20), user1 index returns 200 (21), tasks array length 1 (22), title matches (23), no userId in response (24), user2 gets 404 (25), show returns 200 (26), user2 can't show user1's task (27)
+10. **Task controller tests 28–32** — Update/delete tests: user1 can update (28), user2 can't update (29), user2 can't delete (30), user1 can delete (31), user1 tasks now 404 (32)
+11. **Supertest file** — `test/user.function.test.js` exists with correct setup: `DATABASE_URL` pointed to test database, `request.agent(app)` for cookie tracking, `server.close()` in `afterAll` (use exactly as written)
+12. **Supertest tests 46–52** — Network tests: register returns 201 (46), returned name matches (47), response includes csrfToken (48), logon succeeds (49), tasks not 401 when logged in (50), logoff succeeds (51), tasks returns 401 after logoff (52)
+13. **Style requirements** — One `expect()` per `it()` block; each `it()` description starts with the test case number followed by a period
+14. **Tests pass** — `npm run test` completes without failure; `npm run lesson9TDD` report shows implemented tests gave expected results
+
+### Optional
+
+- **User controller tests (33–42, 61–65)** — `test/user.controller.test.js` with `MockResponseWithCookies`, register/logon/logoff tests (33–42), and JWT middleware tests (61–65)
+
+</details>
 
 ---
 
