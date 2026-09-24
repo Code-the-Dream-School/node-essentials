@@ -26,7 +26,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
      ```bash
      npm run tdd assignment4a
      ```
-   - If you attempt the optional advanced section, run:
+   - If you attempt the optional section, run:
      ```bash
      npm run tdd assignment4b
      ```
@@ -59,7 +59,7 @@ This assignment has one required core part and one optional advanced check:
      npm run tdd assignment4a
      ```
 
-2. **Assignment 4B - Advanced Validation, Patch Updates, and Password Security** (optional)
+2. **Assignment 4B - Advanced Validation, Patch Updates, and Password Security** (Optional)
    - This checks deeper validation, patch update, and password security behavior.
    - It uses the same main todo backend files.
    - Test command:
@@ -67,7 +67,7 @@ This assignment has one required core part and one optional advanced check:
      npm run tdd assignment4b
      ```
 
-The core tasks below are required. The advanced section at the end gives extra context and uses the optional `assignment4b` test.
+The core tasks below are required. The optional section at the end gives extra context and uses the optional `assignment4b` test.
 
 ## Core Tasks (Required)
 
@@ -83,7 +83,7 @@ Joi is the validation library you will use for user and task request bodies.
 
 ### 2. Add the New Files
 
-Create these files if they do not already exist:
+Create these files if they do not already exist. Use these exact file names and paths:
 
 ```text
 controllers/taskController.js
@@ -93,7 +93,7 @@ validation/userSchema.js
 validation/taskSchema.js
 ```
 
-The tests call some controller functions directly, so your controller functions need to work even when the request does not go through the full Express app.
+Your controller functions need to work even when called directly, not just through Express routes.
 
 ### 3. Add Authentication Middleware
 
@@ -122,7 +122,7 @@ Create `routes/taskRoutes.js`.
 
 This router keeps the task URLs separate from the controller logic. The router decides which controller function should run for each HTTP method and path.
 
-It should connect these routes to task controller functions:
+It should connect these routes to task controller functions. Use exactly as written — the route paths and controller function names must match:
 
 ```text
 POST /api/tasks -> create
@@ -132,7 +132,7 @@ PATCH /api/tasks/:id -> update
 DELETE /api/tasks/:id -> deleteTask
 ```
 
-The tests require these exact controller function names.
+Use these exact controller function names.
 
 Inside `routes/taskRoutes.js`, the paths are relative to `/api/tasks`:
 
@@ -188,7 +188,7 @@ For now, use:
 userId: global.user_id.email
 ```
 
-Task objects stored in `global.tasks` should have this shape:
+Task objects stored in `global.tasks` should have this structure. Use exactly as written: the field names `id`, `title`, `isCompleted`, `userId`. Example — adapt to your own values: the sample values like `"jim@sample.com"` and `"first task"` are illustrative:
 
 ```js
 {
@@ -233,7 +233,7 @@ email: Joi.string().trim().lowercase().email().required()
 name: Joi.string().trim().min(3).max(30).required()
 ```
 
-Your file will have this general shape:
+Your file will have this general structure. Use exactly as written: the export name `userSchema`. The specific Joi method chains shown are examples — adapt them to enforce the validation rules described above:
 
 ```js
 const Joi = require("joi");
@@ -274,7 +274,7 @@ isCompleted: Joi.boolean().default(false).not(null)
 Joi.object({ ... }).min(1)
 ```
 
-Your file will have this general shape:
+Your file will have this general structure. Use exactly as written: the export names `taskSchema` and `patchTaskSchema`. The specific Joi method chains are examples:
 
 ```js
 const Joi = require("joi");
@@ -552,13 +552,13 @@ The basic tests check:
 - Task responses do not include `userId`
 - Basic validation and password hashing are in place
 
-If you attempt the optional advanced section, also run:
+If you attempt the optional section, also run:
 
 ```bash
 npm run tdd assignment4b
 ```
 
-The optional advanced tests check deeper validation, patch update, and password security behavior:
+The optional tests check deeper validation, patch update, and password security behavior:
 
 - User and task schemas exist
 - Validation rejects invalid user/task data
@@ -587,15 +587,17 @@ node-homework/
     taskSchema.js
 ```
 
+You will also have `controllers/timeController.js`, `routes/timeRoutes.js`, and folders from earlier assignments (`assignment1/`, `assignment2/`, `week-3-middleware/`) — those are expected.
+
 ---
 
-## Stretch Goals (Optional)
+## Optional Tasks
 
 The following ideas give more context. They are useful, but the core tasks above are what you need to complete the assignment.
 
 If you work through this optional advanced section, use `npm run tdd assignment4b` to check the deeper validation, patch update, and password security cases.
 
-### Stretch Goal: `Object.assign()` and Patch Updates
+### (Optional) `Object.assign()` and Patch Updates
 
 PATCH means partial update.
 
@@ -613,7 +615,7 @@ You do not want to replace the whole task with only that object. You only want t
 
 After using it, still remove `userId` from the response.
 
-### Stretch Goal: Password Security Details
+### (Optional) Password Security Details
 
 The hashing helpers store a value in this format:
 
@@ -629,7 +631,7 @@ You do not need to memorize these internals. The important rule is to use truste
 
 The same idea applies to other sensitive data. Do not store credit card numbers, government ID numbers, or other private information unless the app truly needs it and you understand the legal and security requirements.
 
-### Stretch Goal: Validation Boundaries
+### (Optional) Validation Boundaries
 
 Joi validates request data before your app stores it.
 
@@ -637,7 +639,7 @@ Joi does not replace authorization. A task body can be valid and still belong to
 
 Later, database constraints will add another layer of protection.
 
-### Stretch Goal: Status Code Nuance
+### (Optional) Status Code Nuance
 
 For this assignment:
 
@@ -647,7 +649,7 @@ For this assignment:
 
 Some APIs use `403` when a logged-in user is not allowed to access a resource. This assignment can use `404` for another user's task so the API does not reveal whether that task exists.
 
-### Stretch Goal: Future Authentication Direction
+### (Optional) Future Authentication Direction
 
 `global.user_id` is only a learning scaffold.
 
@@ -697,3 +699,43 @@ Record a short video (3-5 minutes) on YouTube, Loom, or similar platform. Share 
 4. Create a pull request. The target of the pull request should be the main branch of your GitHub repository.
 5. Once the pull request is created, your browser contains the URL of the PR. Include that link in your homework submission.
 6. Do not forget to include your video link in the submission form.
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+Note that files from Assignments 2 and 3 should still be present (`controllers/timeController.js`, `routes/timeRoutes.js`, `middleware/not-found.js`, `middleware/error-handler.js`, `routes/userRoutes.js`, etc.) — this assignment adds to that app, it does not replace it.
+
+- **Task 1 — Install Joi** — `joi` is listed as a project dependency.
+- **Task 2 — New Files** — `controllers/taskController.js`, `routes/taskRoutes.js`, `middleware/auth.js`, `validation/userSchema.js`, `validation/taskSchema.js` exist. `Use exactly as written`: these file names and paths.
+- **Task 3 — Authentication Middleware** — `middleware/auth.js` exports middleware that checks `global.user_id`, returns `401` with JSON if no user is logged in, and calls `next()` when a user is present. `Example — adapt to your own wording`: the message text (`"Unauthorized"`) is suggested, not required verbatim.
+- **Task 4 — Task Routes** — `routes/taskRoutes.js` connects `POST /`, `GET /`, `GET /:id`, `PATCH /:id`, `DELETE /:id` to controller functions. `Use exactly as written (tests depend on these names)`: the controller function names `create`, `index`, `show`, `update`, `deleteTask`, and the route paths.
+- **Task 5 — Protect Task Routes** — `app.js` mounts the task router at `/api/tasks` with `authMiddleware` applied; auth is not applied to user routes.
+- **Task 6 — Task ID Counter** — `controllers/taskController.js` includes a counter or helper that returns a unique task ID for each new task.
+- **Task 7 — Task Ownership** — each stored task includes `userId: global.user_id.email`; task responses exclude `userId`. `Use exactly as written`: the field names `id`, `title`, `isCompleted`, `userId` on stored task objects. `Example — adapt to your own values`: sample values like `"jim@sample.com"` and `"first task"` are illustrative.
+- **Task 8 — User Validation Schema** — `validation/userSchema.js` exports `userSchema`, a Joi schema requiring a valid email (trimmed, lowercased), a name (3–30 characters), and a non-trivial password. `Use exactly as written`: the export name `userSchema`. `Example — adapt to your own rules`: the specific Joi method chains shown are one correct approach.
+- **Task 9 — Task Validation Schemas** — `validation/taskSchema.js` exports `taskSchema` (requires `title`, defaults `isCompleted` to `false`) and `patchTaskSchema` (allows partial updates, requires at least one field). `Use exactly as written`: the export names `taskSchema` and `patchTaskSchema`.
+- **Task 10 — Validate User Registration** — `register` validates `req.body` with `userSchema` before creating a user; returns `400` on validation failure; uses the validated `value`, not raw `req.body`.
+- **Task 11 — Password Hashing** — `register` hashes the password before storing it; `global.users` never contains a plain-text password; `logon` compares the submitted password against the stored hash. `Use exactly as written`: the field name `hashedPassword` on the stored user object. `Example — adapt to your own implementation`: the specific crypto patterns (`crypto.scrypt`, salt format, `timingSafeEqual`) are illustrative of one correct approach.
+- **Task 12 — Create** — `create` validates with `taskSchema`, returns `400` on failure, creates a task with `id`/`userId`/validated values, pushes to `global.tasks`, returns `201` with the task excluding `userId`.
+- **Task 13 — Index** — `index` returns only the logged-in user's tasks (not all tasks), returns `404` if the user has no tasks, returns `200` with sanitized array otherwise.
+- **Task 14 — Show** — `show` parses `req.params.id` to a number, returns `400` for invalid ID, finds a task matching both the ID and the logged-in user's email, returns `404` if not found, returns `200` with sanitized task.
+- **Task 15 — Update** — `update` validates with `patchTaskSchema`, returns `400` on failure, parses ID, finds owned task, returns `404` if not found, merges validated fields with `Object.assign`, returns `200` with sanitized task.
+- **Task 16 — DeleteTask** — `deleteTask` parses ID, returns `400` for invalid, finds owned task index, returns `404` if not found, removes from `global.tasks` with `splice`, returns `200` with sanitized deleted task.
+- **Video submission** — a 3–5 minute video answering the three listed questions about authentication vs. authorization, Joi validation, and password hashing.
+- **Submission** — work pushed to an `assignment4` branch with a pull request against main; PR link and video link included in the submission form.
+
+### Optional Deliverables/Tasks
+
+Signaled in the assignment as "Optional Tasks." **Do not fail a student for omitting these.**
+
+The optional section provides educational context about `Object.assign` and patch updates, password security internals, validation boundaries, status code nuance, and future authentication direction. These are background reading, not separate graded deliverables. The optional `npm run tdd assignment4b` test checks deeper validation, patch-merge, and password-hashing behavior on the same core code — passing it is not required.
+
+- **(Optional) Deeper validation** — `userSchema` and `taskSchema` reject additional edge cases beyond the core requirements.
+- **(Optional) Patch update behavior** — `Object.assign` correctly merges partial updates without replacing the full stored task.
+- **(Optional) Password security** — stored passwords are verifiably hashed (not plain text); the compare function works correctly with the salt-and-hash format.
+
+</details>

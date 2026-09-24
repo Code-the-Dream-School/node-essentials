@@ -2,7 +2,7 @@
 
 ## **Assignment Instructions**
 
-Create this assignment in the `node-homework` folder. As usual, create your `assignment8` git branch first.
+Create this assignment in the `node-homework` folder. This assignment builds on your work from Assignment 7. Either create your `assignment8` branch from `main` (after you have merged your assignment7 PR) or create your `assignment8` branch directly from `assignment7` (if you have not merged that work to main) so you have all your existing code from last week.
 
 Then install the following packages with npm:
 
@@ -70,7 +70,7 @@ Get a secret and store it in your `.env` file as:
 
 `JWT_SECRET=your_secret_here`
 
-Add the following utility routine to `controllers/userController.js`:
+Add the following utility routine to `controllers/userController.js`. Use exactly as written — the cookie name `"jwt"`, the payload fields (`id`, `csrfToken`), the cookie flags, and the function names `cookieFlags` and `setJwtCookie` must match:
 
 ```js
 const { randomUUID } = require("crypto");
@@ -110,7 +110,7 @@ When clearing the cookie, use the same cookie flags that you used when setting i
 
 You no longer need the old auth middleware. Delete it and remove references to it.
 
-Replace it with `middleware/jwtMiddleware.js`:
+Replace it with `middleware/jwtMiddleware.js`. Use exactly as written — the file name `middleware/jwtMiddleware.js`, the cookie name `"jwt"`, the header name `"X-CSRF-TOKEN"`, the `req.user = { id: decoded.id }` assignment, and the 401 response must match:
 
 ```js
 const jwt = require("jsonwebtoken");
@@ -177,7 +177,7 @@ This matters because `req.user.id` belongs to the current request. It fixes the 
  
 The `jwtMiddleware` will not find the cookie in `req.cookies` unless the request has been parsed for cookies. Use the `cookie-parser` middleware so the JWT middleware can access the token and attach the decoded user data to `req.user`.
 
-Add this to `app.js`:
+Add this to `app.js`. Use exactly as written:
 
 ```js
 const cookieParser = require("cookie-parser");
@@ -214,7 +214,7 @@ Do the same for the other task requests and for the `logoff` request. Then test 
 
 ## **Other Security Middleware**
 
-Add the following statements near the top of your `app.js`:
+Add the following statements near the top of your `app.js`. Use exactly as written:
 
 ```js
 app.set("trust proxy", 1);
@@ -226,7 +226,7 @@ The “trust proxy” setting matters in production. On a service like Render.co
 
 ### Rate Limiting
 
-Then, add the following `app.use()` statements:
+Then, add the following `app.use()` statement. Use exactly as written:
 
 ```js
 app.use(
@@ -239,13 +239,17 @@ app.use(
 
 This one should come before any other `app.use()` statements. You do not want to spend time processing requests from a misbehaving client.
 
-### Next Helmet:
+### Next Helmet
+
+Use exactly as written:
 
 ```js
 app.use(helmet());
 ```
 
-### Next, the XSS protection:
+### Next, the XSS protection
+
+Use exactly as written:
 
 ```js
 app.use(xss());
@@ -291,6 +295,36 @@ for the files you have created, so that they are added to the `assignment8` bran
 
 ---
 
+---
+
+<details>
+<summary><strong>Grading Rubric</strong></summary>
+
+### Required
+
+1. **setJwtCookie utility** — `controllers/userController.js` contains `cookieFlags` and `setJwtCookie` functions; the JWT payload has `id` and `csrfToken`; the cookie is named `"jwt"` with `httpOnly`, `secure` (production only), and `sameSite: "Strict"` flags (use exactly as written in "Setting the Cookie")
+2. **Logon** — On success, sets the JWT cookie and returns `csrfToken` and user name/email in the response body; does not use `global.user_id`
+3. **Register** — On success, sets the JWT cookie and returns `csrfToken` and user name/email in the response body; does not use `global.user_id`
+4. **Logoff** — Clears the `"jwt"` cookie using `res.clearCookie("jwt", cookieFlags(req))` with the same flags used when setting it, without `maxAge`
+5. **JWT middleware** — `middleware/jwtMiddleware.js` checks for the `"jwt"` cookie, verifies the JWT with `process.env.JWT_SECRET`, checks the `X-CSRF-TOKEN` header against the JWT's `csrfToken` for write methods (`POST`, `PATCH`, `PUT`, `DELETE`, `CONNECT`), sets `req.user = { id: decoded.id }`, and returns 401 for all failure cases (use exactly as written in "The Middleware for the JWT")
+6. **Protected routes** — All task routes and the logoff route are protected by the JWT middleware
+7. **Task routes updated** — All `global.user_id` references replaced with `req.user.id`
+8. **Old auth middleware removed** — No remaining references to the old auth middleware
+9. **Cookie parser** — `cookie-parser` middleware added early in the `app.js` middleware chain (use exactly as written)
+10. **Rate limiting** — `express-rate-limit` configured with 100 requests per 15-minute window, placed before other `app.use()` statements (use exactly as written)
+11. **Helmet** — `helmet()` middleware added to `app.js` (use exactly as written)
+12. **XSS protection** — `xss()` middleware added after `cookieParser()` and `express.json()` (use exactly as written)
+13. **Trust proxy** — `app.set("trust proxy", 1)` added to `app.js` (use exactly as written)
+14. **Tests pass** — `npm run tdd assignment8` completes without failure
+
+### Optional
+
+None — all tasks above are required.
+
+</details>
+
+---
+
 ## Video Submission
 
 Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Share the link in your submission form.
@@ -318,4 +352,3 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 - Use screen sharing to show code examples 
 - Speak clearly and explain concepts thoroughly
 - Include the video link in your assignment submission
-

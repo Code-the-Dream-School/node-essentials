@@ -2,9 +2,9 @@
 
 ## **Assignment Instructions**
 
-Your assignment is to complete the final project and prepare your final presentation. If you have completed all assignments through Assignment 10, you already have a final project. If time permits, add one extra back-end feature. The lesson includes some ideas, or you may come up with your own. Only make changes to the back end so you are not distracted by React code.
+Your assignment is to complete the final project and prepare your final presentation. If you have completed all assignments through Assignment 10, you already have a final project. If time permits, add one extra back-end feature (optional). The lesson includes some ideas, or you may come up with your own. Only make changes to the back end so you are not distracted by React code.
 
-Make your changes on an `assignment11` branch of your node-homework repository. Test the full app. If you add or modify APIs, test them. If you enable Swagger, make sure you can see the Swagger user interface.
+This assignment builds on your work from Assignment 10. Either create your `assignment11` branch from `main` (after you have merged your assignment10 PR) or create your `assignment11` branch directly from `assignment10` (if you have not merged that work to main) so you have all your existing code from last week. Test the full app. If you add or modify APIs, test them. If you enable Swagger, make sure you can see the Swagger user interface.
 
 **Important:** We hope you add an extra feature. If you do, describe what you added in `project-summary.txt`. If you add or modify any REST APIs, document them with enough detail for your reviewer to try them: the path, the method, any query parameters, and the request body if there is one.
 
@@ -26,6 +26,26 @@ Your presentation should cover:
 - One technical challenge you encountered and how you solved it.
 - What you learned during the project and what you are most proud of.
 - What you would add next if you continued developing the application.
+
+---
+
+<details>
+<summary><strong>Grading Rubric</strong></summary>
+
+### Required
+
+1. **Working application** — All functionality from Assignments 1–10 is intact: user registration and logon with JWT authentication, task CRUD with access control, Prisma ORM, reCAPTCHA on registration, and security middleware
+2. **Render deployment** — Application is deployed and running on Render.com; the URL works
+3. **project-summary.txt** — File exists in the root of `node-homework` with the Render deployment URL and, if an extra feature was added, a description of what it does and how to test it
+4. **Presentation** — 3–5 minute video covering the application, CRUD functionality, security protections, a technical challenge, and what you learned
+
+### Optional
+
+- **Extra back-end feature** — One additional feature such as pagination, filtering, role-based access control, Swagger documentation, or another back-end enhancement, described in `project-summary.txt`
+
+</details>
+
+---
 
 ## **Submit Your Assignment on GitHub**
 

@@ -5,7 +5,7 @@
 - Implement type-safe database operations using Prisma Client
 - Understand the benefits of ORM over raw SQL queries
 - Set up and configure Prisma in an existing project
-- Implement advanced Prisma features like relationships and transactions
+- Implement Prisma features including model relationships
 
 ## Assignment Overview
 In this assignment, you will update your PostgreSQL application from Assignment 5 so it uses Prisma ORM instead of raw SQL queries. The app should keep the same behavior, but your database code will move from hand-written SQL to Prisma Client methods.
@@ -49,7 +49,7 @@ datasource db {
 }
 ```
 
-This would build your client in the wrong place. You want the client in the default location, which is inside `node_modules`. Change the file to this:
+This would build your client in the wrong place. You want the client in the default location, which is inside `node_modules`. Use exactly as written — the `provider` value must be `"prisma-client-js"` and the `output` line must be removed:
 
 ```
 generator client {
@@ -124,7 +124,7 @@ These lowercase relation types are correct because they must match the lowercase
 
 Next, rename the models and fields to make them easier to use in JavaScript. Prisma model names are usually singular and begin with a capital letter, such as `User` and `Task`. Field names usually begin with a lowercase letter and use camelCase, such as `hashedPassword`, `tasks`, and `user`.
 
-Renaming something in Prisma does not rename it in PostgreSQL. `@map` connects a renamed Prisma field to its original database column, while `@@map` connects a renamed Prisma model to its original database table. The final result is:
+Renaming something in Prisma does not rename it in PostgreSQL. `@map` connects a renamed Prisma field to its original database column, while `@@map` connects a renamed Prisma model to its original database table. Use exactly as written — the model names `User` and `Task`, the camelCase field names, and the `@map`/`@@map` directives must match because the controller code and tests reference them:
 
 ```
 // This is your Prisma schema file
@@ -217,7 +217,7 @@ Do not change the schema with manual SQL statements. You will also use `deploy` 
 ### 2. Create Prisma Database Connection
 
 #### a. Create Database Client File
-Create `db/prisma.js`. This will replace the `pg` pool as the shared database client. This file should contain:
+Create `db/prisma.js`. This will replace the `pg` pool as the shared database client. Use exactly as written — the file name `db/prisma.js` and the module export must match because other files import this module by path:
 
 ```js
 const { PrismaClient } = require("@prisma/client");
@@ -242,20 +242,20 @@ In the log, each table name may be prefixed with "public". This is the default d
 
 Now replace references to the `pg` pool with references to the `prisma` client instance. You can do this incrementally. Update one operation at a time, test it, and then move to the next one.
 
-First, in app.js, add this statement:
+First, in app.js, add this statement. Use exactly as written:
 
 ```js
 const prisma = require("./db/prisma");
 ```
 
-Then update shutdown so that, in addition to ending the pg pool while it still exists, it also does this:
+Then update shutdown so that, in addition to ending the pg pool while it still exists, it also does this. Use exactly as written:
 
 ```javascript
     await prisma.$disconnect();
     console.log("Prisma disconnected");
 ```
 
-Change your health check so that it uses Prisma:
+Change your health check so that it uses Prisma. Use exactly as written — the route path `/health` and the response JSON structure must match:
 
 ```js
 app.get('/health', async (req, res) => {
@@ -268,7 +268,7 @@ app.get('/health', async (req, res) => {
 });
 ```
 
-You also want your error handler to recognize Prisma connection errors. Add a check near the top of your error handler like this:
+You also want your error handler to recognize Prisma connection errors. Add a check near the top of your error handler. Use exactly as written — the error name string `"PrismaClientInitializationError"` must match:
 
 ```js
 if (err.name === "PrismaClientInitializationError") {
@@ -284,7 +284,7 @@ In the steps below, fix one controller method at a time and test that method. Ot
 
 #### a. Fix Logon
 
-Add a `require()` statement for Prisma in the user controller, in addition to the one for the pool while you are still converting. For logon, find the user:
+Add a `require()` statement for Prisma in the user controller, in addition to the one for the pool while you are still converting. For logon, find the user. Example — adapt to your controller; the `prisma.user.findUnique` call and `{ where: { email } }` pattern are required:
 
 ```js
 email = email.toLowerCase() // Joi validation always converts the email to lower case
@@ -296,7 +296,7 @@ That may return `null`. If it does, authentication fails. If a user is found, st
 
 #### b. Fix Register
 
-You need to catch the error that can happen when the email is already registered. Use this pattern:
+You need to catch the error that can happen when the email is already registered. Example — adapt to your controller. The `prisma.user.create` call, the `data` field names (`name`, `email`, `hashedPassword`), the `select` fields, and the error check (`err.code === "P2002"`) must match exactly:
 
 ```js
 // Do the Joi validation, so that value contains the user entry you want.
@@ -321,6 +321,8 @@ try {
 
 #### c. Fix the Task Index Method
 
+Example — adapt to your controller. The `prisma.task.findMany` call, the `userId` filter, and the `select` fields must match:
+
 ```js
 const tasks = await prisma.task.findMany({
   where: {
@@ -335,6 +337,8 @@ const tasks = await prisma.task.findMany({
 This method follows the same pattern as register.  Create the task with a userId of global.user_id.
 
 #### e. Fix Task Update
+
+Example — adapt to your controller. The `prisma.task.update` call, the `where` clause with both `id` and `userId`, and the `P2025` error check must match:
 
 ```js
 // assuming that value contains the validated change coming back from Joi, and that
@@ -436,6 +440,8 @@ project/
 └── package.json
 ```
 
+*You will also have your `assignment1/` through `assignment5/` folders from prior weeks, along with shared files (`app.js`, `middleware/`, etc.) you have been building on since those assignments — that is expected.*
+
 ### Code Quality Requirements
 - Use async/await consistently
 - Implement proper Prisma error handling
@@ -460,7 +466,6 @@ Test all endpoints with Postman or curl:
 - Working Prisma schema and client
 - Complete CRUD operations using Prisma
 - Proper error handling for Prisma operations
-- Advanced Prisma features implemented
 
 ### Testing Documentation
 - Postman collection or curl commands for testing
@@ -530,6 +535,38 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 
 ---
 
+---
+
+<details>
+<summary><strong>Grading Rubric</strong></summary>
+
+### Required
+
+1. **Prisma schema** — `prisma/schema.prisma` contains `User` and `Task` models with camelCase field names, `@map`/`@@map` directives, and a `Task → User` relationship (use exactly as written in Task 1c)
+2. **Generator block** — `schema.prisma` uses `provider = "prisma-client-js"` with no custom `output` path (use exactly as written in Task 1a)
+3. **Prisma client module** — `db/prisma.js` exports a `PrismaClient` instance with query logging in development mode (use exactly as written in Task 2a)
+4. **Health check** — `GET /health` uses `prisma.$queryRaw` and returns `{ status: 'ok', db: 'connected' }` (use exactly as written in Task 2b)
+5. **Prisma disconnect** — Shutdown handler calls `prisma.$disconnect()` (use exactly as written in Task 2b)
+6. **Error handler** — Recognizes `PrismaClientInitializationError` (use exactly as written in Task 2b)
+7. **Logon** — Uses `prisma.user.findUnique({ where: { email } })` to look up the user (example in Task 3a — adapt to your controller)
+8. **Register** — Uses `prisma.user.create` with `data: { name, email, hashedPassword }` and catches `P2002` for duplicate email (example in Task 3b — adapt to your controller)
+9. **Task index** — Uses `prisma.task.findMany` filtered by `userId` (example in Task 3c — adapt to your controller)
+10. **Task create** — Uses `prisma.task.create` with `userId: global.user_id` (Task 3d)
+11. **Task update** — Uses `prisma.task.update` with `where: { id, userId }` and catches `P2025` for not-found (example in Task 3e — adapt to your controller)
+12. **Task show** — Uses `prisma.task.findUnique` filtered by both `id` and `userId`; catches `P2025` (Task 3f)
+13. **Task delete** — Uses `prisma.task.delete` with `where: { id, userId }`; catches `P2025` (Task 3g)
+14. **Pool removed** — No remaining `pg` pool references in controllers or app.js (Task 3h)
+15. **Access control** — One user cannot read, modify, or delete another user's tasks (all task queries filter by `userId`)
+16. **Tests pass** — `npm run tdd assignment6` completes without failure
+
+### Optional
+
+None — all tasks above are required.
+
+</details>
+
+---
+
 ## Resources
 
 - [Prisma Documentation](https://www.prisma.io/docs/)
@@ -549,4 +586,3 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 - Ask for help if you get stuck on specific concepts
 
 **Remember:** This assignment builds on Assignment 5. Make sure you have a working PostgreSQL application before adding Prisma ORM.
-

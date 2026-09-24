@@ -33,7 +33,7 @@ Keep practicing until the SQL feels less mysterious. Remember that you can reloa
 
 ### **Understanding What Assignment 5a Is Asking For**
 
-In this part of the assignment, getting the right data is only part of the job. The shape of the result matters too. A SQL query returns rows and columns. The tests check those rows and columns, so the column names, row order, and grouped results need to match what the task asks for.
+In this part of the assignment, getting the right data is only part of the job. The shape of the result matters too. A SQL query returns rows and columns. The column names, row order, and grouped results need to match what each task asks for.
 
 For example, if a task asks for `order_id` and `total_price`, then those should be the two column names in your result. If a task says the rows should be ordered by `order_id`, then the `ORDER BY` is part of the answer. If a task says to find the first 5 orders, then `LIMIT 5` is also part of the answer.
 
@@ -142,7 +142,7 @@ For the big picture of how storage and login identity change across the course, 
 
 Starting with this assignment, your app needs to know how to reach your database. That information includes a password, so it does not belong in your code. The standard solution is to keep it in an **environment variable**, loaded from a `.env` file that you never commit to git.
 
-You set up your local PostgreSQL databases and your `.env` file back in Assignment 0, and this assignment assumes they already exist. Your `.env` file should contain connection strings for those databases. The variable names are:
+You set up your local PostgreSQL databases and your `.env` file back in Assignment 0, and this assignment assumes they already exist. Your `.env` file should contain connection strings for those databases. Use these exact variable names — the code and tests reference them. The values are your own connection strings:
 
 ```bash
 DB_URL=<connection string for the SQL practice database>
@@ -208,7 +208,7 @@ These checks are also documented in Week 0. Remember them: if your app or a data
 
 #### c. Create Database Tables
 
-Create a file in node-homework called `schema.sql` with the following tables:
+Create a file in node-homework called `schema.sql` with the following tables. Use this exact SQL — the table definitions, column names, types, and constraints must match exactly, as the controller code and tests depend on this schema:
 
 ```sql
 -- Users table to store user information
@@ -270,7 +270,7 @@ Again, replace `<paste the TEST_DATABASE_URL value from .env>` with the complete
 
 #### a. Create the Database Connection File
 
-Create a folder in node-homework called `db`.  Within it, create `pg-pool.js` with the following content:
+Create a folder in node-homework called `db`. Within it, create `pg-pool.js` with the following content. Use exactly as written — this file is imported by name throughout the app:
 
 ```javascript
 const { Pool } = require("pg");
@@ -350,7 +350,7 @@ When a user logs on, the controller looks up the user by email. If no user is fo
 
 For `taskController`, remember that every task belongs to one user. The `tasks` table has a `user_id` column for this reason. When a controller gets, updates, or deletes a task, the SQL should check both the task id and `global.user_id`. If a task exists but belongs to another user, the current user should not be able to access it. From this API's point of view, that should look like "task not found," so the controller should send `404`.
 
-The tests for 5b expect simple behavior. Return `201` when something is created. Return `200` when a request works. Return `400` when the request body is invalid. Return `404` when a task is not found for the current user. Keep the returned JSON simple too: for tasks, return fields such as `id`, `title`, and `is_completed`, but do not return `user_id`.
+Keep the behavior simple. Return `201` when something is created. Return `200` when a request works. Return `400` when the request body is invalid. Return `404` when a task is not found for the current user. Keep the returned JSON simple too: for tasks, return fields such as `id`, `title`, and `is_completed`, but do not return `user_id`.
 
 You will not see many try/catch blocks in these examples. For most database errors, you can let the global error handler take care of the response.
 
@@ -523,6 +523,35 @@ Test all endpoints with Postman or curl:
 6. **Security**: Verify user ownership validation and password hashing
 
 For the security testing, use Postman to try to GET, UPDATE, or DELETE a task that belongs to another user. Log on as user 1, do a GET for `/tasks`, and record the id of one of that user's tasks. Then log on as user 2 and try to get, update, and delete the task with that id. All of those attempts should fail with a message that the entry was not found. This is how you can check that access control is working.
+
+## Suggested File Structure
+
+By the end of Assignment 5, your main app files should include:
+
+```text
+node-homework/
+  app.js
+  schema.sql
+  db/
+    pg-pool.js
+  controllers/
+    userController.js
+    taskController.js
+  routes/
+    userRoutes.js
+    taskRoutes.js
+  middleware/
+    auth.js
+    not-found.js
+    error-handler.js
+  validation/
+    userSchema.js
+    taskSchema.js
+  assignment5/
+    assignment5-sql.txt
+```
+
+You will also have `controllers/timeController.js`, `routes/timeRoutes.js`, and folders from earlier assignments (`assignment1/`, `assignment2/`, `week-3-middleware/`) — those are expected.
 
 ---
 

@@ -34,7 +34,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
      ```bash
      npm run tdd assignment3b
      ```
-   - If you attempt the optional advanced dog middleware tasks, run:
+   - If you attempt the optional dog middleware tasks, run:
      ```bash
      npm run tdd assignment3c
      ```
@@ -59,7 +59,7 @@ This assignment has three learning parts and three test files:
      npm run tdd assignment3b
      ```
 
-3. **Advanced Dog Middleware Tasks** (optional)
+3. **Optional Dog Middleware Tasks**
    - It still uses the `week-3-middleware` app.
    - Test command:
      ```bash
@@ -112,7 +112,7 @@ logon
 logoff
 ```
 
-The tests require these exact function names.
+Use these exact function names.
 
 **About the globals in this assignment:** In Lesson 1, you learned that putting changing application data on `global` is usually bad practice. We are using `global.users`, `global.user_id`, and `global.tasks` here as a temporary in-memory database so you can practice controllers, routers, and middleware before we add a real database. In a later week, you will replace this fake database with PostgreSQL through Prisma, and you will see how little of your controller code has to change.
 
@@ -263,7 +263,7 @@ In `week-3-middleware/app.js`, export the Express app directly:
 module.exports = app;
 ```
 
-By the end of the dog rescue exercise, your middleware should follow the same order taught in Lesson 3:
+By the end of the dog rescue exercise, your middleware should follow this order:
 
 ```text
 request ID middleware
@@ -318,7 +318,7 @@ app.use((req, res, next) => {
 
 Add logging middleware after the request ID middleware.
 
-The log format should be:
+Use `console.log()` with this exact log format:
 
 ```text
 [timestamp]: METHOD PATH (requestId)
@@ -337,7 +337,7 @@ In `week-3-middleware/app.js`:
 - Add a 404 handler for unmatched routes
 - Add an error handler for unexpected errors
 
-The 404 response should include:
+The 404 response must include this exact JSON shape:
 
 ```json
 {
@@ -346,7 +346,7 @@ The 404 response should include:
 }
 ```
 
-The 500 response should include:
+The 500 response must include this exact JSON shape:
 
 ```json
 {
@@ -363,13 +363,13 @@ npm run tdd assignment3b
 
 ---
 
-## Stretch Goals: Advanced Dog Middleware Tasks (Optional)
+## Optional Dog Middleware Tasks
 
 These tasks are more advanced than the first dog rescue tasks. They are still part of the dog rescue middleware app.
 
 Continue working inside the separate `week-3-middleware` folder.
 
-### 14. Stretch Goal: Add Security Headers
+### 14. (Optional) Add Security Headers
 
 Add middleware that sets these headers on all responses:
 
@@ -379,7 +379,7 @@ X-Frame-Options: DENY
 X-XSS-Protection: 1; mode=block
 ```
 
-### 15. Stretch Goal: Add Request Size Limiting
+### 15. (Optional) Add Request Size Limiting
 
 Update JSON parsing to limit body size:
 
@@ -387,7 +387,7 @@ Update JSON parsing to limit body size:
 app.use(express.json({ limit: "1mb" }));
 ```
 
-### 16. Stretch Goal: Add Content-Type Validation
+### 16. (Optional) Add Content-Type Validation
 
 Add middleware that checks POST requests.
 
@@ -405,7 +405,7 @@ Content-Type must be application/json
 
 `415 Unsupported Media Type` is a more specific HTTP status for unsupported content types, but this assignment and its tests use `400 Bad Request`.
 
-### 17. Stretch Goal: Add Custom Error Classes
+### 17. (Optional) Add Custom Error Classes
 
 Inside `week-3-middleware`, create:
 
@@ -465,7 +465,7 @@ module.exports = {
 };
 ```
 
-### Stretch Goal: 18. Use Custom Errors in `routes/dogs.js`
+### 18. (Optional) Use Custom Errors in `routes/dogs.js`
 
 In `week-3-middleware/routes/dogs.js`:
 
@@ -474,14 +474,14 @@ In `week-3-middleware/routes/dogs.js`:
 - In `POST /adopt`, throw or pass a `NotFoundError` if the dog does not exist or is not available
 - Keep the successful `201` response unchanged
 
-Required message patterns:
+If you implement this, use these message patterns:
 
 ```text
 Missing required fields
 not found or not available
 ```
 
-### Stretch Goal: 19. Improve Advanced Error Handling
+### 19. (Optional) Improve Advanced Error Handling
 
 Update the error handler in `week-3-middleware/app.js`:
 
@@ -491,7 +491,7 @@ Update the error handler in `week-3-middleware/app.js`:
 - Use `console.error()` for `5xx` errors
 - Include `error` and `requestId` in every error response
 
-The test expects log messages to include:
+If you implement this, your log messages should include:
 
 ```text
 WARN:
@@ -527,7 +527,7 @@ npm run tdd assignment3c
 
 ## Suggested File Structure
 
-By the end of Assignment 3, your files should look like this:
+By the end of Assignment 3, your files should look like this. This list shows only the new files added in Assignment 3 — you will still have `controllers/timeController.js` and `routes/timeRoutes.js` from Assignment 2. This week adds to your app; it does not replace it.
 
 ```text
 node-homework/
@@ -559,7 +559,7 @@ npm run tdd assignment3a
 npm run tdd assignment3b
 ```
 
-If you attempt the optional advanced dog middleware tasks, also run:
+If you attempt the optional dog middleware tasks, also run:
 
 ```bash
 npm run tdd assignment3c
@@ -608,3 +608,39 @@ Record a short video (3-5 minutes) on YouTube, Loom, or similar platform. Share 
 4. Create a pull request. The target of the pull request should be the main branch of your GitHub repository.
 5. Once the pull request is created, your browser contains the URL of the PR. Include that link in your homework submission.
 6. Do not forget to include your video link in the submission form.
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+Covers Assignment 3A (main todo backend, `npm run tdd assignment3a`) and Assignment 3B (dog rescue middleware, `npm run tdd assignment3b`). Note that `controllers/timeController.js` and `routes/timeRoutes.js` from Assignment 2 should still be present — this assignment adds to that app, it does not replace it.
+
+- **`controllers/userController.js`** — exports `register`, `logon`, `logoff`. `Use exactly as written (tests depend on these names)`: the three function names.
+  - `register`: reads `name`/`email`/`password` from `req.body`, adds the user to `global.users`, sets `global.user_id`, returns `201` with the user's `name`/`email` (not the password).
+  - `logon`: reads `email`/`password`, finds a matching user in `global.users`, sets `global.user_id` on match, returns `200` with `name`/`email`; returns `401` on mismatch.
+  - `logoff`: sets `global.user_id` to `null`, returns `200`.
+- **`routes/userRoutes.js`** — connects `POST /register`, `POST /logon`, `POST /logoff` to the controller functions (mounted at `/api/users` in `app.js`).
+- **`middleware/not-found.js`** and **`middleware/error-handler.js`** — a 404 JSON middleware and a four-argument (`err, req, res, next`) error-handling middleware returning `500` with JSON.
+- **Root `app.js` wiring** — initializes `global.user_id = null`, `global.users = []`, `global.tasks = []`; uses `express.json()`; mounts the user router at `/api/users`; adds not-found middleware after routes and error-handler middleware last. `Use exactly as written`: this middleware order (`express.json()` → routes → not-found → error-handler) — the assignment states order matters.
+- **Dog rescue middleware app (`week-3-middleware/`)** — work only inside this folder, using the provided starter code; export the app directly with `module.exports = app`.
+  - Built-in middleware: `express.json()` (for `POST /adopt`) and `express.static()` serving `week-3-middleware/public/images` (so `GET /images/dachshund.png` works).
+  - Request ID middleware: sets `req.requestId` (via `crypto.randomUUID()`), sets an `X-Request-Id` response header, calls `next()`.
+  - Logging middleware (after request ID middleware): logs in the format `[timestamp]: METHOD PATH (requestId)`.
+  - 404 handler for unmatched routes returning `{ "error": "Route not found", "requestId": "..." }`, and an error handler for unexpected errors returning `{ "error": "Internal Server Error", "requestId": "..." }`.
+
+### Optional Deliverables/Tasks
+
+Signaled in the assignment as "Optional Dog Middleware Tasks," checked only by the optional `npm run tdd assignment3c` test. **Do not fail a student for omitting these.** All work here stays inside `week-3-middleware/`.
+
+- **Task 14 — (Optional) Add Security Headers** — sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block` on all responses.
+- **Task 15 — (Optional) Add Request Size Limiting** — limits JSON body size, e.g. `express.json({ limit: "1mb" })`.
+- **Task 16 — (Optional) Add Content-Type Validation** — rejects non-`application/json` POST requests with `400` and an error message including `Content-Type must be application/json`, plus the current `requestId`.
+- **Task 17 — (Optional) Add Custom Error Classes** — `week-3-middleware/errors.js` exports `ValidationError`, `NotFoundError`, `UnauthorizedError`, each extending `Error` with a `statusCode` (400/404/401 respectively — the assignment calls these "suggested," so treat the exact codes as `Example — adapt if you have a reason to`).
+- **Task 18 — (Optional) Use Custom Errors in `routes/dogs.js`** — `POST /adopt` throws/passes `ValidationError` for missing fields and `NotFoundError` for a missing/unavailable dog, while keeping the successful `201` response unchanged. `Example, if attempted`: the message patterns `Missing required fields` and `not found or not available` are illustrative wording the assignment suggests, not a hidden test requirement to match verbatim, since this task is optional.
+- **Task 19 — (Optional) Improve Advanced Error Handling** — updates the `week-3-middleware` error handler to use `err.statusCode` (default `500`), log with `console.warn()` for 4xx and `console.error()` for 5xx, and include `error`/`requestId` in every error response. `Example, if attempted`: the `WARN:`/`ERROR:` log prefixes shown are illustrative formatting for this optional task, not a hard requirement.
+
+</details>
+

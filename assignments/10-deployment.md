@@ -2,7 +2,7 @@
 
 ## **Task 1: Adding reCAPTCHA Support**
 
-Before you start, create an `assignment10` git branch for your `node-homework` repository.
+Before you start, this assignment builds on your work from Assignment 9. Either create your `assignment10` branch from `main` (after you have merged your assignment9 PR) or create your `assignment10` branch directly from `assignment9` (if you have not merged that work to main) so you have all your existing code from last week.
 
 For this task, you need a Google Gmail account. Then do the following:
 
@@ -40,7 +40,7 @@ For this task, you need a Google Gmail account. Then do the following:
 
 9. In the test environment, Postman or Jest, you cannot run the Google widget, so you cannot generate a real token. When testing in Postman or Jest, put the RECAPTCHA_BYPASS value in the "X-Recaptcha-Test" header. If you do not receive a token in the request body, check whether the RECAPTCHA_BYPASS environment variable is set. If it is set and it matches the header, proceed as if you received a good token.
 
-Here's the code you'll need to add to the register method, just before userSchema.validate:
+Here's the code you'll need to add to the register method, just before userSchema.validate. Use exactly as written — the `RECAPTCHA_SECRET` and `RECAPTCHA_BYPASS` environment variable names, the `X-Recaptcha-Test` header name, the Google verification URL, and the 400 response must match:
 
 ```js
   let isPerson = false;
@@ -83,7 +83,7 @@ Here's the code you'll need to add to the register method, just before userSchem
 11. Try testing a register request with Postman. It will fail. Change the request to include the RECAPTCHA_BYPASS in the "X-Recaptcha-Test" header, and it should work.
 
 12. Try `npm run test`. This runs your tests from assignment 9. Some of them will fail. Why?
-Optional Stretch Goal: fix your tests so they complete correctly by adding the header you need.
+**Optional:** Fix your tests so they complete correctly by adding the header you need.
 
 You have now run the TDD for this assignment and the Postman test. These are not complete tests of reCAPTCHA because they use the bypass instead of a real token. You will correct that in the next lesson.
 
@@ -93,7 +93,7 @@ For this step, create a new terminal session. Make sure your active directory is
 
 1. Clone this repository: `https://github.com/Code-the-Dream-School/node-essentials-front-end`.
 2. Change to the node-essentials-front-end folder. Then run `npm install` to get the packages you need.
-3. Create a `.env` file. It should have four lines:
+3. Create a `.env` file. Use these exact variable names — substitute your own reCAPTCHA site key for `gobbledygook`:
    ```
    VITE_BASE_URL=""
    VITE_TARGET="http://localhost:3000"
@@ -201,6 +201,30 @@ Change the `.env` file for your front end. For VITE_TARGET, use the URL of your 
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
+---
+
+---
+
+<details>
+<summary><strong>Grading Rubric</strong></summary>
+
+### Required
+
+1. **reCAPTCHA environment variables** — `.env` has `RECAPTCHA_SECRET` and `RECAPTCHA_BYPASS`
+2. **reCAPTCHA verification in register** — Register method checks for `recaptchaToken` in the request body and verifies it with Google; falls back to `RECAPTCHA_BYPASS` via the `X-Recaptcha-Test` header for testing; returns 400 if neither passes (use exactly as written in Task 1)
+3. **JSON body limit increased** — `express.json()` limit changed from `"1kb"` to `"1mb"` or similar to accommodate the reCAPTCHA token
+4. **Neon database** — `DATABASE_URL` points to a Neon.tech cloud PostgreSQL database; `prisma migrate deploy` run successfully against it (Task 3)
+5. **Render deployment** — Back end deployed to Render.com with build command `npm install --production && npx prisma migrate deploy`, run command `npm start`, and environment variables `DATABASE_URL`, `JWT_SECRET`, `RECAPTCHA_SECRET`, and `RECAPTCHA_BYPASS` configured (Task 4)
+6. **project-summary.txt** — File exists in the root of `node-homework` and contains the Render.com deployment URL (Task 6)
+7. **Front end tested** — Front end connects to the back end; register (with reCAPTCHA), logon, task CRUD, and logoff all work (Tasks 2 and 6)
+8. **TDD passes** — `npm run tdd assignment10` completes without failure
+
+### Optional
+
+- **Fix Assignment 9 tests** — Update your Assignment 9 tests to pass with reCAPTCHA enabled by adding the `X-Recaptcha-Test` header (Task 1, step 12)
+
+</details>
+
 ---
 
 ## Video Submission
