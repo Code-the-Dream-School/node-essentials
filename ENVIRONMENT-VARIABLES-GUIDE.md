@@ -54,9 +54,9 @@ If a secret is ever committed by accident, treat it as compromised: rotate (chan
 This is one of the most common sources of confusion in the course, so name it clearly. You are juggling more than one database connection string:
 
 - **`DB_URL`** — the SQL practice database used by `sqlcommand`, `load-db.js`, and Assignment 5a. This database has the sample business tables such as customers, orders, products, and line items.
-- **`DATABASE_URL`** — your task app **development** database, the one you use with Postman and everyday app data. This database has the app tables such as users and tasks.
+- **`DATABASE_URL`** — the database the task app actively uses. In your local `.env`, it initially points to the **development** database you use with Postman and everyday app data. In the deployment assignment, the production environment gives this same variable the cloud database connection string. This database has the app tables such as users and tasks.
 - **`TEST_DATABASE_URL`** — a **separate test** database used only by the automated tests. The tests delete and re-create data freely, so it **must** point at a different database than your development one. If a test ever wipes data you cared about, this is usually why.
-- **A production database** — added in the deployment assignment (Lesson 10). It lives in the cloud and serves real users. Be extremely careful with it. Commands that reset a database, like `npx prisma migrate reset`, must never be run against production.
+- **A production database** — added in the deployment assignment (Lesson 10) and supplied to the deployed app through `DATABASE_URL`. It lives in the cloud and serves real users. Be extremely careful with it. Commands that reset a database, like `npx prisma migrate reset`, must never be run against production.
 
 Whenever something behaves in a way you cannot explain, ask the most useful debugging question first: **"Which database am I actually connected to right now?"** A surprising amount of confusion comes from running against the wrong one.
 
