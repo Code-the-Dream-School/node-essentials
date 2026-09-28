@@ -201,14 +201,13 @@ Change the `.env` file for your front end. For VITE_TARGET, use the URL of your 
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
----
 
 ---
 
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
-### Required
+### Required Deliverables/Tasks
 
 1. **reCAPTCHA environment variables** — `.env` has `RECAPTCHA_SECRET` and `RECAPTCHA_BYPASS`
 2. **reCAPTCHA verification in register** — Register method checks for `recaptchaToken` in the request body and verifies it with Google; falls back to `RECAPTCHA_BYPASS` via the `X-Recaptcha-Test` header for testing; returns 400 if neither passes (use exactly as written in Task 1)
@@ -219,7 +218,7 @@ Change the `.env` file for your front end. For VITE_TARGET, use the URL of your 
 7. **Front end tested** — Front end connects to the back end; register (with reCAPTCHA), logon, task CRUD, and logoff all work (Tasks 2 and 6)
 8. **TDD passes** — `npm run tdd assignment10` completes without failure
 
-### Optional
+### Optional Deliverables/Tasks
 
 - **Fix Assignment 9 tests** — Update your Assignment 9 tests to pass with reCAPTCHA enabled by adding the `X-Recaptcha-Test` header (Task 1, step 12)
 

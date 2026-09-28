@@ -1122,12 +1122,10 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 
 ---
 
----
-
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
-### Required
+### Required Deliverables/Tasks
 
 1. **Priority field** — `prisma/schema.prisma` Task model includes a `priority` field with default `"medium"` and `@db.VarChar(10)` (use exactly as written in Task 1a)
 2. **Migration** — A migration adds the priority column to the tasks table (Task 1b)
@@ -1146,7 +1144,7 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 15. **Bulk route** — `POST /bulk` added to task routes before `/:id` (Task 9b)
 16. **Tests pass** — `npm run tdd assignment7` completes without failure
 
-### Optional
+### Optional Deliverables/Tasks
 
 - **User show method** — `GET /api/users/:id` with eager-loaded incomplete tasks (Task 2b)
 - **Sorting support** — `sortBy` and `sortDirection` query parameters on task index (Task 3c)

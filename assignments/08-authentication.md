@@ -295,12 +295,10 @@ for the files you have created, so that they are added to the `assignment8` bran
 
 ---
 
----
-
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
-### Required
+### Required Deliverables/Tasks
 
 1. **setJwtCookie utility** — `controllers/userController.js` contains `cookieFlags` and `setJwtCookie` functions; the JWT payload has `id` and `csrfToken`; the cookie is named `"jwt"` with `httpOnly`, `secure` (production only), and `sameSite: "Strict"` flags (use exactly as written in "Setting the Cookie")
 2. **Logon** — On success, sets the JWT cookie and returns `csrfToken` and user name/email in the response body; does not use `global.user_id`
@@ -317,7 +315,7 @@ for the files you have created, so that they are added to the `assignment8` bran
 13. **Trust proxy** — `app.set("trust proxy", 1)` added to `app.js` (use exactly as written)
 14. **Tests pass** — `npm run tdd assignment8` completes without failure
 
-### Optional
+### Optional Deliverables/Tasks
 
 None — all tasks above are required.
 
