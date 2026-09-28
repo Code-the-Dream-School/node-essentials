@@ -807,7 +807,7 @@ This is not a complete test of your tests, but it gives you useful feedback abou
 <details>
 <summary>Rubric (for AirHub reviewer and mentors)</summary>
 
-### Required
+### Required Deliverables/Tasks
 
 1. **ESLint Jest config** — `eslint.config.js` includes the Jest plugin configuration (use exactly as written in the setup section)
 2. **Test script** — `package.json` has a `"test"` script that runs Jest against the `test/` directory with `NODE_ENV=test` (use exactly as written)
@@ -824,7 +824,7 @@ This is not a complete test of your tests, but it gives you useful feedback abou
 13. **Style requirements** — One `expect()` per `it()` block; each `it()` description starts with the test case number followed by a period
 14. **Tests pass** — `npm run test` completes without failure; `npm run lesson9TDD` report shows implemented tests gave expected results
 
-### Optional
+### Optional Deliverables/Tasks
 
 - **User controller tests (33–42, 61–65)** — `test/user.controller.test.js` with `MockResponseWithCookies`, register/logon/logoff tests (33–42), and JWT middleware tests (61–65)
 

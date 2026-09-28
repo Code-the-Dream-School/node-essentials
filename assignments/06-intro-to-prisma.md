@@ -538,7 +538,7 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 <details>
 <summary>Rubric (for AirHub reviewer and mentors)</summary>
 
-### Required
+### Required Deliverables/Tasks
 
 1. **Prisma schema** — `prisma/schema.prisma` contains `User` and `Task` models with camelCase field names, `@map`/`@@map` directives, and a `Task → User` relationship (use exactly as written in Task 1c)
 2. **Generator block** — `schema.prisma` uses `provider = "prisma-client-js"` with no custom `output` path (use exactly as written in Task 1a)
@@ -557,7 +557,7 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 15. **Access control** — One user cannot read, modify, or delete another user's tasks (all task queries filter by `userId`)
 16. **Tests pass** — `npm run tdd assignment6` completes without failure
 
-### Optional
+### Optional Deliverables/Tasks
 
 None — all tasks above are required.
 

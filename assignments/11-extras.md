@@ -32,14 +32,14 @@ Your presentation should cover:
 <details>
 <summary>Rubric (for AirHub reviewer and mentors)</summary>
 
-### Required
+### Required Deliverables/Tasks
 
 1. **Working application** — All functionality from Assignments 1–10 is intact: user registration and logon with JWT authentication, task CRUD with access control, Prisma ORM, reCAPTCHA on registration, and security middleware
 2. **Render deployment** — Application is deployed and running on Render.com; the URL works
 3. **project-summary.txt** — File exists in the root of `node-homework` with the Render deployment URL and, if an extra feature was added, a description of what it does and how to test it
 4. **Presentation** — 3–5 minute video covering the application, CRUD functionality, security protections, a technical challenge, and what you learned
 
-### Optional
+### Optional Deliverables/Tasks
 
 - **Extra back-end feature** — One additional feature such as pagination, filtering, role-based access control, Swagger documentation, or another back-end enhancement, described in `project-summary.txt`
 
