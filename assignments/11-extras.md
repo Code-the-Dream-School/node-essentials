@@ -30,7 +30,7 @@ Your presentation should cover:
 ---
 
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
 ### Required
 

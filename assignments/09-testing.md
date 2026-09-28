@@ -804,10 +804,8 @@ This is not a complete test of your tests, but it gives you useful feedback abou
 
 ---
 
----
-
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
 ### Required
 

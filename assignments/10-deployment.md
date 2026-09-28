@@ -201,12 +201,11 @@ Change the `.env` file for your front end. For VITE_TARGET, use the URL of your 
 
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
----
 
 ---
 
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
 ### Required
 

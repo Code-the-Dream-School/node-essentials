@@ -629,3 +629,47 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 - Your browser now has the link to your pull request. Copy that link.
 - Paste the URL into the **assignment submission form**.
 - **Don't forget to include your video link in the submission form!**
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+Note that files from Assignments 2–4 should still be present — this assignment modifies existing files and adds new ones, it does not replace prior work.
+
+**Assignment 5a — SQL Practice**
+
+- **`assignment5/assignment5-sql.txt`** — a text file containing SQL statements, one per line (lines starting with `#` are comments). The file must contain working SQL for all four tasks below.
+- **Task 1 — Total price of each of the first 5 orders** — a query joining `orders`, `line_items`, and `products`; groups by `order_id`; orders by `order_id`; limits to 5 rows. `Use exactly as written`: the result must have exactly two columns named `order_id` and `total_price` (use aliasing for the sum). Row order matters — `ORDER BY order_id` and `LIMIT 5` are part of the answer.
+- **Task 2 — Average order total per customer** — a query using a subquery for per-order totals, joined to the `customers` table; groups by customer; orders by `customer_name`. `Use exactly as written`: the result must have columns `customer_name` and `average_order_price` (aliased). Row order matters.
+- **Task 3 — Create a new order for Perez and Sons** — a sequence of SQL statements added to the file:
+  1. `SELECT` to find the `customer_id` for "Perez and Sons"
+  2. `SELECT` to find the `employee_id` for "Miranda Harris"
+  3. `SELECT` to find the `product_id` values for the 5 least expensive products
+  4. `BEGIN`
+  5. `INSERT` into `orders` with `RETURNING order_id`
+  6. `INSERT` of all 5 `line_items` in a single statement, using the returned `order_id`
+  7. `COMMIT`
+  8. `SELECT` all columns from `line_items` for the new order
+
+  `Example — adapt to your own values`: the specific `order_id` the student uses will differ (the test substitutes its own via a parameterized query). The date value can be any valid `YYYY-MM-DD` string.
+- **Task 4 — Employees with more than five orders** — a query joining `employees` and `orders`; uses `GROUP BY`, `COUNT`, and `HAVING`; orders by `last_name`. `Use exactly as written`: the result must have columns `first_name`, `last_name`, and `order_count` (aliased).
+
+**Assignment 5b — Database Integration**
+
+- **`schema.sql`** — creates `users` and `tasks` tables with the exact schema given in the assignment (column names, types, constraints, foreign key). `Use exactly as written`: the table and column definitions — the controllers and tests depend on this schema.
+- **`db/pg-pool.js`** — creates and exports a `pg` connection pool using `process.env.DATABASE_URL`. `Use exactly as written`: the file content is given verbatim in the assignment.
+- **Modified `app.js`** — requires the pool; adds `await pool.end()` in the shutdown function; adds a `GET /health` endpoint that queries the database; adds an `ECONNREFUSED` check in the error handler. Mounts the task router at `/api/tasks` with auth middleware (carried forward from Assignment 4). Exports `{ app, server }`.
+- **Modified `controllers/userController.js`** — `register` validates with Joi, hashes the password, inserts into the `users` table (handling duplicate-email via PostgreSQL error code `23505`), sets `global.user_id`, returns `201` with name and email (not `hashed_password`). `logon` queries the `users` table by email, compares password with stored hash, sets `global.user_id` on success, returns `200`; returns `401` on mismatch. `logoff` unchanged. All `global.users` usage removed.
+- **Modified `controllers/taskController.js`** — `create` validates with Joi, inserts into `tasks` with `user_id` from `global.user_id`, returns `201`. `index` selects tasks filtered by `user_id`, returns `200` or `404`. `show` selects one task filtered by both task `id` and `user_id`, returns `200` or `404`. `update` validates with Joi, updates filtered by both `id` and `user_id`, returns `200` or `404`. `deleteTask` deletes filtered by both `id` and `user_id`, returns `200` or `404`. No task response includes `user_id`. All `global.tasks` usage removed.
+- **`global.user_id` still in use** — this assignment does not replace it. Do not fail a student for continuing to use `global.user_id`; it is replaced in a later assignment.
+- **Video submission** — a 3–5 minute video answering the three listed questions about relational database concepts, SQL operations, and multi-table queries with aggregations.
+- **Submission** — work pushed to an `assignment5` branch with a pull request against main; PR link and video link included in the submission form.
+
+### Optional Deliverables/Tasks
+
+**None.** This assignment has no optional or stretch sections.
+
+</details>

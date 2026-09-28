@@ -535,10 +535,8 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 
 ---
 
----
-
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
 ### Required
 

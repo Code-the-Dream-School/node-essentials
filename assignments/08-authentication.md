@@ -295,10 +295,8 @@ for the files you have created, so that they are added to the `assignment8` bran
 
 ---
 
----
-
 <details>
-<summary><strong>Grading Rubric</strong></summary>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
 
 ### Required
 
