@@ -1122,6 +1122,29 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 
 ---
 
+## Resources
+
+- [Prisma Documentation](https://www.prisma.io/docs/)
+- [Prisma Client API Reference](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference)
+- [Prisma Query Examples](https://www.prisma.io/docs/concepts/components/prisma-client/filtering-and-sorting)
+- [PostgreSQL Text Search](https://www.postgresql.org/docs/current/textsearch.html)
+- [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
+
+---
+
+## Getting Help
+
+- Review the lesson materials thoroughly
+- Check your Prisma schema and database connection
+- Use Prisma Studio to visualize your database
+- Test each endpoint individually
+- Use Prisma query logging to see generated SQL
+- Ask for help if you get stuck on specific concepts
+
+**Remember:** This assignment builds on Assignment 6. Make sure you have a working Prisma application from Assignment 6 before adding advanced features.
+
+---
+
 <details>
 <summary>Rubric (for AirHub reviewer and mentors)</summary>
 
@@ -1152,26 +1175,3 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 - **Additional filters** — `isCompleted`, `priority`, `min_date`, `max_date` on task index (Task 3b note)
 
 </details>
-
----
-
-## Resources
-
-- [Prisma Documentation](https://www.prisma.io/docs/)
-- [Prisma Client API Reference](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference)
-- [Prisma Query Examples](https://www.prisma.io/docs/concepts/components/prisma-client/filtering-and-sorting)
-- [PostgreSQL Text Search](https://www.postgresql.org/docs/current/textsearch.html)
-- [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
-
----
-
-## Getting Help
-
-- Review the lesson materials thoroughly
-- Check your Prisma schema and database connection
-- Use Prisma Studio to visualize your database
-- Test each endpoint individually
-- Use Prisma query logging to see generated SQL
-- Ask for help if you get stuck on specific concepts
-
-**Remember:** This assignment builds on Assignment 6. Make sure you have a working Prisma application from Assignment 6 before adding advanced features.
