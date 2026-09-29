@@ -295,34 +295,6 @@ for the files you have created, so that they are added to the `assignment8` bran
 
 ---
 
-<details>
-<summary>Rubric (for AirHub reviewer and mentors)</summary>
-
-### Required Deliverables/Tasks
-
-1. **setJwtCookie utility** — `controllers/userController.js` contains `cookieFlags` and `setJwtCookie` functions; the JWT payload has `id` and `csrfToken`; the cookie is named `"jwt"` with `httpOnly`, `secure` (production only), and `sameSite: "Strict"` flags (use exactly as written in "Setting the Cookie")
-2. **Logon** — On success, sets the JWT cookie and returns `csrfToken` and user name/email in the response body; does not use `global.user_id`
-3. **Register** — On success, sets the JWT cookie and returns `csrfToken` and user name/email in the response body; does not use `global.user_id`
-4. **Logoff** — Clears the `"jwt"` cookie using `res.clearCookie("jwt", cookieFlags(req))` with the same flags used when setting it, without `maxAge`
-5. **JWT middleware** — `middleware/jwtMiddleware.js` checks for the `"jwt"` cookie, verifies the JWT with `process.env.JWT_SECRET`, checks the `X-CSRF-TOKEN` header against the JWT's `csrfToken` for write methods (`POST`, `PATCH`, `PUT`, `DELETE`, `CONNECT`), sets `req.user = { id: decoded.id }`, and returns 401 for all failure cases (use exactly as written in "The Middleware for the JWT")
-6. **Protected routes** — All task routes and the logoff route are protected by the JWT middleware
-7. **Task routes updated** — All `global.user_id` references replaced with `req.user.id`
-8. **Old auth middleware removed** — No remaining references to the old auth middleware
-9. **Cookie parser** — `cookie-parser` middleware added early in the `app.js` middleware chain (use exactly as written)
-10. **Rate limiting** — `express-rate-limit` configured with 100 requests per 15-minute window, placed before other `app.use()` statements (use exactly as written)
-11. **Helmet** — `helmet()` middleware added to `app.js` (use exactly as written)
-12. **XSS protection** — `xss()` middleware added after `cookieParser()` and `express.json()` (use exactly as written)
-13. **Trust proxy** — `app.set("trust proxy", 1)` added to `app.js` (use exactly as written)
-14. **Tests pass** — `npm run tdd assignment8` completes without failure
-
-### Optional Deliverables/Tasks
-
-None — all tasks above are required.
-
-</details>
-
----
-
 ## Video Submission
 
 Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Share the link in your submission form.
@@ -350,3 +322,31 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 - Use screen sharing to show code examples 
 - Speak clearly and explain concepts thoroughly
 - Include the video link in your assignment submission
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+1. **setJwtCookie utility** — `controllers/userController.js` contains `cookieFlags` and `setJwtCookie` functions; the JWT payload has `id` and `csrfToken`; the cookie is named `"jwt"` with `httpOnly`, `secure` (production only), and `sameSite: "Strict"` flags (use exactly as written in "Setting the Cookie")
+2. **Logon** — On success, sets the JWT cookie and returns `csrfToken` and user name/email in the response body; does not use `global.user_id`
+3. **Register** — On success, sets the JWT cookie and returns `csrfToken` and user name/email in the response body; does not use `global.user_id`
+4. **Logoff** — Clears the `"jwt"` cookie using `res.clearCookie("jwt", cookieFlags(req))` with the same flags used when setting it, without `maxAge`
+5. **JWT middleware** — `middleware/jwtMiddleware.js` checks for the `"jwt"` cookie, verifies the JWT with `process.env.JWT_SECRET`, checks the `X-CSRF-TOKEN` header against the JWT's `csrfToken` for write methods (`POST`, `PATCH`, `PUT`, `DELETE`, `CONNECT`), sets `req.user = { id: decoded.id }`, and returns 401 for all failure cases (use exactly as written in "The Middleware for the JWT")
+6. **Protected routes** — All task routes and the logoff route are protected by the JWT middleware
+7. **Task routes updated** — All `global.user_id` references replaced with `req.user.id`
+8. **Old auth middleware removed** — No remaining references to the old auth middleware
+9. **Cookie parser** — `cookie-parser` middleware added early in the `app.js` middleware chain (use exactly as written)
+10. **Rate limiting** — `express-rate-limit` configured with 100 requests per 15-minute window, placed before other `app.use()` statements (use exactly as written)
+11. **Helmet** — `helmet()` middleware added to `app.js` (use exactly as written)
+12. **XSS protection** — `xss()` middleware added after `cookieParser()` and `express.json()` (use exactly as written)
+13. **Trust proxy** — `app.set("trust proxy", 1)` added to `app.js` (use exactly as written)
+14. **Tests pass** — `npm run tdd assignment8` completes without failure
+
+### Optional Deliverables/Tasks
+
+None — all tasks above are required.
+
+</details>
