@@ -535,6 +535,28 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 
 ---
 
+## Resources
+
+- [Prisma Documentation](https://www.prisma.io/docs/)
+- [Prisma Client API Reference](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference)
+- [Prisma Schema Reference](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference)
+- [PostgreSQL Official Documentation](https://www.postgresql.org/docs/)
+- [Express.js Documentation](https://expressjs.com/)
+
+---
+
+## Getting Help
+
+- Review the lesson materials thoroughly
+- Check your Prisma schema and database connection
+- Use Prisma Studio to visualize your database
+- Test each endpoint individually
+- Ask for help if you get stuck on specific concepts
+
+**Remember:** This assignment builds on Assignment 5. Make sure you have a working PostgreSQL application before adding Prisma ORM.
+
+---
+
 <details>
 <summary>Rubric (for AirHub reviewer and mentors)</summary>
 
@@ -562,25 +584,3 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 None — all tasks above are required.
 
 </details>
-
----
-
-## Resources
-
-- [Prisma Documentation](https://www.prisma.io/docs/)
-- [Prisma Client API Reference](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference)
-- [Prisma Schema Reference](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference)
-- [PostgreSQL Official Documentation](https://www.postgresql.org/docs/)
-- [Express.js Documentation](https://expressjs.com/)
-
----
-
-## Getting Help
-
-- Review the lesson materials thoroughly
-- Check your Prisma schema and database connection
-- Use Prisma Studio to visualize your database
-- Test each endpoint individually
-- Ask for help if you get stuck on specific concepts
-
-**Remember:** This assignment builds on Assignment 5. Make sure you have a working PostgreSQL application before adding Prisma ORM.
