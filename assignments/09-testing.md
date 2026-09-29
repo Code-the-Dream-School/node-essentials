@@ -804,34 +804,6 @@ This is not a complete test of your tests, but it gives you useful feedback abou
 
 ---
 
-<details>
-<summary>Rubric (for AirHub reviewer and mentors)</summary>
-
-### Required Deliverables/Tasks
-
-1. **ESLint Jest config** — `eslint.config.js` includes the Jest plugin configuration (use exactly as written in the setup section)
-2. **Test script** — `package.json` has a `"test"` script that runs Jest against the `test/` directory with `NODE_ENV=test` (use exactly as written)
-3. **Validation test file** — `test/validation.test.js` exists with correct imports for `userSchema`, `taskSchema`, and `patchTaskSchema` (use exactly as written)
-4. **Validation tests 1–7** — User schema tests: trivial password rejected (1), email required (2), invalid email rejected (3), password required (4), name required (5), name length validated (6), valid object passes (7)
-5. **Validation tests 8–13** — Task schema tests: title required (8), `isCompleted` validated (9), `isCompleted` defaults to `false` (10), `true` preserved (11); patch schema: title not required (12), `isCompleted` stays undefined (13)
-6. **waitForRouteHandlerCompletion** — `test/waitForRouteHandlerCompletion.js` contains the utility function (use exactly as written)
-7. **Task controller test file** — `test/taskController.test.js` exists with correct setup: `DATABASE_URL` pointed to test database before Prisma loads, `beforeAll` clears and seeds the database, `afterAll` disconnects Prisma (use exactly as written)
-8. **Task controller tests 14–19** — Creation tests: no user ID throws TypeError (14), bogus user ID throws PrismaClientKnownRequestError (15), valid create returns 201 (16), returned title matches (17), `isCompleted` correct (18), no `userId` in response (19)
-9. **Task controller tests 20–27** — Retrieval tests: no user ID fails (20), user1 index returns 200 (21), tasks array length 1 (22), title matches (23), no userId in response (24), user2 gets 404 (25), show returns 200 (26), user2 can't show user1's task (27)
-10. **Task controller tests 28–32** — Update/delete tests: user1 can update (28), user2 can't update (29), user2 can't delete (30), user1 can delete (31), user1 tasks now 404 (32)
-11. **Supertest file** — `test/user.function.test.js` exists with correct setup: `DATABASE_URL` pointed to test database, `request.agent(app)` for cookie tracking, `server.close()` in `afterAll` (use exactly as written)
-12. **Supertest tests 46–52** — Network tests: register returns 201 (46), returned name matches (47), response includes csrfToken (48), logon succeeds (49), tasks not 401 when logged in (50), logoff succeeds (51), tasks returns 401 after logoff (52)
-13. **Style requirements** — One `expect()` per `it()` block; each `it()` description starts with the test case number followed by a period
-14. **Tests pass** — `npm run test` completes without failure; `npm run lesson9TDD` report shows implemented tests gave expected results
-
-### Optional Deliverables/Tasks
-
-- **User controller tests (33–42, 61–65)** — `test/user.controller.test.js` with `MockResponseWithCookies`, register/logon/logoff tests (33–42), and JWT middleware tests (61–65)
-
-</details>
-
----
-
 ## Video Submission
 
 Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Share the link in your submission form.
@@ -861,3 +833,31 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 - Use screen sharing to show code examples 
 - Speak clearly and explain concepts thoroughly
 - Include the video link in your assignment submission
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+1. **ESLint Jest config** — `eslint.config.js` includes the Jest plugin configuration (use exactly as written in the setup section)
+2. **Test script** — `package.json` has a `"test"` script that runs Jest against the `test/` directory with `NODE_ENV=test` (use exactly as written)
+3. **Validation test file** — `test/validation.test.js` exists with correct imports for `userSchema`, `taskSchema`, and `patchTaskSchema` (use exactly as written)
+4. **Validation tests 1–7** — User schema tests: trivial password rejected (1), email required (2), invalid email rejected (3), password required (4), name required (5), name length validated (6), valid object passes (7)
+5. **Validation tests 8–13** — Task schema tests: title required (8), `isCompleted` validated (9), `isCompleted` defaults to `false` (10), `true` preserved (11); patch schema: title not required (12), `isCompleted` stays undefined (13)
+6. **waitForRouteHandlerCompletion** — `test/waitForRouteHandlerCompletion.js` contains the utility function (use exactly as written)
+7. **Task controller test file** — `test/taskController.test.js` exists with correct setup: `DATABASE_URL` pointed to test database before Prisma loads, `beforeAll` clears and seeds the database, `afterAll` disconnects Prisma (use exactly as written)
+8. **Task controller tests 14–19** — Creation tests: no user ID throws TypeError (14), bogus user ID throws PrismaClientKnownRequestError (15), valid create returns 201 (16), returned title matches (17), `isCompleted` correct (18), no `userId` in response (19)
+9. **Task controller tests 20–27** — Retrieval tests: no user ID fails (20), user1 index returns 200 (21), tasks array length 1 (22), title matches (23), no userId in response (24), user2 gets 404 (25), show returns 200 (26), user2 can't show user1's task (27)
+10. **Task controller tests 28–32** — Update/delete tests: user1 can update (28), user2 can't update (29), user2 can't delete (30), user1 can delete (31), user1 tasks now 404 (32)
+11. **Supertest file** — `test/user.function.test.js` exists with correct setup: `DATABASE_URL` pointed to test database, `request.agent(app)` for cookie tracking, `server.close()` in `afterAll` (use exactly as written)
+12. **Supertest tests 46–52** — Network tests: register returns 201 (46), returned name matches (47), response includes csrfToken (48), logon succeeds (49), tasks not 401 when logged in (50), logoff succeeds (51), tasks returns 401 after logoff (52)
+13. **Style requirements** — One `expect()` per `it()` block; each `it()` description starts with the test case number followed by a period
+14. **Tests pass** — `npm run test` completes without failure; `npm run lesson9TDD` report shows implemented tests gave expected results
+
+### Optional Deliverables/Tasks
+
+- **User controller tests (33–42, 61–65)** — `test/user.controller.test.js` with `MockResponseWithCookies`, register/logon/logoff tests (33–42), and JWT middleware tests (61–65)
+
+</details>

@@ -204,28 +204,6 @@ Change the `.env` file for your front end. For VITE_TARGET, use the URL of your 
 
 ---
 
-<details>
-<summary>Rubric (for AirHub reviewer and mentors)</summary>
-
-### Required Deliverables/Tasks
-
-1. **reCAPTCHA environment variables** — `.env` has `RECAPTCHA_SECRET` and `RECAPTCHA_BYPASS`
-2. **reCAPTCHA verification in register** — Register method checks for `recaptchaToken` in the request body and verifies it with Google; falls back to `RECAPTCHA_BYPASS` via the `X-Recaptcha-Test` header for testing; returns 400 if neither passes (use exactly as written in Task 1)
-3. **JSON body limit increased** — `express.json()` limit changed from `"1kb"` to `"1mb"` or similar to accommodate the reCAPTCHA token
-4. **Neon database** — `DATABASE_URL` points to a Neon.tech cloud PostgreSQL database; `prisma migrate deploy` run successfully against it (Task 3)
-5. **Render deployment** — Back end deployed to Render.com with build command `npm install --production && npx prisma migrate deploy`, run command `npm start`, and environment variables `DATABASE_URL`, `JWT_SECRET`, `RECAPTCHA_SECRET`, and `RECAPTCHA_BYPASS` configured (Task 4)
-6. **project-summary.txt** — File exists in the root of `node-homework` and contains the Render.com deployment URL (Task 6)
-7. **Front end tested** — Front end connects to the back end; register (with reCAPTCHA), logon, task CRUD, and logoff all work (Tasks 2 and 6)
-8. **TDD passes** — `npm run tdd assignment10` completes without failure
-
-### Optional Deliverables/Tasks
-
-- **Fix Assignment 9 tests** — Update your Assignment 9 tests to pass with reCAPTCHA enabled by adding the `X-Recaptcha-Test` header (Task 1, step 12)
-
-</details>
-
----
-
 ## Video Submission
 
 Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Share the link in your submission form.
@@ -253,3 +231,25 @@ Record a short video (3-5 minutes) on YouTube, Loom, or a similar platform. Shar
 - Use screen sharing to show code examples 
 - Speak clearly and explain concepts thoroughly
 - Include the video link in your assignment submission
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+1. **reCAPTCHA environment variables** — `.env` has `RECAPTCHA_SECRET` and `RECAPTCHA_BYPASS`
+2. **reCAPTCHA verification in register** — Register method checks for `recaptchaToken` in the request body and verifies it with Google; falls back to `RECAPTCHA_BYPASS` via the `X-Recaptcha-Test` header for testing; returns 400 if neither passes (use exactly as written in Task 1)
+3. **JSON body limit increased** — `express.json()` limit changed from `"1kb"` to `"1mb"` or similar to accommodate the reCAPTCHA token
+4. **Neon database** — `DATABASE_URL` points to a Neon.tech cloud PostgreSQL database; `prisma migrate deploy` run successfully against it (Task 3)
+5. **Render deployment** — Back end deployed to Render.com with build command `npm install --production && npx prisma migrate deploy`, run command `npm start`, and environment variables `DATABASE_URL`, `JWT_SECRET`, `RECAPTCHA_SECRET`, and `RECAPTCHA_BYPASS` configured (Task 4)
+6. **project-summary.txt** — File exists in the root of `node-homework` and contains the Render.com deployment URL (Task 6)
+7. **Front end tested** — Front end connects to the back end; register (with reCAPTCHA), logon, task CRUD, and logoff all work (Tasks 2 and 6)
+8. **TDD passes** — `npm run tdd assignment10` completes without failure
+
+### Optional Deliverables/Tasks
+
+- **Fix Assignment 9 tests** — Update your Assignment 9 tests to pass with reCAPTCHA enabled by adding the `X-Recaptcha-Test` header (Task 1, step 12)
+
+</details>

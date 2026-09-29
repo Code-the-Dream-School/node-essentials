@@ -6,7 +6,10 @@ Your assignment is to complete the final project and prepare your final presenta
 
 This assignment builds on your work from Assignment 10. Either create your `assignment11` branch from `main` (after you have merged your assignment10 PR) or create your `assignment11` branch directly from `assignment10` (if you have not merged that work to main) so you have all your existing code from last week. Test the full app. If you add or modify APIs, test them. If you enable Swagger, make sure you can see the Swagger user interface.
 
-**Important:** We hope you add an extra feature. If you do, describe what you added in `project-summary.txt`. If you add or modify any REST APIs, document them with enough detail for your reviewer to try them: the path, the method, any query parameters, and the request body if there is one.
+> [!note]
+> **Important:** Create a file called project-summary.txt in the root of your node-homework folder. This file is required for everyone. It must include the URL of your application on Render.com.
+>
+> If you add an extra feature, also describe it in project-summary.txt. Explain what the feature does and give your reviewer the > steps to test it. If you add or modify any REST APIs, include the path, the method, any query parameters, and the request body if there is one.
 
 ## **Prepare Your Final Presentation**
 
@@ -26,24 +29,6 @@ Your presentation should cover:
 - One technical challenge you encountered and how you solved it.
 - What you learned during the project and what you are most proud of.
 - What you would add next if you continued developing the application.
-
----
-
-<details>
-<summary>Rubric (for AirHub reviewer and mentors)</summary>
-
-### Required Deliverables/Tasks
-
-1. **Working application** — All functionality from Assignments 1–10 is intact: user registration and logon with JWT authentication, task CRUD with access control, Prisma ORM, reCAPTCHA on registration, and security middleware
-2. **Render deployment** — Application is deployed and running on Render.com; the URL works
-3. **project-summary.txt** — File exists in the root of `node-homework` with the Render deployment URL and, if an extra feature was added, a description of what it does and how to test it
-4. **Presentation** — 3–5 minute video covering the application, CRUD functionality, security protections, a technical challenge, and what you learned
-
-### Optional Deliverables/Tasks
-
-- **Extra back-end feature** — One additional feature such as pagination, filtering, role-based access control, Swagger documentation, or another back-end enhancement, described in `project-summary.txt`
-
-</details>
 
 ---
 
@@ -71,3 +56,20 @@ Your presentation should cover:
 #### **3️⃣ Submit Your GitHub Link**
 
 - Paste the URL of your pull request into the **assignment submission form**. Your reviewer may look at the pull request changes or the entire main branch.
+
+---
+
+<details>
+<summary>Rubric (for AirHub reviewer and mentors)</summary>
+
+### Required Deliverables/Tasks
+
+1. **Working application** — All functionality from Assignments 1–10 is intact: user registration and logon with JWT authentication, task CRUD with access control, Prisma ORM, reCAPTCHA on registration, and security middleware
+2. **Render deployment** — Application is deployed and running on Render.com
+3. **project-summary.txt** — File exists in the root of node-homework and includes the Render deployment URL.
+
+### Optional Deliverables/Tasks
+
+- **Extra back-end feature** — One additional feature such as pagination, filtering, role-based access control, Swagger documentation, or another back-end enhancement. If present, project-summary.txt describes what the feature does and gives steps to test it, including the path, method, query parameters, and request body for any new or modified REST APIs.
+
+</details>
