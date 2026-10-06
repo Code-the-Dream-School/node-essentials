@@ -606,20 +606,25 @@ const server = app.listen(port, () => {
 });
 ```
 
-That is enough for the core assignment, but real server code often handles a few lifecycle events.
-
-One common startup problem is that the port is already in use. In Node, that usually appears as an `EADDRINUSE` error. You can listen for server errors like this:
+That is enough for the core assignment, but real server code often handles startup failures too. In Express 5, `app.listen()` passes a startup error to its callback. One common example is `EADDRINUSE`, which means the port is already in use:
 
 ```js
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`Port ${port} is already in use.`);
-  } else {
-    console.error("Server error:", err);
+const server = app.listen(port, (error) => {
+  if (error) {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${port} is already in use.`);
+    } else {
+      console.error("Server startup error:", error);
+    }
+    process.exit(1);
+    return;
   }
-  process.exit(1);
+
+  console.log(`Server is listening on port ${port}...`);
 });
 ```
+
+Checking `error` before logging success matters in Express 5 because the callback runs for both successful startup and startup errors.
 
 Servers also need to stop. When you press `Ctrl-C`, your terminal sends a `SIGINT` signal. Hosting platforms often send `SIGTERM` when they want a process to stop. You can listen for those signals and close the HTTP server before exiting:
 

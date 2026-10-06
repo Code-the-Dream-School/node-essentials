@@ -277,7 +277,7 @@ And:
 Express fallback route:
 
 ```js
-app.all("*", (req, res) => {
+app.all("/{*splat}", (req, res) => {
   res.status(404).json({
     message: `No route found for ${req.method} ${req.path}`,
   });
@@ -285,6 +285,8 @@ app.all("*", (req, res) => {
 ```
 
 Mentor note:
+Students may find `app.all("*", ...)` in older tutorials. That fails in Express 5 (`Missing parameter name at index 1: *`). Wildcards must be named now, so use `/{*splat}`.
+
 Do not over-teach middleware here. Lesson 3 covers it deeply.
 
 ---
@@ -294,12 +296,22 @@ Do not over-teach middleware here. Lesson 3 covers it deeply.
 Useful but not required by TDD:
 
 ```js
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`Port ${port} is already in use.`);
+const server = app.listen(port, (error) => {
+  if (error) {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${port} is already in use.`);
+    } else {
+      console.error("Server startup error:", error);
+    }
+    process.exit(1);
+    return;
   }
+
+  console.log(`Server is listening on port ${port}...`);
 });
 ```
+
+Express 5 passes startup errors to the `app.listen()` callback. Check the callback argument before logging success.
 
 Also mention graceful shutdown with `SIGINT` / `SIGTERM`.
 

@@ -437,7 +437,7 @@ In your root `app.js`, add a final fallback route for unknown Express paths.
 Put this after your normal routes:
 
 ```js
-app.all("*", (req, res) => {
+app.all("/{*splat}", (req, res) => {
   res.status(404).json({
     message: `No route found for ${req.method} ${req.path}`,
   });
@@ -445,6 +445,8 @@ app.all("*", (req, res) => {
 ```
 
 For this assignment, think of this as a final route that catches requests your app did not handle earlier. Lesson 3 will show a more complete way to organize this kind of behavior.
+
+**Note on Express 5:** Older tutorials use `app.all("*", ...)` for this. That syntax no longer works in Express 5 and will throw an error such as `Missing parameter name at index 1: *` when the server starts. In Express 5, a wildcard must have a name, so use `/{*splat}` instead. The braces make the wildcard optional, so this route also matches the root path `/` if nothing else handled it.
 
 Test this URL:
 
@@ -458,16 +460,21 @@ You should get a `404` response.
 
 This part is not required for the automated tests, but it is good practice for real server code.
 
-After you create the `server` with `app.listen()`, you can listen for server startup errors. A common one is `EADDRINUSE`, which means the port is already being used by another process.
+In Express 5, `app.listen()` passes startup errors to its callback. Update the callback where you create `server` so it checks for an error before logging that startup succeeded. A common error is `EADDRINUSE`, which means the port is already being used by another process.
 
 ```js
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`Port ${port} is already in use.`);
-  } else {
-    console.error("Server error:", err);
+const server = app.listen(port, (error) => {
+  if (error) {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${port} is already in use.`);
+    } else {
+      console.error("Server startup error:", error);
+    }
+    process.exit(1);
+    return;
   }
-  process.exit(1);
+
+  console.log(`Server is listening on port ${port}...`);
 });
 ```
 
