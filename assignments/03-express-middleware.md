@@ -204,6 +204,12 @@ middleware/error-handler.js
 - Return status `500`
 - Return a JSON response
 
+**Optional Express 5 update:** Express 5 can automatically send errors from `async` route handlers to error-handling middleware. Because you are learning these concepts for the first time, you do not need to use that shortcut in this assignment. Continue using `try`/`catch` and `next(error)` as shown in Lesson 3.
+
+Do not remove `next(error)` from the starter code or from code that a task tells you to write. Keep using it inside callbacks and anywhere the instructions require it.
+
+When you run `npm run tdd assignment3a`, the test calls your `register`, `logon`, and `logoff` controller functions directly. It does not send those calls through Express, so Express cannot handle errors for those function calls. The `assignment3b` and `assignment3c` tests use Supertest to send requests through Express. Follow the instructions for each task.
+
 ### 8. Connect Everything in `app.js`
 
 After the controller, router, and middleware files exist, update the root `app.js`.

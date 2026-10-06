@@ -372,7 +372,9 @@ app.get("/tasks/:id", async (req, res, next) => {
 });
 ```
 
-For callbacks: use `next(error)`, do not throw inside the callback.
+Express 5 can automatically forward errors from `async` handlers, so this `try`/`catch` is optional when its only job is `next(error)`. The explicit pattern remains valid and is the pattern used in this beginner course.
+
+Use `try`/`catch` when translating an error, performing cleanup, or sending a special response. For callback-based async code, use `next(error)`; Express cannot catch an error thrown later inside a callback.
 
 ---
 

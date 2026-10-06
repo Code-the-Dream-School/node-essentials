@@ -18,24 +18,26 @@ app.post("/testpost", (req, res) => {
 app.use("/api", timeRouter);
 
 
-app.all("*", (req, res) => {
+// Express 5: wildcards must be named. "*" alone throws an error at startup.
+app.all("/{*splat}", (req, res) => {
   res.status(404).json({
     message: `No route found for ${req.method} ${req.path}`,
   });
 });
 const port = process.env.PORT || 3000;
 
-const server = app.listen(port, () => {
-  console.log(`Server is listening on port ${port}...`);
-});
-
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`Port ${port} is already in use.`);
-  } else {
-    console.error("Server error:", err);
+const server = app.listen(port, (error) => {
+  if (error) {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${port} is already in use.`);
+    } else {
+      console.error("Server startup error:", error);
+    }
+    process.exit(1);
+    return;
   }
-  process.exit(1);
+
+  console.log(`Server is listening on port ${port}...`);
 });
 
 let isShuttingDown = false;

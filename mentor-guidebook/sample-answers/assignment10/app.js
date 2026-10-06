@@ -65,17 +65,18 @@ app.get("/health", async (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-const server = app.listen(port, () =>
-  console.log(`Server is listening on port ${port}...`),
-);
-
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`Port ${port} is already in use.`);
-  } else {
-    console.error("Server error:", err);
+const server = app.listen(port, (error) => {
+  if (error) {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${port} is already in use.`);
+    } else {
+      console.error("Server startup error:", error);
+    }
+    process.exit(1);
+    return;
   }
-  process.exit(1);
+
+  console.log(`Server is listening on port ${port}...`);
 });
 
 let isShuttingDown = false;

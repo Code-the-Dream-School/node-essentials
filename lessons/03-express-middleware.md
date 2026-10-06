@@ -549,12 +549,14 @@ The order matters because the error handler is a final safety net. It should not
 
 Be careful not to send more than one response for the same request. If a route sends a response and then an error handler also tries to send another response, Express will report an error because the response was already sent.
 
-Async route handlers often need error handling too. If you are waiting on a database call or another asynchronous operation, use `try`/`catch` and pass unexpected errors to `next(error)`. This is not optional. In Express, an error thrown inside a bare `async` handler is not caught automatically. If you do not catch it and call `next(error)`, Express never reaches the error handler and the request just hangs until it times out.
+Async route handlers need error handling too. Suppose a route uses `await` to get a task from a database. The database operation might fail. In this course, use `try`/`catch` and pass unexpected errors to `next(error)`.
+
+This pattern still works correctly in Express 5:
 
 In this example, there are two different outcomes:
 
 - If no task exists, the route sends a normal `404` response.
-- If the database call itself fails, the `catch` block passes the unexpected error to Express.
+- If the database call itself fails, the `catch` block passes the error to Express.
 
 ```js
 app.get("/tasks/:id", async (req, res, next) => {
@@ -578,7 +580,29 @@ app.get("/tasks/:id", async (req, res, next) => {
 
 The `404` above is not an unexpected server error. It is a normal response when the requested task does not exist. The `catch` block is for unexpected failures.
 
-One more important detail: callbacks are different from regular `async` route code. If an error happens inside a callback, do not throw it from inside the callback. Call `next(error)` instead so Express can handle it.
+**Express 5 update:** Express 5 can automatically send errors from `async` route handlers to error-handling middleware. This means the `try`/`catch` above is optional when its only job is to call `next(error)`. You do not need to use that shortcut in this course. The explicit `try`/`catch` pattern is still valid and may be easier to follow while you are learning.
+
+Callback-based code works differently. A callback is a function that you give to another function so it can run later, when its work is finished. By the time the callback runs, the Express route handler may have already returned. Express therefore cannot automatically see an error that happens inside the callback.
+
+Use `next(error)` to hand that error back to Express:
+
+```js
+const fs = require("fs");
+
+app.get("/file", (req, res, next) => {
+  fs.readFile("data.txt", "utf8", (error, data) => {
+    if (error) {
+      return next(error);
+    }
+
+    res.send(data);
+  });
+});
+```
+
+The `return` stops the callback after it passes the error to Express. Without it, the callback would continue and might also try to send a response. Keep `next(error)` anywhere the starter code or assignment asks for it.
+
+The `assignment3a` TDD test calls the `register`, `logon`, and `logoff` controller functions directly instead of sending those calls through Express. The `assignment3b` and `assignment3c` tests use Supertest to send requests through Express. Follow the instructions for each assignment task.
 
 ### **Custom Error Classes**
 

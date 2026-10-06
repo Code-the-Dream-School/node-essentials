@@ -44,7 +44,7 @@ Keep these short unless students are ready for them:
 - Unknown raw HTTP routes return `404`.
 - Invalid JSON to raw `POST /echo` returns `400`.
 - Unknown Express routes return `404`.
-- `server.on("error")` can catch startup errors such as `EADDRINUSE`.
+- In Express 5, the `app.listen()` callback receives startup errors such as `EADDRINUSE`; check its `error` argument before logging success.
 - Graceful shutdown can close the server on `SIGINT` or `SIGTERM`.
 
 ## TDD reminders
