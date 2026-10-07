@@ -20,7 +20,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
    - The dog rescue middleware exercise uses the provided `week-3-middleware` starter folder.
    - Do not mix the dog rescue app into the main todo app.
 2. **Create a branch**
-   - Create a new branch for your work on assignment 3 (e.g., `assignment3`).
+   - This assignment builds on your work from Assignment 2. If your Assignment 2 PR has been merged, switch to `main`, run `git pull` to update your local copy, and then create your `assignment3` branch. If it has not been merged, switch to your `assignment2` branch and create `assignment3` from there. Either approach ensures that your new branch includes last week's work.
    - Make all your changes and commits on this branch.
 3. **Before you test**
    - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](?page=test-driven-development-(tdd)-testing-guide)
