@@ -109,7 +109,7 @@ The response should have:
 - Content-Type: `application/json`
 - Body shape: `{ "time": "current time here" }`
 
-Here is the idea:
+Example — the route path, status code, Content-Type header, and body shape { "time": "..." } are required, but adapt the implementation to your own style:
 
 ```js
 if (req.method === "GET" && req.url === "/time") {
@@ -180,7 +180,7 @@ This route should:
 - Parse the body with `JSON.parse()`
 - Return the parsed body inside a JSON response
 
-The response should look like this:
+Wrap whatever valid JSON the request contains under the exact key `weReceived`. The `"Hello from Postman"` value below is only an example; your response should echo the JSON the client sent:
 
 ```json
 {
@@ -402,7 +402,7 @@ If parsing fails, return:
 - Content-Type: `application/json`
 - Body shape: `{ "message": "Invalid JSON." }`
 
-Here is the idea:
+Example — adapt to your implementation. The 400 status and the exact message text "Invalid JSON." are required:
 
 ```js
 try {
@@ -434,7 +434,7 @@ Your server should return a `400` response instead of crashing.
 
 In your root `app.js`, add a final fallback route for unknown Express paths.
 
-Put this after your normal routes:
+Put this after your normal routes. Use exactly as written — Express 5 requires the `"/{*splat}"` syntax (not the older `"*"`):
 
 ```js
 app.all("/{*splat}", (req, res) => {
@@ -625,8 +625,7 @@ Signaled in the assignment as "Optional Tasks." **Do not fail a student for omit
 
 - **Task 6 — (Optional) Raw HTTP Unknown Route** — in `sampleHTTP.js`, any request not matching `/time`, `/timePage`, or `/echo` returns status `404`, `Content-Type: application/json`, and body `{ "message": "That route is not available." }`. `Use exactly as written, if attempted`: the message text.
 - **Task 7 — (Optional) Raw HTTP Invalid JSON** — in `sampleHTTP.js`, `POST /echo` wraps `JSON.parse()` in try/catch; on failure, returns status `400`, `Content-Type: application/json`, body `{ "message": "Invalid JSON." }`. `Use exactly as written, if attempted`: the message text.
-- **Task 8 — (Optional) Express Unknown Route** — root `app.js` adds a catch-all `app.all("*", ...)` fallback returning status `404` with a JSON message for unmatched Express routes.
-- **Task 9 — (Optional) Server Lifecycle Polish** — the assignment itself states this part is not required for the automated tests. Handling `server.on("error", ...)` (e.g. `EADDRINUSE`) and graceful shutdown on `SIGINT`/`SIGTERM` is good practice but should never be treated as a failure if absent.
+- **Task 8 — (Optional) Express Unknown Route** — root `app.js` adds a catch-all `app.all("/{*splat}", ...)` fallback. For `GET /unknown`, it returns status `404` with JSON `{ "message": "No route found for GET /unknown" }`. `Use exactly as written, if attempted`: the Express 5 route pattern and response message format.
+- **Task 9 — (Optional) Server Lifecycle Polish** — the assignment itself states this part is not required for the automated tests. Handling startup errors such as `EADDRINUSE` in the Express 5 `app.listen()` callback and graceful shutdown on `SIGINT`/`SIGTERM` is good practice but should never be treated as a failure if absent.
 
 </details>
-

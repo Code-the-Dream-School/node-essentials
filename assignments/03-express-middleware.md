@@ -20,7 +20,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
    - The dog rescue middleware exercise uses the provided `week-3-middleware` starter folder.
    - Do not mix the dog rescue app into the main todo app.
 2. **Create a branch**
-   - Create a new branch for your work on assignment 3 (e.g., `assignment3`).
+   - This assignment builds on your work from Assignment 2. If your Assignment 2 PR has been merged, switch to `main`, run `git pull` to update your local copy, and then create your `assignment3` branch. If it has not been merged, switch to your `assignment2` branch and create `assignment3` from there. Either approach ensures that your new branch includes last week's work.
    - Make all your changes and commits on this branch.
 3. **Before you test**
    - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](?page=test-driven-development-(tdd)-testing-guide)
@@ -309,6 +309,8 @@ In `week-3-middleware/app.js`, add custom middleware that:
 Use Node's built-in `crypto.randomUUID()` to create the ID. You do not need to install `crypto`; it comes with Node.
 
 The `uuid` package is common in real projects, but current `uuid` is ESM-only, so this CommonJS assignment uses `crypto.randomUUID()` instead.
+
+Use the exact property name `req.requestId` and header name `X-Request-Id`. Call `next()` after setting both values so Express continues to the next middleware. You may otherwise adapt the implementation to your own style:
 
 ```js
 const { randomUUID } = require("crypto");
@@ -636,6 +638,8 @@ Covers Assignment 3A (main todo backend, `npm run tdd assignment3a`) and Assignm
   - Request ID middleware: sets `req.requestId` (via `crypto.randomUUID()`), sets an `X-Request-Id` response header, calls `next()`.
   - Logging middleware (after request ID middleware): logs in the format `[timestamp]: METHOD PATH (requestId)`.
   - 404 handler for unmatched routes returning `{ "error": "Route not found", "requestId": "..." }`, and an error handler for unexpected errors returning `{ "error": "Internal Server Error", "requestId": "..." }`.
+- **Video submission** — a 3–5 minute video answering the three listed questions (middleware order, built-in vs. custom middleware, error handling).
+- **Submission** — work pushed to an `assignment3` branch with a pull request against main; PR link and video link included in the submission form.
 
 ### Optional Deliverables/Tasks
 
@@ -649,4 +653,3 @@ Signaled in the assignment as "Optional Dog Middleware Tasks," checked only by t
 - **Task 19 — (Optional) Improve Advanced Error Handling** — updates the `week-3-middleware` error handler to use `err.statusCode` (default `500`), log with `console.warn()` for 4xx and `console.error()` for 5xx, and include `error`/`requestId` in every error response. `Example, if attempted`: the `WARN:`/`ERROR:` log prefixes shown are illustrative formatting for this optional task, not a hard requirement.
 
 </details>
-
