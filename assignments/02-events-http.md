@@ -180,7 +180,7 @@ This route should:
 - Parse the body with `JSON.parse()`
 - Return the parsed body inside a JSON response
 
-The response must use this exact structure — the key name `weReceived` is required:
+Wrap whatever valid JSON the request contains under the exact key `weReceived`. The `"Hello from Postman"` value below is only an example; your response should echo the JSON the client sent:
 
 ```json
 {
@@ -625,7 +625,7 @@ Signaled in the assignment as "Optional Tasks." **Do not fail a student for omit
 
 - **Task 6 — (Optional) Raw HTTP Unknown Route** — in `sampleHTTP.js`, any request not matching `/time`, `/timePage`, or `/echo` returns status `404`, `Content-Type: application/json`, and body `{ "message": "That route is not available." }`. `Use exactly as written, if attempted`: the message text.
 - **Task 7 — (Optional) Raw HTTP Invalid JSON** — in `sampleHTTP.js`, `POST /echo` wraps `JSON.parse()` in try/catch; on failure, returns status `400`, `Content-Type: application/json`, body `{ "message": "Invalid JSON." }`. `Use exactly as written, if attempted`: the message text.
-- **Task 8 — (Optional) Express Unknown Route** — root `app.js` adds a catch-all `app.all("/{*splat}", ...)` fallback returning status `404` with a JSON message for unmatched Express routes.
-- **Task 9 — (Optional) Server Lifecycle Polish** — the assignment itself states this part is not required for the automated tests. Handling `server.on("error", ...)` (e.g. `EADDRINUSE`) and graceful shutdown on `SIGINT`/`SIGTERM` is good practice but should never be treated as a failure if absent.
+- **Task 8 — (Optional) Express Unknown Route** — root `app.js` adds a catch-all `app.all("/{*splat}", ...)` fallback. For `GET /unknown`, it returns status `404` with JSON `{ "message": "No route found for GET /unknown" }`. `Use exactly as written, if attempted`: the Express 5 route pattern and response message format.
+- **Task 9 — (Optional) Server Lifecycle Polish** — the assignment itself states this part is not required for the automated tests. Handling startup errors such as `EADDRINUSE` in the Express 5 `app.listen()` callback and graceful shutdown on `SIGINT`/`SIGTERM` is good practice but should never be treated as a failure if absent.
 
 </details>

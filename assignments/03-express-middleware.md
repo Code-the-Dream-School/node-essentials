@@ -20,7 +20,7 @@ NOTE: The AI review tool (known as AirHub) can check code and structure, but it 
    - The dog rescue middleware exercise uses the provided `week-3-middleware` starter folder.
    - Do not mix the dog rescue app into the main todo app.
 2. **Create a branch**
-   - This assignment builds on your work from Assignment 2. Either create your `assignment3` branch from `main` (after you have merged your assignment2 PR) or create your `assignment3` branch directly from `assignment2` (if you have not merged that work to main) so you have all your existing code from last week.
+   - This assignment builds on your work from Assignment 2. If your Assignment 2 PR has been merged, switch to `main`, run `git pull` to update your local copy, and then create your `assignment3` branch. If it has not been merged, switch to your `assignment2` branch and create `assignment3` from there. Either approach ensures that your new branch includes last week's work.
    - Make all your changes and commits on this branch.
 3. **Before you test**
    - Please read the TDD Testing Guide for how to run and interpret the course-provided tests: [TDD Testing Guide](?page=test-driven-development-(tdd)-testing-guide)
@@ -310,7 +310,7 @@ Use Node's built-in `crypto.randomUUID()` to create the ID. You do not need to i
 
 The `uuid` package is common in real projects, but current `uuid` is ESM-only, so this CommonJS assignment uses `crypto.randomUUID()` instead.
 
-Use exactly as written — the property name `req.requestId`, the header name `X-Request-Id`, and the `next()` call must match:
+Use the exact property name `req.requestId` and header name `X-Request-Id`. Call `next()` after setting both values so Express continues to the next middleware. You may otherwise adapt the implementation to your own style:
 
 ```js
 const { randomUUID } = require("crypto");
