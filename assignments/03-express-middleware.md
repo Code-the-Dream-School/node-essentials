@@ -478,7 +478,7 @@ module.exports = {
 In `week-3-middleware/routes/dogs.js`:
 
 - Import `ValidationError` and `NotFoundError`
-- In `POST /adopt`, throw or pass a `ValidationError` if required fields are missing
+- In `POST /adopt`, throw or pass a `ValidationError` if any required fields are missing. The required fields are `name`, `email`, and `dogName`. The `address` field is optional.
 - In `POST /adopt`, throw or pass a `NotFoundError` if the dog does not exist or is not available
 - Keep the successful `201` response unchanged
 
