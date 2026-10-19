@@ -361,13 +361,13 @@ try {
 }
 ```
 
-With the `pg` package, you would usually get an empty array if no matching task was found. Prisma throws the `P2025` error in this case. Catch it here so the caller gets a useful 404 response instead of a generic server error.
+When `prisma.task.update()` cannot find a matching task, it throws a `P2025` error. Catch this error and return a 404 response instead of a generic server error.
 
 This is where the special unique index for [id, userId] matters. Prisma does not let you use update(), delete(), or findUnique() with two attributes in the where clause **unless** a uniqueness index exists for that combination of attributes.
 
 #### f. Update the Show Method
 
-You need to use `prisma.task.findUnique()`, but you filter both on the id and the userId, so that there is good access control.  You need to catch `P2025` errors in this case also.
+Use `prisma.task.findUnique()` to find the task. Include both the task id and the userId in the `where` option so that users can only access their own tasks. If Prisma does not find a matching task, `findUnique()` returns `null`. Check for `null` and return a 404 response when the task is not found.
 
 #### g. Update DeleteTask
 
@@ -573,7 +573,7 @@ Record a short video (3–5 minutes) on YouTube, Loom, or similar platform. Shar
 9. **Task index** — Uses `prisma.task.findMany` filtered by `userId` (example in Task 3c — adapt to your controller)
 10. **Task create** — Uses `prisma.task.create` with `userId: global.user_id` (Task 3d)
 11. **Task update** — Uses `prisma.task.update` with `where: { id, userId }` and catches `P2025` for not-found (example in Task 3e — adapt to your controller)
-12. **Task show** — Uses `prisma.task.findUnique` filtered by both `id` and `userId`; catches `P2025` (Task 3f)
+12. **Task show** — Uses `prisma.task.findUnique` filtered by both `id` and `userId`; returns 404 when the result is `null` (Task 3f)
 13. **Task delete** — Uses `prisma.task.delete` with `where: { id, userId }`; catches `P2025` (Task 3g)
 14. **Pool removed** — No remaining `pg` pool references in controllers or app.js (Task 3h)
 15. **Access control** — One user cannot read, modify, or delete another user's tasks (all task queries filter by `userId`)
