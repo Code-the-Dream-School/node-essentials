@@ -296,8 +296,9 @@ When your Node process ends, it might hang if database connections are not clean
 ```js
 const pool = require("./db/pg-pool");
 ```
+The shutdown function was described in optional task 9 of assignment 2.  If you did not do this optional task yet, you need to do it now, so that the database connection is closed gracefully when the program exits.
 
-Then, in your shutdown function add this line (there is a comment in the code to show where it goes):
+In your shutdown function add this line (there is a comment in the code to show where it goes):
 
 ```javascript
 await pool.end();
@@ -305,9 +306,9 @@ await pool.end();
 
 Without this, your Node process may hang on exit. You want the app to release all database connections.
 
-#### c. Modify app.js: Health Check
+#### c. Add an app.js Health Check
 
-Modify the health check endpoint to verify database connectivity:
+Add a health check endpoint to verify database connectivity:
 
 ```js
 app.get("/health", async (req, res) => {
