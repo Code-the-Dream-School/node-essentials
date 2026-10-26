@@ -291,19 +291,50 @@ This code was explained in the lesson.
 
 #### b: Modify app.js: Graceful Shutdown
 
-When your Node process ends, it might hang if database connections are not cleaned up. Somewhere in the file, add this line:
+Graceful shutdown was introduced as an optional task in Assignment 2. It is required in Assignment 5b because your app now opens PostgreSQL connections, and those connections must be closed when the app stops. Everything you need is included below; you do not need to return to Assignment 2.
+
+Near the top of `app.js`, import the connection pool:
 
 ```js
 const pool = require("./db/pg-pool");
 ```
 
-Then, in your shutdown function add this line (there is a comment in the code to show where it goes):
+After the code that creates `server` with `app.listen()`, use the complete shutdown implementation below. If you completed the optional shutdown task in Assignment 2, update your existing implementation instead of adding a second one.
 
 ```javascript
-await pool.end();
+let isShuttingDown = false;
+
+async function shutdown(code = 0) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.log("Shutting down gracefully...");
+
+  try {
+    await new Promise((resolve, reject) => {
+      server.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    console.log("HTTP server closed.");
+
+    // Close all PostgreSQL connections after the HTTP server has stopped.
+    await pool.end();
+    console.log("PostgreSQL connection pool closed.");
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    code = 1;
+  } finally {
+    process.exit(code);
+  }
+}
+
+process.on("SIGINT", () => shutdown(0));
+process.on("SIGTERM", () => shutdown(0));
 ```
 
-Without this, your Node process may hang on exit. You want the app to release all database connections.
+`server.close()` stops the HTTP server from accepting new requests. After that finishes, `await pool.end()` closes the PostgreSQL connection pool. Without `pool.end()`, database connections can keep the Node process running.
 
 #### c. Modify app.js: Health Check
 
@@ -351,6 +382,28 @@ When a user logs on, the controller looks up the user by email. If no user is fo
 For `taskController`, remember that every task belongs to one user. The `tasks` table has a `user_id` column for this reason. When a controller gets, updates, or deletes a task, the SQL should check both the task id and `global.user_id`. If a task exists but belongs to another user, the current user should not be able to access it. From this API's point of view, that should look like "task not found," so the controller should send `404`.
 
 Keep the behavior simple. Return `201` when something is created. Return `200` when a request works. Return `400` when the request body is invalid. Return `404` when a task is not found for the current user. Keep the returned JSON simple too: for tasks, return fields such as `id`, `title`, and `is_completed`, but do not return `user_id`.
+
+#### JavaScript Names and Database Column Names
+
+The same piece of data has two different names in this assignment:
+
+- `isCompleted` is the JavaScript property used in the incoming JSON request, the Joi schema, and your controller code. JavaScript commonly uses **camelCase**.
+- `is_completed` is the column in the PostgreSQL `tasks` table. SQL databases commonly use **snake_case** column names.
+
+These names are intentionally different. Joi validates the JavaScript request object, so its schema uses `isCompleted`. PostgreSQL only knows the columns defined in `schema.sql`, so SQL statements use `is_completed`. Sending `is_completed` in the request body will normally fail Joi validation because that key is not in the Joi schema. Using `isCompleted` as a column name in the SQL statement will fail because that column is not in the `tasks` table.
+
+The controller maps between the two names when it executes the query:
+
+```javascript
+const result = await pool.query(
+  `INSERT INTO tasks (title, is_completed, user_id)
+   VALUES ($1, $2, $3)
+   RETURNING id, title, is_completed`,
+  [value.title, value.isCompleted, global.user_id]
+);
+```
+
+In this example, `is_completed` identifies the database column, while `value.isCompleted` supplies the JavaScript value for `$2`. The database row returned by `pg` uses `is_completed` because that is the selected column name.
 
 You will not see many try/catch blocks in these examples. For most database errors, you can let the global error handler take care of the response.
 
@@ -661,7 +714,7 @@ Note that files from Assignments 2–4 should still be present — this assignme
 
 - **`schema.sql`** — creates `users` and `tasks` tables with the exact schema given in the assignment (column names, types, constraints, foreign key). `Use exactly as written`: the table and column definitions — the controllers and tests depend on this schema.
 - **`db/pg-pool.js`** — creates and exports a `pg` connection pool using `process.env.DATABASE_URL`. `Use exactly as written`: the file content is given verbatim in the assignment.
-- **Modified `app.js`** — requires the pool; adds `await pool.end()` in the shutdown function; adds a `GET /health` endpoint that queries the database; adds an `ECONNREFUSED` check in the error handler. Mounts the task router at `/api/tasks` with auth middleware (carried forward from Assignment 4). Exports `{ app, server }`.
+- **Modified `app.js`** — requires the pool; includes the required graceful shutdown implementation and calls `await pool.end()` after the HTTP server closes; adds a `GET /health` endpoint that queries the database; adds an `ECONNREFUSED` check in the error handler. Mounts the task router at `/api/tasks` with auth middleware (carried forward from Assignment 4). Exports `{ app, server }`.
 - **Modified `controllers/userController.js`** — `register` validates with Joi, hashes the password, inserts into the `users` table (handling duplicate-email via PostgreSQL error code `23505`), sets `global.user_id`, returns `201` with name and email (not `hashed_password`). `logon` queries the `users` table by email, compares password with stored hash, sets `global.user_id` on success, returns `200`; returns `401` on mismatch. `logoff` unchanged. All `global.users` usage removed.
 - **Modified `controllers/taskController.js`** — `create` validates with Joi, inserts into `tasks` with `user_id` from `global.user_id`, returns `201`. `index` selects tasks filtered by `user_id`, returns `200` or `404`. `show` selects one task filtered by both task `id` and `user_id`, returns `200` or `404`. `update` validates with Joi, updates filtered by both `id` and `user_id`, returns `200` or `404`. `deleteTask` deletes filtered by both `id` and `user_id`, returns `200` or `404`. No task response includes `user_id`. All `global.tasks` usage removed.
 - **`global.user_id` still in use** — this assignment does not replace it. Do not fail a student for continuing to use `global.user_id`; it is replaced in a later assignment.
