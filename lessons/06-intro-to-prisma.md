@@ -85,14 +85,13 @@ Prisma consists of three main tools:
 
 ## **3. Workflow for adding Prisma support to your app**
 
-For this course, install Prisma with a specific version:
+The homework repo already lists Prisma in `package.json`. If you already ran `npm install`, Prisma is installed and you can initialize it with:
 
 ```bash
-npm install prisma@7.10.1 @prisma/client@7.10.1
 npx prisma init
 ```
 
-Use Prisma 7 for this lesson. Prisma 8 changed the setup enough that the commands and files in this lesson would not match what you see.
+If Prisma is missing from your `package.json`, ask for help before installing a different version. This course uses Prisma 6 so your setup matches the homework repo.
 
 ```
 1. Define Schema → 2. Generate Client → 3. Use in Code → 4. Database Operations
