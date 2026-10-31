@@ -580,14 +580,19 @@ Instead of creating a new connection for each database operation, a pool keeps s
 You will run database queries in your controllers. Here are some sample queries:
 
 ```js
-const users = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-const newUser = await pool.query(`INSERT INTO users (email, name, hashed_password) 
+const usersResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+const users = usersResult.rows;
+
+const newUserResult = await pool.query(`INSERT INTO users (email, name, hashed_password)
     VALUES ($1, $2, $3) RETURNING id, email, name`,
     [email, name, hashed_password]
   );
+const newUser = newUserResult.rows[0];
 ```
 
 Notice the word `RETURNING` in the `INSERT` example. When PostgreSQL creates a new row, it may also create a new id for that row. You should not guess what that id will be. `RETURNING` means, "After you insert this row, give me these columns back." Then your code can use the id PostgreSQL actually created.
+
+`pool.query()` returns a `pg.Result` object, not a row directly. The returned rows are in the result's `rows` array. A query that can return several users uses the entire array. Because this `INSERT` creates one user, its returned user is the first row, `newUserResult.rows[0]`.
 
 This matters whenever one step creates data that the next step needs. For example, if you insert a new order and then need to insert line items for that order, the line items need the new `order_id`. The safe approach is to use `RETURNING order_id` when you insert the order, then use that returned id when you insert the line items.
 
@@ -623,11 +628,11 @@ async function runTransactionalWork() {
       if (balanceResult.rows.length && balanceResult.rows[0].balance >= 100) {
 
         // Example operation #3
-        const balanceAfter = await client.query(
+        const balanceAfterResult = await client.query(
           `UPDATE accounts SET balance = balance - 100 WHERE user_id = $1 RETURNING balance`,
           [userId]
         );
-        console.log("New balance:", balanceAfter.rows[0].balance);
+        console.log("New balance:", balanceAfterResult.rows[0].balance);
         await client.query("COMMIT"); // Success → commit the transaction
 
       } else { // not enough money
