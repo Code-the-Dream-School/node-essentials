@@ -375,7 +375,7 @@ Before this assignment, the app probably stored users in `global.users` and task
 
 One thing does not change yet: the app still uses `global.user_id` to remember which user is logged in. That is expected for Assignment 5. It is not how a production app should handle login, but it keeps this assignment focused on one main skill: using PostgreSQL from your controllers. Do not add sessions, JWT tokens, cookies, or a new login system for this assignment. Those ideas come later.
 
-For `userController`, think about the flow one request at a time. When a user registers, the controller first checks that the request body is valid. Then it hashes the password, so the plain password is not saved. Then it inserts the user into the `users` table. PostgreSQL gives back the new user row, and the controller uses that row to set `global.user_id` and send a `201` response.
+For `userController`, think about the flow one request at a time. When a user registers, the controller first checks that the request body is valid. Then it hashes the password, so the plain password is not saved. Then it inserts the user into the `users` table. `pool.query()` gives back a result object containing the new user row in `result.rows[0]`. The controller uses that row to set `global.user_id` and send a `201` response.
 
 When a user logs on, the controller looks up the user by email. If no user is found, the login fails. If the user is found, the controller compares the password from the request with the hashed password from the database. If the password is correct, the controller sets `global.user_id` and sends `200`. If the email or password is wrong, it sends `401`.
 
@@ -403,7 +403,7 @@ const result = await pool.query(
 );
 ```
 
-In this example, `is_completed` identifies the database column, while `value.isCompleted` supplies the JavaScript value for `$2`. The database row returned by `pg` uses `is_completed` because that is the selected column name.
+In this example, `is_completed` identifies the database column, while `value.isCompleted` supplies the JavaScript value for `$2`. The row in `result.rows[0]` uses `is_completed` because that is the selected column name.
 
 You will not see many try/catch blocks in these examples. For most database errors, you can let the global error handler take care of the response.
 
@@ -435,11 +435,11 @@ Right now, your code probably uses `find()` on the memory-store array to see if 
       details: error.details,
     });
   }
-  let user = null;
+  let result = null;
   value.hashed_password = await hashPassword(value.password);
   // the code to here is like the in-memory version
   try {
-    user = await pool.query(`INSERT INTO users (email, name, hashed_password) 
+    result = await pool.query(`INSERT INTO users (email, name, hashed_password)
       VALUES ($1, $2, $3) RETURNING id, email, name`,
       [value.email, value.name, value.hashed_password]
     ); // note that you use a parameterized query
@@ -450,6 +450,7 @@ Right now, your code probably uses `find()` on the memory-store array to see if 
   }
   return next(e); // all other errors get passed to the error handler
 }
+const user = result.rows[0];
 // otherwise user now contains the new user.  You can return a 201 and the appropriate
 // object.  Be sure to also set global.user_id with the id of the user record you just created. 
 ```
@@ -472,9 +473,10 @@ Here is how it's done with `pg`. The code below only shows the part you have to 
 
 ```javascript
 // you do your Joi validation, and you have a validated task object. Then:
-const task  = await pool.query(`INSERT INTO tasks (title, is_completed, user_id) 
+const result = await pool.query(`INSERT INTO tasks (title, is_completed, user_id)
   VALUES ( $1, $2, $3 ) RETURNING id, title, is_completed`,
   [value.title, value.isCompleted, global.user_id]);
+const task = result.rows[0];
   // You don't need a try/catch because the global error handler will handle the errors
 ```
 
@@ -489,9 +491,10 @@ This operation can still throw an error, for example if the database is down. Yo
 In each task operation, the WHERE clause must filter on `user_id`, so one user cannot access another user's tasks. For `index()` you need:
 
 ```javascript
-const tasks = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
+const result = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
   [global.user_id]
 )
+const tasks = result.rows;
 ```
 
 Again, in case of success, you should not return the user_id.
@@ -510,9 +513,10 @@ keys = keys.map((key) => key === "isCompleted" ? "is_completed" : key);
 const setClauses = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
 const idParm = `$${keys.length + 1}`;
 const userParm = `$${keys.length + 2}`;
-const updatedTask = await pool.query(`UPDATE tasks SET ${setClauses} 
+const result = await pool.query(`UPDATE tasks SET ${setClauses}
   WHERE id = ${idParm} AND user_id = ${userParm} RETURNING id, title, is_completed`, 
   [...Object.values(taskChange), req.params.id, global.user_id]);
+const updatedTask = result.rows[0];
 ```
 
 This looks a little complicated. If only two fields can change, there are simpler approaches. But if many fields can change, you need a pattern like this. On success, return the updated object, but do not include the `user_id`.

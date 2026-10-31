@@ -65,7 +65,11 @@ Another popular Node ORM is Sequelize. We could have used it, but it is harder t
 
 Instead of writing:
 ```js
-const results = await pool.query(`SELECT * FROM users WHERE email = 'john@example.com'`);
+const result = await pool.query(
+  "SELECT * FROM users WHERE email = $1",
+  ["john@example.com"]
+);
+const user = result.rows[0];
 ```
 
 You write:

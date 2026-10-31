@@ -54,13 +54,13 @@ exports.logon = async (req, res) => {
     return res.status(400).json({ message: "Email and password are required" });
   }
   // Find user by email
-  const users = await pool.query("SELECT * FROM users WHERE email = $1", [
+  const usersResult = await pool.query("SELECT * FROM users WHERE email = $1", [
     email,
   ]);
-  if (users.rows.length === 0) {
+  if (usersResult.rows.length === 0) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
-  const user = users.rows[0];
+  const user = usersResult.rows[0];
   const isValidPassword = await comparePassword(password, user.hashed_password);
   if (!isValidPassword) {
     return res.status(401).json({ message: "Invalid credentials" });
