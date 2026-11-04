@@ -359,7 +359,7 @@ const user = await prisma.user.findUnique({ where: { email } });
 const users = await prisma.user.findMany();
 ```
 
-**`findUnique` vs `` in this course**
+**`findUnique` vs `findFirst` in this course**
 
 - **`findUnique`** — Use when the `where` clause matches a **unique** field or unique combination. In Assignment 6, that includes logon (`email`) and task show/update/delete (`id` together with `userId` for ownership). It returns one record or `null`.
 - **`findFirst`** — Use when you filter on non-unique fields and only need the first matching row (for example, “any incomplete task for this user”). It is **not** what the assignment uses for “get this task if it belongs to this user.” For that pattern, use `findUnique({ where: { id, userId } })` as shown in the assignment.
