@@ -188,7 +188,7 @@ Place this early in the middleware chain so cookies are available when needed.
 
 ## **Testing with Postman**
 
-Test `/api/users` (register) and `/api/users/logon` with Postman.
+Test `/api/users/register` and `/api/users/logon` with Postman.
 
 You should see:
 1. The `csrfToken` returned in the response body.  

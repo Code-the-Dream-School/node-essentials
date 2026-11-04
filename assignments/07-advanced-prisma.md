@@ -31,6 +31,31 @@ The REST calls your application supports should still work the same way, so your
 
 ### 1. Add Priority Field to Schema
 
+#### Before You Start: Check Your Relation Field Names
+
+If you started Assignment 6 before the relation names were standardized, your schema may use `tasks Task[]` and `user User`. You do not need to restart Assignment 6 or recreate your database. Before continuing, make sure these two relation lines use the exact field names shown here:
+
+```prisma
+model User {
+  // Other fields...
+  Task Task[]
+}
+
+model Task {
+  // Other fields...
+  User User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+```
+
+Changing a Prisma relation field name changes the property exposed by Prisma Client, but it does not rename a database table or column. After making this change, run:
+
+```bash
+npx prisma format
+npx prisma generate
+```
+
+The controller examples and tests in this assignment use `User` and `Task` exactly as written.
+
 #### a. Update Prisma Schema
 
 Add a `priority` field to your Task model. Open `prisma/schema.prisma` and update the Task model. Use exactly as written for the new `priority` line — the field name `priority`, default `"medium"`, and type `@db.VarChar(10)` must match:
@@ -67,7 +92,7 @@ DATABASE_URL="<paste the TEST_DATABASE_URL value from .env>" npx prisma migrate 
 
 Prisma reads only `DATABASE_URL` from `schema.prisma`. This command temporarily gives `DATABASE_URL` the connection string stored as `TEST_DATABASE_URL` in your `.env` file, so the migration is applied to the test database without changing your `.env` file.
 
-**Important:** Run `npx prisma migrate dev --name <someMigrationName>` every time you modify your Prisma schema file. The generated client needs to know about changes to your models, fields, or relationships. Every time you migrate the development database, migrate the test database too with the command above.
+**Important:** Run `npx prisma migrate dev --name <someMigrationName>` when a schema change modifies the database, as the new `priority` field does. A relation field rename by itself only requires `npx prisma generate`. Every time you migrate the development database, migrate the test database too with the command above.
 
 **Note:** After adding the priority field, make sure your task creation method in `taskController.js` includes `priority` in the `select` statement. Tasks must have a `priority` field that defaults to "medium" when not specified. Your taskSchema validation must handle this — use `priority: Joi.string().valid("low", "medium", "high").default("medium")`.
 
@@ -110,7 +135,7 @@ const tasks = await prisma.task.findMany({
 
 #### b. Add User Show Method (Optional)
 
-**Note:** This is completely optional and not required. There was no user show method in Assignment 6, and `assignment7.test.js` does not test for it. The test file only imports `logon`, `register`, and `logoff` from `userController` (line 16), and there are no tests that call a user show method. However, if you want to practice eager loading with user-to-task relationships, you can optionally add this method as an extra exercise.
+**Note:** This is completely optional and not required. There was no user show method in Assignment 6, and `assignment7.test.js` does not test for it. The test file only imports `logon`, `register`, and `logoff` from `userController`, and there are no tests that call a user show method. However, if you want to practice eager loading with user-to-task relationships, you can optionally add this method as an extra exercise.
 
 If you choose to implement it, create a user show method that includes tasks using eager loading. Include incomplete tasks, limit the list to 5, and order by creation date descending:
 
@@ -121,6 +146,10 @@ exports.show = async (req, res) => {
   
   if (isNaN(userId)) {
     return res.status(400).json({ error: "Invalid user ID" });
+  }
+
+  if (userId !== global.user_id) {
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   const user = await prisma.user.findUnique({
@@ -152,6 +181,20 @@ exports.show = async (req, res) => {
 };
 ```
 
+If you add this optional route, protect it with `authMiddleware`. The ownership check above prevents a logged-in user from requesting another user's record. Another good API design is `GET /api/users/me`, which gets the user ID from the authenticated session instead of accepting an arbitrary ID.
+
+#### c. Security Note: Authentication Is Not Authorization
+
+The analytics endpoints in this assignment require a logged-in user, but authentication alone does not determine which records that user may access. As currently designed, any logged-in user can request another user's statistics, list users and their task information, or search tasks across users.
+
+For this assignment, implement the analytics endpoints as described so that the required tests remain consistent. In a production application, you should:
+
+- allow regular users to access only their own data;
+- restrict cross-user analytics and task search to an administrator or manager role; and
+- enforce those rules in authorization middleware or in every relevant query.
+
+You can implement role-based access control for these routes as an optional feature in Assignment 11. For now, consider this question: **Where would you enforce authorization so that a user cannot access another user's tasks, even if they change an ID or search query in the URL?**
+
 ### 3. Implement Pagination
 
 #### a. Add Pagination to Task Index
@@ -172,6 +215,7 @@ Update your task index method so it supports pagination. You need to:
 - The pagination object must have: `page`, `limit`, `total`, `pages`, `hasNext`, `hasPrev`
 - Keep the eager loading you added earlier (User information with name and email)
 - Default to page 1 and limit 10 if not provided
+- Preserve the existing Assignment 6 behavior when no tasks match: return a 404 response. The `tasks` and `pagination` response shape applies to successful 200 responses.
 
 **Here is the complete implementation.** Example — adapt to your controller. The `skip`/`take` pagination, `orderBy`, and the `select` fields with nested `User` must match. You need to complete the pagination object and response:
 ```js
@@ -228,7 +272,11 @@ res.status(200).json({
       "title": "Sample Task",
       "isCompleted": false,
       "priority": "medium",
-      "createdAt": "2024-01-15T10:30:00Z"
+      "createdAt": "2024-01-15T10:30:00Z",
+      "User": {
+        "name": "John Doe",
+        "email": "john@example.com"
+      }
     }
   ],
   "pagination": {
@@ -335,7 +383,7 @@ const prisma = require("../db/prisma");
 
 #### b. User Productivity Analytics Endpoint
 
-Create a method for `GET /api/analytics/users/:id` that returns user statistics. You need to:
+Create and export a method named `getUserAnalytics` for `GET /api/analytics/users/:id` that returns user statistics. The name must match because the router and tests import it directly. You need to:
 
 1. Parse and validate the user ID from req.params (check if it's a valid number)
 2. Use `groupBy` to count tasks by completion status (group by `isCompleted`, use `_count` with `id: true`)
@@ -412,7 +460,7 @@ return;
 **What to return:**
 - `taskStats`: Array of groupBy results with `isCompleted` and `_count`
 - `recentTasks`: Array of task objects with user information
-- `weeklyProgress`: Array of groupBy results showing tasks created per day in the last week
+- `weeklyProgress`: Array of groupBy results for tasks created in the last week. Because this example groups a `DateTime` field directly, each group represents an exact `createdAt` timestamp, not a calendar day.
 
 **Expected Response:**
 ```json
@@ -433,15 +481,15 @@ return;
     }
   ],
   "weeklyProgress": [
-    { "createdAt": "2024-01-15", "_count": { "id": 3 } },
-    { "createdAt": "2024-01-22", "_count": { "id": 5 } }
+    { "createdAt": "2024-01-15T10:30:00Z", "_count": { "id": 1 } },
+    { "createdAt": "2024-01-16T14:45:00Z", "_count": { "id": 1 } }
   ]
 }
 ```
 
 #### c. User List with Task Counts
 
-Create a method for `GET /api/analytics/users` that shows all users with task statistics. You need to:
+Create and export a method named `getUsersWithStats` for `GET /api/analytics/users` that shows all users with task statistics. The name must match because the router and tests import it directly. You need to:
 
 1. Parse pagination parameters from query (page, limit) - default to page 1 and limit 10
 2. Use `findMany` with `include` to get users, including `_count` for tasks and incomplete tasks (limit to 5)
@@ -719,7 +767,7 @@ exports.bulkCreate = async (req, res, next) => {
 
 #### a. Task Search with Raw SQL
 
-Add a method to `analyticsController.js` for `GET /api/analytics/tasks/search`. You need to:
+Add and export a method named `searchTasks` in `analyticsController.js` for `GET /api/analytics/tasks/search`. The name must match because the router and tests import it directly. You need to:
 
 1. Get search query from req.query (parameter `q`) and validate it (must be at least 2 characters)
 2. Get limit from query (default to 20 if not provided)
@@ -965,7 +1013,7 @@ Then run `npm run tdd assignment7` and make sure it completes without test failu
 - Verify transactions work correctly (rollback on failure)
 - Test groupBy operations with various data sets
 - Verify eager loading eliminates N+1 queries
-- Test pagination with edge cases (empty results, invalid page numbers)
+- Test pagination with edge cases (invalid page numbers, and 404 when the current user has no matching tasks)
 - Test raw SQL queries with various search terms
 
 #### b. API Testing
@@ -1038,7 +1086,7 @@ Test all new endpoints with Postman or curl:
 
 3. **Pagination:**
    - Test with different page and limit values
-   - Test edge cases (invalid page numbers, empty results)
+   - Test edge cases (invalid page numbers, and 404 when the current user has no matching tasks)
    - Verify pagination metadata is correct
 
 4. **Performance:**
