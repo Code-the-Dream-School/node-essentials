@@ -79,7 +79,7 @@ const user = await prisma.user.findUnique({
 });
 ```
 
-Prisma makes the SQL call internally. If you are using PostgreSQL, Prisma uses the `pg` package and a `pg` pool behind the scenes.
+You no longer write the SQL or call `pool.query()`. Prisma Client turns `findUnique()` into a SQL statement, sends it to PostgreSQL, and returns a JavaScript object. Prisma also opens and reuses database connections for you, so you do not create or close a pool in each controller.
 
 Prisma consists of three main tools:
 
@@ -132,7 +132,7 @@ model Task {
   isCompleted Boolean  @default(false) @map("is_completed")
   userId      Int @map("user_id")
   createdAt   DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  users        users    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User         User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([id, userId], map: "task_id_user_id_unique")
   @@map("tasks")
@@ -144,7 +144,7 @@ model User {
   name            String   @db.VarChar(30)
   hashedPassword String   @db.VarChar(255) @map("hashed_password")
   createdAt      DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  tasks           tasks[]
+  Task            Task[]
 
   @@map("users")
 }
@@ -152,13 +152,15 @@ model User {
 
 Each model has a name, a collection of fields, and possibly one or more indexes. It may also have a `@@map` clause. By convention, the model name is capitalized and singular. Since database table names are often lowercase and plural, the `@@map` clause maps the Prisma model name to the database table name.
 
+The relation fields in this example are named `Task` and `User`. Prisma permits other relation field names, but the assignments use these exact names in queries such as `select: { User: ... }` and `include: { Task: ... }`.
+
 The `@@unique` line declares an index. It says that `id` and `userId` together form a unique composite key.
 
 **Fields**
 
 Fields represent columns in your database:
 - **Scalar Fields**: `String`, `Int`, `Boolean`, `DateTime`
-- **Relation Fields**: `User[]`, `Task` (for relationships)
+- **Relation Fields**: `Task[]`, `User` (for relationships)
 
 **Attributes**
 Attributes provide metadata about fields:
@@ -212,7 +214,8 @@ The code below is an example. In most controllers, you will catch only the error
 ```javascript
 try {
   const user = await prisma.user.create({
-    data: { email, name, password } // password should be hashed with scrypt
+    data: { email, name, hashedPassword },
+    select: { id: true, email: true, name: true }
   });
   res.json(user);
 } catch (error) {
@@ -341,30 +344,34 @@ const user = await prisma.user.findUnique({
     id: true,
     name: true,
     email: true
-    // password is excluded.  You could also do omit: { hashed_password : true}
+    // hashedPassword is excluded. You could also use omit: { hashedPassword: true }.
   }
 });
 ```
 
 **Use Appropriate Methods:**
 ```javascript
-// For single records
+// For single records by a unique field (email is @unique in your schema)
 const user = await prisma.user.findUnique({ where: { email } }); 
-// This only works if the schema specifies that emails are unique.
+// findUnique only works when the where clause uses unique field(s).
 
 // For multiple records
-const users = await prisma.user.findMany({ where: { active: true } });
-
-// For existence checks
-const exists = await prisma.user.findFirst({ where: { email } });
+const users = await prisma.user.findMany();
 ```
+
+**`findUnique` vs `` in this course**
+
+- **`findUnique`** — Use when the `where` clause matches a **unique** field or unique combination. In Assignment 6, that includes logon (`email`) and task show/update/delete (`id` together with `userId` for ownership). It returns one record or `null`.
+- **`findFirst`** — Use when you filter on non-unique fields and only need the first matching row (for example, “any incomplete task for this user”). It is **not** what the assignment uses for “get this task if it belongs to this user.” For that pattern, use `findUnique({ where: { id, userId } })` as shown in the assignment.
+
+Your schema includes `@@unique([id, userId])` on `Task`, which matches that ownership lookup. Prisma 6 also allows `userId` in the `where` clause alongside unique `id` even when you rely on the primary key alone.
 
 ### Transaction Support
 ```javascript
 // Multiple operations in a single transaction
 const result = await prisma.$transaction(async (tx) => {
   const user = await tx.user.create({
-    data: { email, name, password } // password should be hashed with scrypt
+    data: { email, name, hashedPassword }// password should be hashed with scrypt 
   });
   
   const task = await tx.task.create({

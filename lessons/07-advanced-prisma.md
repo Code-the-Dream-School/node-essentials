@@ -59,7 +59,7 @@ for (const user of users) {
 // ✅ Eager Loading: Single query with LEFT JOIN
 const usersWithTasks = await prisma.user.findMany({
   include: {
-    Task: true
+    Task: true // each user object gets a Task array (that user's tasks)
   }
 });
 // This makes only 1 query with a JOIN
@@ -535,7 +535,8 @@ const userTasks = await prisma.$queryRaw`
 ```javascript
 const userTasks = await prisma.$queryRawUnsafe(
   'SELECT * FROM tasks WHERE user_id = $1 AND title ILIKE $2',
-  [userId, `%${searchTerm}%`]
+  userId,
+  `%${searchTerm}%`
 );
 ```
 

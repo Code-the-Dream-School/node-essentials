@@ -130,6 +130,7 @@ model Task {
   createdAt   DateTime @default(now()) @map("created_at")
   User        User     @relation(fields: [userId], references: [id])
 
+  @@unique([id, userId])
   @@map("tasks")
 }
 ```
@@ -244,6 +245,20 @@ const tasks = await prisma.task.findMany({
 
 ---
 
+# `findUnique` vs `findFirst`
+
+| | `findUnique` | `findFirst` |
+|---|---|---|
+| **When** | `where` uses unique field(s) | Any filter; first match |
+| **Assignment 6** | Logon by `email`; task by `id` + `userId` | Not used for task ownership |
+| **Not found** | `null` | `null` |
+
+For “this task belongs to this user,” use **`findUnique`**, not `findFirst`.
+
+<!-- Mentor note: Students sometimes reach for findFirst because there are two fields in where. The assignment and tests expect findUnique with id and userId. findFirst would return the wrong row if multiple tasks matched a loose filter. -->
+
+---
+
 # Selective Fields with `select`
 
 ```js
@@ -337,9 +352,9 @@ async function getTaskForUser(taskId, userId) {
 }
 ```
 
-**Hint:** Use `findFirst` with a `where` clause that includes both `id` and `userId`.
+**Hint:** Use `findUnique({ where: { id, userId } })`. In Prisma 6, the unique `id` identifies the record and `userId` adds the ownership check; keep the composite constraint so the slide matches the curriculum schema.
 
-<!-- Mentor note: This is authorization by ownership — a pattern they'll use in every task route. findFirst vs findUnique: findFirst works for composite conditions. -->
+<!-- Mentor note: This is authorization by ownership — a pattern they'll use in every task route. -->
 
 ---
 
@@ -364,6 +379,8 @@ In chat:
 1. What's the difference between `findUnique` and `findFirst`?
 2. Why do we use a shared `PrismaClient` instance instead of creating one per request?
 3. What Prisma error code means "record not found"?
+
+<!-- Mentor note (Q1): findUnique requires a unique where (email, or id+userId with our schema). findFirst is for “first row matching any filter.” Task ownership in Assignment 6 uses findUnique. Q3: P2025 on update/delete; show uses null check after findUnique. -->
 
 ---
 

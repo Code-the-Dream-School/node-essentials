@@ -122,7 +122,7 @@ The relation lines can be confusing because the field name and model name are ne
 
 These lowercase relation types are correct because they must match the lowercase model names in this first schema. Changing only the types to `Task[]` and `User` would cause an error because models with those names have not been created yet.
 
-Next, rename the models and fields to make them easier to use in JavaScript. Prisma model names are usually singular and begin with a capital letter, such as `User` and `Task`. Field names usually begin with a lowercase letter and use camelCase, such as `hashedPassword`, `tasks`, and `user`.
+Next, rename the models and fields to make them easier to use in JavaScript. Prisma model names are usually singular and begin with a capital letter, such as `User` and `Task`. Scalar field names usually begin with a lowercase letter and use camelCase, such as `hashedPassword`. For this curriculum, use the relation field names `Task` and `User` exactly as shown below because later controller code and tests use those names.
 
 Renaming something in Prisma does not rename it in PostgreSQL. `@map` connects a renamed Prisma field to its original database column, while `@@map` connects a renamed Prisma model to its original database table. Use exactly as written — the model names `User` and `Task`, the camelCase field names, and the `@map`/`@@map` directives must match because the controller code and tests reference them:
 
@@ -145,7 +145,7 @@ model User {
   name           String   @db.VarChar(30)
   hashedPassword String   @db.VarChar(255) @map("hashed_password")
   createdAt     DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  tasks          Task[]
+  Task           Task[]
   @@map("users")
 }
 
@@ -155,7 +155,7 @@ model Task {
   isCompleted Boolean  @default(false) @map("is_completed")
   userId      Int       @map("user_id")
   createdAt   DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  user        User    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User        User    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@unique([id, userId])
   @@map("tasks")
 }
@@ -363,7 +363,7 @@ try {
 
 When `prisma.task.update()` cannot find a matching task, it throws a `P2025` error. Catch this error and return a 404 response instead of a generic server error.
 
-This is where the special unique index for [id, userId] matters. Prisma does not let you use update(), delete(), or findUnique() with two attributes in the where clause **unless** a uniqueness index exists for that combination of attributes.
+Your schema has a unique index on `[id, userId]`. That pair is how the task routes look up a task that belongs to the current user. The task `id` is already unique on its own, so Prisma 6 also lets you pass `userId` in `findUnique()`, `update()`, and `delete()` as a second check. Keep the index in this project so your schema matches the migrations, examples, and tests.
 
 #### f. Update the Show Method
 
