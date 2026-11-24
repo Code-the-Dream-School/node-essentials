@@ -84,8 +84,9 @@ Benefits:
 **End-to-end tests** — test the full stack (browser to database)
 
 For this lesson, you'll write:
-- Unit tests (individual functions)
-- Integration tests for your Express API (using supertest)
+- Unit tests for validation schemas
+- Integration tests for controller and database behavior
+- API tests using Supertest
 
 ---
 
@@ -132,8 +133,7 @@ Most of your code is async — use `async/await` in tests:
 ```js
 it("should find a user by email", async () => {
   const user = await findUserByEmail("alex@test.com");
-  expect(user).not.toBeNull();
-  expect(user.name).toBe("Alex");
+  expect(user).toMatchObject({ name: "Alex" });
 });
 ```
 
@@ -152,10 +152,9 @@ const { app } = require("../app");
 it("should return 200 for GET /api/tasks", async () => {
   const res = await request(app)
     .get("/api/tasks")
-    .set("Cookie", "token=valid_jwt_here");
+    .set("Cookie", "jwt=valid_jwt_here");
 
   expect(res.status).toBe(200);
-  expect(res.body).toHaveProperty("tasks");
 });
 ```
 
@@ -167,12 +166,11 @@ it("should return 200 for GET /api/tasks", async () => {
 it("should create a task", async () => {
   const res = await request(app)
     .post("/api/tasks")
-    .set("Cookie", `token=${validToken}`)
-    .set("X-CSRF-Token", csrfToken)
+    .set("Cookie", `jwt=${validToken}`)
+    .set("X-CSRF-TOKEN", csrfToken)
     .send({ title: "Buy groceries" });
 
   expect(res.status).toBe(201);
-  expect(res.body.title).toBe("Buy groceries");
 });
 ```
 
@@ -226,7 +224,7 @@ it("should return 400 for missing title", async () => {
 Jest can tell you how much of your code is tested:
 
 ```bash
-npx jest --coverage
+npm run test -- --coverage
 ```
 
 Output shows lines, branches, and functions that were never executed during tests.
@@ -272,12 +270,13 @@ Write just the `expect()` assertions first, then add the supertest setup.
 The assignment provides tests **ahead of time**.
 
 Your job:
-1. Read the failing tests to understand what's expected
-2. Write code that makes them pass
+1. Write tests that pass when your application is correct
+2. Run the curriculum check against intentionally broken mock code
+3. Confirm that your tests catch those bugs
 
-Some tests include **mocks** — fake versions of your functions that return wrong results. Your tests should catch those failures.
+The **mocks** are fake versions of application modules with bugs added on purpose.
 
-If your test passes on the mock, it's not a good enough test.
+Some tests should pass against the mocks and others should fail. Use the custom report at the end to check whether each test gave the expected result.
 
 ---
 
@@ -285,14 +284,11 @@ If your test passes on the mock, it's not a good enough test.
 
 You'll write tests for your Express app:
 
-1. Unit tests for helper functions (password hashing, validation)
-2. Integration tests using supertest for:
-   - User registration and login
-   - Task CRUD operations
-   - Auth protection (unauthenticated requests should return 401)
-3. Edge cases: invalid inputs, missing records, wrong user
+1. Validation tests for the user and task Joi schemas
+2. Direct controller tests for task CRUD, ownership, and error cases
+3. Supertest function tests for registration, logon, logoff, and protected routes
 
-Run with: `npm run tdd assignment9`
+Run your tests with `npm run test`, then run the curriculum check with `npm run lesson9TDD`.
 
 ---
 

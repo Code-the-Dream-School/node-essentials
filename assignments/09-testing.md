@@ -11,7 +11,7 @@ This assignment uses the following packages. Most of them have already been inst
 - node-mocks-http
 - eslint-plugin-jest
 - globals
-- cookies
+- cookie
 
 Run `npm install --save-dev` for each package to make sure you have them.
 
@@ -191,6 +191,7 @@ require("dotenv").config();
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL; // point to the test database!
 const prisma = require("../db/prisma");
 const httpMocks = require("node-mocks-http");
+const EventEmitter = require("events").EventEmitter;
 const {
   index,
   show,
@@ -222,27 +223,29 @@ Jest provides a number of useful hooks:
 
 You can place these hooks outside any `describe()` stanza. In that case, they apply to the top-level stanzas. You can also place them inside a `describe()` stanza. In that case, they apply only inside that block. Here, `beforeAll()` will empty the database and create the user records needed for the tests. Use exactly as written:
 
+Remember: the models in `schema.prisma` are named `User` and `Task`, but Prisma Client uses lowercase names: `prisma.user` and `prisma.task`.
+
 ```js
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users
-  user1 = await prisma.User.create({data: { name: "Bob", 
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
+  user1 = await prisma.user.create({data: { name: "Bob",
     email: "bob@sample.com", hashedPassword: "nonsense"}});
-  user2 = await prisma.User.create({data: { name: "Alice", 
+  user2 = await prisma.user.create({data: { name: "Alice",
     email: "alice@sample.com", hashedPassword: "nonsense"}});
 });
 
-afterAll(() => {
-  prisma.$disconnect();
-})
+afterAll(async () => {
+  await prisma.$disconnect();
+});
 ```
 
 Only do this when you are pointing to the test database. When you pass a function to `beforeAll()`, `it()`, or other jest functions, you can declare it as async so you can use await. It is important to call prisma.$disconnect(). If you do not, Jest may not terminate cleanly, and you might leave a zombie process.
 
 Why do we need user records? Each task record has a foreign key, `userId`. If this is missing or does not match a real user record, the database returns a constraint violation. The `hashedPassword` values in this setup are not real hashed passwords, so you cannot log on with these users. That is okay because the tests only need users that tasks can belong to.
 
-There are some special issues when testing route handlers and middleware functions. They receive `req`, `res`, and sometimes `next`. For `req` and `res`, use the `node-http-mocks` package. You can configure the mock req object with whatever you are testing: body, query parameters, headers, path parameters, and so on. Then call the function and check whether the result is what you expect.
+There are some special issues when testing route handlers and middleware functions. They receive `req`, `res`, and sometimes `next`. For `req` and `res`, use the `node-mocks-http` package. You can configure the mock req object with whatever you are testing: body, query parameters, headers, path parameters, and so on. Then call the function and check whether the result is what you expect.
 
 A route handler or middleware function might do the following:
 
@@ -294,7 +297,7 @@ You do not have to understand every detail of this helper yet. Use it in your te
 
 ### **The First Test**
 
-Now call the task controller `create` method. That method takes `req` and `res`, so you need to simulate those objects. That is what the `node-http-mocks` package is for.
+Now call the task controller `create` method. That method takes `req` and `res`, so you need to simulate those objects. That is what the `node-mocks-http` package is for.
 
 Our first test looks like this:
 
@@ -317,7 +320,7 @@ Now that you have a valid task object for creation, run the test.
 
 You will notice that the test fails. If you check the logs, you can see that req.user is undefined. In the actual application, task creation is protected by JWT middleware, which sets up req.user. Because this test invokes the controller directly, it bypasses that middleware.
 
-This is still a valuable test case, but now it should expect and catch that specific error. Rename the test and adjust the code. Use exactly as written — the test number `14.` and `expect.assertions(1)` must match:
+This is still a valuable test case, but now it should expect and catch that specific error. Rename the test and adjust the code. Start with the code below; you will add `expect.assertions(1)` in the next step. The test number `14.` must match:
 
 ```js
    it("14. cant create a task without a user id", async () => {
@@ -325,7 +328,7 @@ This is still a valuable test case, but now it should expect and catch that spec
       method: "POST",
       body: { title: "first task" },
     });
-    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});;
+    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});
     try {
       await waitForRouteHandlerCompletion(create,req, saveRes);
     } catch (e) {
@@ -348,6 +351,8 @@ Create more controller tests:
 
 In this case, you trigger a database constraint violation because the foreign key is invalid. The error thrown has a name of `PrismaClientKnownRequestError`.
 
+As in test 14, use `expect.assertions(1)` when the assertion is inside a `catch` block. This ensures the test fails if the expected error is not thrown.
+
 `16.` If you have a valid user id, create() succeeds (res.statusCode should be 201).
 
 Save the res object you create for test 16 in saveRes so later tests can inspect what was returned.
@@ -368,6 +373,8 @@ Create a new describe stanza called "test getting created tasks" and test the fo
 
 `20.` You can't get a list of tasks without a user id.
 
+Create a GET request, but do not add `req.user`. Then call `index()` inside a `try` block. The call should throw a `TypeError` because there is no user id. Catch that error and check its name. Use `expect.assertions(1)` as you did in test 14.
+
 `21.` If you use user1's id, the call returns a 200 status.
 
 Here is some code for this:
@@ -377,7 +384,8 @@ Here is some code for this:
     const req = httpMocks.createRequest({
       method: "GET",
     });
-    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});;
+    req.user = { id: user1.id };
+    saveRes = httpMocks.createResponse({eventEmitter: EventEmitter});
     await waitForRouteHandlerCompletion(index,req, saveRes);
     expect(saveRes.statusCode).toBe(200);
   });
@@ -435,7 +443,7 @@ Run the tests and make sure all of them pass.
 
 Because this assignment is long, the user.controller.test.js file is **optional**. Be sure to implement the actual network operations testing that follows this section. Even if you do not implement the tests in this section, read the descriptions so you understand how they would work.
 
-We want to test logon, but logon sets a cookie. If that cookie is not set, authentication is not working, so we need to test it. The first problem is that a res object returned by `httpMocks.createResponse()` does not keep track of cookies. So we create an enhanced mock response object. This one, created by MockRequestWithCookies, tracks 'Set-Cookie' operations.
+We want to test logon, but logon sets a cookie. If that cookie is not set, authentication is not working, so we need to test it. The first problem is that a res object returned by `httpMocks.createResponse()` does not keep track of cookies. So we create an enhanced mock response object. This one, created by `MockResponseWithCookies`, tracks `Set-Cookie` operations.
 
 Create another file in the test directory named `user.controller.test.js`. It should start with:
 
@@ -445,6 +453,7 @@ process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 const waitForRouteHandlerCompletion = require("./waitForRouteHandlerCompletion");
 const prisma = require("../db/prisma");
 const httpMocks = require("node-mocks-http");
+const EventEmitter = require("events").EventEmitter;
 const { register, logoff, logon } = require("../controllers/userController");
 const jwtMiddleware = require("../middleware/jwtMiddleware");
 const jwt = require("jsonwebtoken");
@@ -472,12 +481,12 @@ function MockResponseWithCookies() {
 
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
 });
 
-afterAll(() => {
-  prisma.$disconnect();
+afterAll(async () => {
+  await prisma.$disconnect();
 });
 
 let jwtCookie;
@@ -627,14 +636,14 @@ const { app, server } = require("../app");
 
 beforeAll(async () => {
   // clear database
-  await prisma.Task.deleteMany(); // delete all tasks
-  await prisma.User.deleteMany(); // delete all users 
+  await prisma.task.deleteMany(); // delete all tasks
+  await prisma.user.deleteMany(); // delete all users
   agent = request.agent(app);
 });
 
 afterAll(async () => {
-  prisma.$disconnect();
-  server.close();
+  await new Promise((resolve) => server.close(resolve));
+  await prisma.$disconnect();
 });
 ```
 
@@ -716,6 +725,8 @@ As you go further up the stack, your tests do not have to be as granular. When y
 
 The same idea applies to network tests with supertest. Supertest tests do not need to repeat everything the controller unit tests do. Comprehensive unit tests are still important. In theory, you could test every case with supertest, but then someone would have to figure out **why** the test failed and **where** in the stack the bug actually lives.
 
+## **Code Coverage**
+
 You can check code coverage as follows:
 
 ```bash
@@ -742,13 +753,11 @@ Even with strong code coverage, tests may still miss some failure modes. These t
 
 1. Logoff is a post operation that could be triggered by cross-site request forgery. A test is needed to verify that this protection is in place. An attacker may not gain much by triggering logoff, but it is still best practice to block the attack.
 
-2. To do a task operations functional test, first check that task operations cannot be performed without being logged on. Then log on. Then check that data-changing operations, POST, PATCH, and DELETE, cannot be done without a CSRF token. Next, test each task operation for correct responses: POST /tasks, PATCH /task/:id, GET /tasks, GET /tasks/:id, and DELETE /tasks/:id. Also check that PATCH, GET, and DELETE operations do not allow access to data that belongs to another user. This is the minimum, but it may be enough if there are strong unit tests.
+2. To do a task operations functional test, first check that task operations cannot be performed without being logged on. Then log on. Then check that data-changing operations, POST, PATCH, and DELETE, cannot be done without a CSRF token. Next, test each task operation for correct responses: `POST /api/tasks`, `PATCH /api/tasks/:id`, `GET /api/tasks`, `GET /api/tasks/:id`, and `DELETE /api/tasks/:id`. Also check that PATCH, GET, and DELETE operations do not allow access to data that belongs to another user. This is the minimum, but it may be enough if there are strong unit tests.
 
 3. The short answer is that you can never know for sure that you have enough supertest cases. Every operation a user might reasonably perform should be tested. For security, every known attack angle an attacker might use should also be tested.
 
 4. One kind of attack is to put cross-site scripting sequences into stored data. The back end is not directly vulnerable to cross-site scripting because it is not running in a browser. The risk is that an attacker could insert hostile scripts into data stored by the back end, and the front end might later display that data. The sanitizer package included in the app is intended to protect against this, but there should be a test case that proves it is present and working.
-
-## **Code Coverage**
 
 ## **Running the Test of the Tests**
 
@@ -760,13 +769,23 @@ npm run lesson9TDD
 
 This command is different from `npm run test`.
 
-When you run `npm run test`, you are running your tests against your real application code. Those tests should pass when your application and tests are correct.
+The required test numbers are 1–13, 14–32, and 46–52. Tests 33–42 and 61–65 are part of the optional `user.controller.test.js` stretch goal. Numbers 43–45 and 53–60 are intentionally unused.
 
-When you run `npm run lesson9TDD`, you are testing your tests. The command runs your test files against mock versions of some JavaScript files. Those mock files have intentionally introduced bugs. Because the mock code is broken on purpose, you should expect to see some test failures.
+### **Expected Result from `npm run test`**
 
-That is the point of this command. If your tests are strong, they should fail when the mock code is wrong.
+This command runs your tests against your real application code. When your application and tests are correct:
 
-The output may look strange at first because a failure can be a good result here. For example, if a mock controller incorrectly returns a `userId`, then the test that checks that `userId` is not returned should fail. That means your test caught the bug.
+- Every required test you implemented should pass.
+- The final Jest summary should report zero failed test suites and zero failed tests.
+- Jest should finish and return you to the terminal prompt. If it hangs, check that your tests close the server and disconnect Prisma.
+
+The exact number of passing tests depends on whether you completed the optional user-controller tests.
+
+### **Expected Result from `npm run lesson9TDD`**
+
+This command tests your tests. It runs your test files against mock versions of application modules that contain intentionally introduced bugs. You should expect to see individual Jest failures because a strong test should fail when the mock code is wrong.
+
+For example, if a mock controller incorrectly returns a `userId`, the test that checks that `userId` is not returned should fail. That failure means your test caught the bug.
 
 At the end of the run, read the custom report. It will show sections for the required and optional parts of the assignment. In those sections, look for messages like:
 
@@ -775,7 +794,13 @@ At the end of the run, read the custom report. It will show sections for the req
 - `The following tests did not report the expected results`
 - `All implemented tests gave the expected results`
 
-The best result is not "all Jest tests passed." The best result is that the final report says your implemented tests gave the expected results. Some expected results are passes, and some expected results are failures, because the mock files are intentionally wrong in specific ways.
+The successful end result is:
+
+- All required tests you implemented appear under the correct-results section, or the report says `All implemented tests gave the expected results`.
+- No required test appears under `The following tests did not report the expected results`.
+- Tests appear under `not implemented` only when they are optional tests you chose not to complete.
+
+The goal is not for every individual Jest test to pass during `npm run lesson9TDD`. The custom report is the authoritative result because some expected outcomes are failures.
 
 If the report says a test was `not implemented`, check that the `it()` description starts with the correct test number, such as `1.`, `14.`, or `46.`. The reporter uses those numbers to match your tests to the assignment requirements.
 
