@@ -697,7 +697,7 @@ Then, add the following additional tests:
 
 `47.` Registration returns an object with the expected name.
 
-In this case, that value is in saveRes.body.
+Check the name at `saveRes.body.user.name`.
 
 `48.` Test that the returned object includes a csrfToken.
 
