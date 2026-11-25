@@ -133,8 +133,8 @@ Here is a small Supertest example. This assumes your `app.js` exports `app` and 
 const request = require("supertest");
 const { app, server } = require("../app");
 
-afterAll(() => {
-  server.close();
+afterAll(async () => {
+  await new Promise((resolve) => server.close(resolve));
 });
 
 describe("GET /", () => {
@@ -155,4 +155,15 @@ First, we require only one `expect()` per test case. This is a limitation for th
 
 Second, we provide `mocks`. Mocks are fake versions of code that stand in for the project code you write. These mocks intentionally return incorrect results that your tests should catch.
 
-Third, Jest has a reporter function. We provide an interceptor for that reporter, so we can tell if your test reports success when it should not. The TDD checks will not catch every missing test case, but they will help you get started.
+Third, we provide a custom Jest reporter. It compares the observed result of each numbered test with the result expected from the intentionally broken mock, so it can detect when a test reports success when it should not. The TDD checks will not catch every missing test case, but they will help you get started.
+
+### **What Successful Test Runs Look Like**
+
+Assignment 9 uses two commands with different meanings:
+
+- `npm run test` runs your tests against your real application code. When the application and tests are correct, every implemented test should pass and the Jest summary should report zero failed tests.
+- `npm run lesson9TDD` evaluates whether your tests detect intentionally broken mock code. Individual Jest failures are expected during this command because a good test should fail when a mock contains the bug it is meant to catch. The custom report at the end—not the ordinary Jest pass/fail count—tells you whether your tests behaved correctly.
+
+For this assignment, each numbered `it()` block should contain one `expect()` assertion so the custom reporter can evaluate it. Tests 1–32 and 46–52 are required. Tests 33–42 and 61–65 are optional.
+
+The exact number of tests depends on whether you complete the optional tests. The assignment explains the numbering rules and how to read the final custom report.
